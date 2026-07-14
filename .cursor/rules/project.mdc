@@ -1,27 +1,27 @@
 ---
-description: Tổng quan Puchi Backend — Go monorepo với Kratos v3
+description: Tong quan Puchi Backend - Go monorepo voi Kratos v3
 alwaysApply: true
 ---
 
 # Puchi Backend
 
-Monorepo Go microservices với **Kratos v3**. 7 service modules trong `app/`, workspace qua `go.work`.
+Monorepo Go microservices voi **Kratos v3**. 7 service modules trong `app/`, workspace qua `go.work`.
 
 ## Tech Stack
 
-| Thành phần | Công nghệ |
+| Thanh phan | Cong nghe |
 |------------|-----------|
-| Ngôn ngữ | Go 1.26 |
+| Ngon ngu | Go 1.26 |
 | Framework | Kratos v3 (HTTP/gRPC hybrid, Protobuf-first) |
 | DI | Wire (compile-time) |
-| Auth | Supertoken (self-host) |
+| Auth | Supertokens (self-host, Email/Password + Google + Facebook + TikTok) |
 | Database | PostgreSQL 18 (CloudNativePG) |
 | Cache | Valkey/Redis |
 | Message Queue | NATS (event-driven) |
 | Object Storage | Garage (S3 API) |
 | Migration | goose |
 
-## Cấu trúc monorepo
+## Cau truc monorepo
 
 ```
 puchi-backend/
@@ -42,30 +42,30 @@ puchi-backend/
 └── Makefile                       # Build helper
 ```
 
-## Quy tắc layered architecture (Kratos)
+## Quy tac layered architecture (Kratos)
 
 ```
 internal/
-├── service/       # Transport layer — proto server impl, validate input
-├── biz/           # Domain logic — usecases, entities, repo interfaces
-└── data/          # Data layer — repository implementations (DB, cache)
+├── service/       # Transport layer - proto server impl, validate input
+├── biz/           # Domain logic - usecases, entities, repo interfaces
+└── data/          # Data layer - repository implementations (DB, cache)
 ```
 
-**Dependency rule:** `service → biz → data` (biz không import data)
+**Dependency rule:** `service -> biz -> data` (biz khong import data)
 
 ## CI/CD
 
-- **CI**: GitHub Actions (`backend.yml`) — Matrix build 7 services
-- **Docker**: Mỗi service có Dockerfile riêng, Go 1.26
+- **CI**: GitHub Actions (`backend.yml`) - Matrix build 7 services
+- **Docker**: Moi service co Dockerfile rieng, Go 1.26
 - **Registry**: `ghcr.io/puchidemy/puchi-{service}`
 
-## Kết nối Infra
+## Ket noi Infra
 
 | Service | Internal DNS |
 |---------|--------------|
 | PostgreSQL (Puchi) | `pg-puchi-rw.puchi-db.svc.cluster.local:5432` |
-| PostgreSQL (Supertoken) | `pg-supertokens-rw.puchi-db.svc.cluster.local:5432` |
+| PostgreSQL (Supertokens) | `pg-supertokens-rw.puchi-db.svc.cluster.local:5432` |
 | NATS | `nats.platform.svc.cluster.local:4222` |
 | Garage (S3) | `http://garage.platform.svc.cluster.local:3900` |
 | Valkey/Redis | `valkey-node.platform.svc.cluster.local:6379` |
-| Supertoken | `supertokens.puchi-infra.svc.cluster.local:3567` |
+| Supertokens | `supertokens.puchi-infra.svc.cluster.local:3567` |
