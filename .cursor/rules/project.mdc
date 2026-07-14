@@ -1,0 +1,71 @@
+---
+description: Tổng quan Puchi Backend — Go monorepo với Kratos v3
+alwaysApply: true
+---
+
+# Puchi Backend
+
+Monorepo Go microservices với **Kratos v3**. 7 service modules trong `app/`, workspace qua `go.work`.
+
+## Tech Stack
+
+| Thành phần | Công nghệ |
+|------------|-----------|
+| Ngôn ngữ | Go 1.26 |
+| Framework | Kratos v3 (HTTP/gRPC hybrid, Protobuf-first) |
+| DI | Wire (compile-time) |
+| Auth | Supertoken (self-host) |
+| Database | PostgreSQL 18 (CloudNativePG) |
+| Cache | Valkey/Redis |
+| Message Queue | NATS (event-driven) |
+| Object Storage | Garage (S3 API) |
+| Migration | goose |
+
+## Cấu trúc monorepo
+
+```
+puchi-backend/
+├── api/                           # Protobuf definitions CHUNG
+│   ├── auth/v1/
+│   ├── content/v1/
+│   └── ...
+├── app/                           # 7 Go service modules
+│   ├── core/                      # Auth + User + Game (Phase 1)
+│   ├── content/                   # Courses, units, lessons
+│   ├── grading/                   # Dictation, listening grading
+│   ├── user/                      # Profile, settings (Phase 3)
+│   ├── game/                      # XP, leaderboard (Phase 3)
+│   ├── media/                     # Upload, resize (Phase 1)
+│   └── notification/              # Push, email (Phase 3)
+├── pkg/                           # Shared Kit library
+├── go.work                        # Go workspace (dev only)
+└── Makefile                       # Build helper
+```
+
+## Quy tắc layered architecture (Kratos)
+
+```
+internal/
+├── service/       # Transport layer — proto server impl, validate input
+├── biz/           # Domain logic — usecases, entities, repo interfaces
+└── data/          # Data layer — repository implementations (DB, cache)
+```
+
+**Dependency rule:** `service → biz → data` (biz không import data)
+
+## CI/CD
+
+- **CI**: GitHub Actions (`backend.yml`) — Matrix build 7 services
+- **Docker**: Mỗi service có Dockerfile riêng, Go 1.26
+- **Registry**: `ghcr.io/puchidemy/puchi-{service}`
+
+## Kết nối Infra
+
+| Service | Internal DNS |
+|---------|--------------|
+| PostgreSQL (Puchi) | `pg-puchi-rw.puchi-db.svc.cluster.local:5432` |
+| PostgreSQL (Supertoken) | `pg-supertokens-rw.puchi-db.svc.cluster.local:5432` |
+| NATS | `nats.platform.svc.cluster.local:4222` |
+| Garage (S3) | `http://garage.platform.svc.cluster.local:3900` |
+| Valkey/Redis | `valkey-node.platform.svc.cluster.local:6379` |
+| Supertoken | `supertokens.puchi-infra.svc.cluster.local:3567` |

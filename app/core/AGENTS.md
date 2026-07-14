@@ -1,5 +1,9 @@
 # Repository Guidelines
 
+Xem thêm `.cursor/rules/` ở thư mục gốc `puchi-backend/` cho monorepo conventions và kết nối infra.
+
+---
+
 This is a Kratos service template. This file owns the layering contract
 agents must follow when changing the template.
 

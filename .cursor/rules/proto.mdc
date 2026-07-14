@@ -1,0 +1,61 @@
+---
+description: Protobuf conventions cho Puchi API
+globs: api/**/*.proto
+alwaysApply: false
+---
+
+# Protobuf Conventions
+
+## Package naming
+
+```protobuf
+package puchi.{domain}.v1;
+```
+
+Import path: `api/{domain}/v1/{service}.proto`
+
+## File structure
+
+```protobuf
+syntax = "proto3";
+
+package puchi.auth.v1;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+// Service definition
+service AuthService {
+  rpc Register (RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/register"
+      body: "*"
+    };
+  }
+}
+
+// Messages
+message RegisterRequest {
+  string email = 1 [(validate.rules).string.email = true];
+  string password = 2 [(validate.rules).string.min_len = 8];
+}
+
+message RegisterResponse {
+  string user_id = 1;
+  string token = 2;
+}
+```
+
+## Naming rules
+
+- Service: `{Domain}Service` (PascalCase)
+- RPC: `{Verb}{Resource}` (PascalCase)
+- Request/Response: `{RpcName}Request` / `{RpcName}Response`
+- Field: snake_case (proto) → camelCase (Go)
+- Enum: `UPPER_SNAKE_CASE`
+
+## HTTP mapping
+
+- RESTful: `GET/POST/PUT/DELETE /v1/{resource}/:id`
+- Body: `body: "*"` cho POST/PUT
+- gRPC: port 9090, HTTP: port 8080

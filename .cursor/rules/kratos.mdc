@@ -1,0 +1,57 @@
+---
+description: Kratos v3 coding conventions cho Go services
+globs: app/**/*.go
+alwaysApply: false
+---
+
+# Kratos v3 Conventions
+
+## Module name pattern
+
+```
+github.com/puchidemy/puchi-backend/app/{service}
+```
+
+## Layer structure
+
+Mỗi service follow layout Kratos chuẩn:
+
+```
+app/{service}/
+├── cmd/{service}/
+│   ├── main.go          # Entrypoint
+│   ├── wire.go          # Wire DI providers
+│   └── wire_gen.go      # Generated Wire code
+├── internal/
+│   ├── conf/            # Config proto → conf.pb.go
+│   ├── server/          # HTTP + gRPC server bootstrap
+│   ├── service/         # Proto server impl (transport)
+│   ├── biz/             # Domain logic, entities, repo interfaces
+│   └── data/            # Repository implementations
+├── api/todo/v1/         # Proto definitions (move to root api/ later)
+├── configs/             # Kratos config YAML
+├── Dockerfile
+├── Makefile
+└── go.mod
+```
+
+## Coding rules
+
+- **Service layer**: Validate input, ko business logic
+- **Biz layer**: Domain logic, định nghĩa repository interface
+- **Data layer**: Implement repository (GORM, SQL, Redis client)
+- **Wire**: Dùng compile-time DI, ko có `init()` pattern
+- **Error**: Dùng Kratos error với `error_reason.proto`
+- **Logger**: Dùng `log/slog` (Kratos v3 standard)
+- **Config**: Đọc từ `configs/config.yaml`, parse bằng proto
+
+## Event-driven (NATS)
+
+- Service emit event → Grading `lesson.completed` → NATS
+- Service listen event → Game +XP, User update progress, Notification push
+- Subject pattern: `puchi.{domain}.{event}`
+
+## Migrations
+
+- Dùng `goose` cho migration
+- File migration: `migrations/` ở mỗi service
