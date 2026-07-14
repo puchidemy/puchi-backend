@@ -1,0 +1,12 @@
+go 1.26.3
+
+use (
+	./app/content
+	./app/core
+	./app/game
+	./app/grading
+	./app/media
+	./app/notification
+	./app/user
+	./pkg
+)
