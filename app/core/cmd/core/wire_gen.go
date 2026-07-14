@@ -7,12 +7,12 @@
 package main
 
 import (
+	"github.com/go-kratos/kratos/v3"
 	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/core/internal/data"
 	"github.com/puchidemy/puchi-backend/app/core/internal/server"
 	"github.com/puchidemy/puchi-backend/app/core/internal/service"
-	"github.com/go-kratos/kratos/v3"
 	"log/slog"
 )
 
@@ -23,7 +23,7 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, logger *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, confData *conf.Data, auth *conf.Auth, logger *slog.Logger) (*kratos.App, func(), error) {
 	dataData, cleanup, err := data.NewData(confData)
 	if err != nil {
 		return nil, nil, err
@@ -31,8 +31,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger *slog.Logger) 
 	todoRepo := data.NewTodoRepo(dataData)
 	todoUsecase := biz.NewTodoUsecase(todoRepo)
 	todoService := service.NewTodoService(todoUsecase)
-	grpcServer := server.NewGRPCServer(confServer, todoService)
-	httpServer := server.NewHTTPServer(confServer, todoService)
+	grpcServer := server.NewGRPCServer(confServer, auth, todoService)
+	httpServer := server.NewHTTPServer(confServer, auth, todoService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()

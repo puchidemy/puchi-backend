@@ -14,6 +14,7 @@ require (
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/supertokens/supertokens-golang v0.25.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 )
 

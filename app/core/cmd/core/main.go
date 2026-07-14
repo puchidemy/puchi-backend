@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/puchidemy/puchi-backend/app/core/internal/auth"
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
 
 	"github.com/go-kratos/kratos/contrib/otel/v3/tracing"
@@ -78,7 +79,11 @@ func main() {
 		panic(err)
 	}
 
-	app, cleanup, err := wireApp(bc.Server, bc.Data, logger)
+	if err := auth.InitSupertokens(bc.Auth); err != nil {
+		panic(err)
+	}
+
+	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Auth, logger)
 	if err != nil {
 		panic(err)
 	}

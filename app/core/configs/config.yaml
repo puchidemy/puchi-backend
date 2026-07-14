@@ -13,3 +13,12 @@ data:
     addr: 127.0.0.1:6379
     read_timeout: 0.2s
     write_timeout: 0.2s
+auth:
+  supertokens:
+    connection_uri: "http://localhost:30567"
+    api_key: "change-in-production-please"
+    cookie_domain: "localhost"
+    cookie_secure: false
+  public_paths:
+    - /v1/health
+    - /v1/healthz

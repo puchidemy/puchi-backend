@@ -2,6 +2,7 @@ package server
 
 import (
 	v1 "github.com/puchidemy/puchi-backend/app/core/api/todo/v1"
+	"github.com/puchidemy/puchi-backend/app/core/internal/auth"
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/core/internal/service"
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
@@ -13,7 +14,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, todo *service.TodoService) *http.Server {
+func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, todo *service.TodoService) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -26,6 +27,7 @@ func NewHTTPServer(c *conf.Server, todo *service.TodoService) *http.Server {
 				return nil
 			}),
 		),
+		http.Filter(auth.Middleware(authCfg)),
 	}
 	if c.Http.Network != "" {
 		opts = append(opts, http.Network(c.Http.Network))
