@@ -3,6 +3,7 @@ package server
 import (
 	pb "github.com/puchidemy/puchi-backend/app/core/api/profile/v1"
 	"github.com/puchidemy/puchi-backend/app/core/internal/auth"
+	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/core/internal/service"
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
@@ -14,7 +15,9 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, profileService *service.ProfileService) *http.Server {
+func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, profileService *service.ProfileService, profileUC *biz.ProfileUsecase) *http.Server {
+	syncer := auth.NewUserSyncerFromUsecase(profileUC)
+
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -28,7 +31,7 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, profileService *service.P
 			}),
 		),
 		http.Filter(corsFilter),
-		http.Filter(auth.Middleware(authCfg)),
+		http.Filter(auth.Middleware(authCfg, syncer)),
 	}
 	if c.Http.Network != "" {
 		opts = append(opts, http.Network(c.Http.Network))

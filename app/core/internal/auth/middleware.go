@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -13,7 +14,8 @@ import (
 
 // Middleware returns an HTTP middleware that verifies Supertokens sessions.
 // Requests matching public_paths skip verification.
-func Middleware(cfg *conf.Auth) func(http.Handler) http.Handler {
+// If syncer is non-nil, it performs lazy user creation after session verification.
+func Middleware(cfg *conf.Auth, syncer *UserSyncer) func(http.Handler) http.Handler {
 	public := make([]string, len(cfg.PublicPaths))
 	copy(public, cfg.PublicPaths)
 
@@ -44,6 +46,19 @@ func Middleware(cfg *conf.Auth) func(http.Handler) http.Handler {
 			}
 
 			ctx := NewContextWithUserID(r.Context(), sess.GetUserID())
+
+			// Lazy creation: ensure user exists in DB after session verification
+			if syncer != nil {
+				if err := syncer.EnsureUserExists(ctx, sess.GetUserID()); err != nil {
+					// Log but don't block — user has a valid session; transient DB errors
+					// should not reject the request.
+					slog.Warn("auth sync: failed to ensure user exists",
+						"user_id", sess.GetUserID(),
+						"error", err,
+					)
+				}
+			}
+
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
