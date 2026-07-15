@@ -17,6 +17,7 @@ type NotificationPreference struct {
 	Promotions      bool        `db:"promotions"`
 	QuietHoursStart pgtype.Time `db:"quiet_hours_start"`
 	QuietHoursEnd   pgtype.Time `db:"quiet_hours_end"`
+	Timezone        string      `db:"timezone"`
 }
 
 type NotificationTemplate struct {

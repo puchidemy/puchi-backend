@@ -2,6 +2,10 @@ package service
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
+	"os"
 
 	pb "github.com/puchidemy/puchi-backend/app/user/api/social/v1"
 	"github.com/puchidemy/puchi-backend/app/user/internal/biz"
@@ -26,14 +30,37 @@ func NewSocialService(uc *biz.SocialUsecase) *SocialService {
 
 // userIDFromContext extracts the authenticated user ID from the request context.
 // Envoy Gateway injects X-User-ID header after auth verification.
+// If X-User-ID-Signature is present, it is verified using HMAC-SHA256
+// with the shared secret from HMAC_SECRET env var. If not present,
+// the header is trusted directly (dev mode behind Envoy).
 func userIDFromContext(ctx context.Context) (string, error) {
-	if tr, ok := transport.FromServerContext(ctx); ok {
-		userID := tr.RequestHeader().Get("X-User-ID")
-		if userID != "" {
-			return userID, nil
+	tr, ok := transport.FromServerContext(ctx)
+	if !ok {
+		return "", status.Error(codes.Unauthenticated, "missing transport context")
+	}
+
+	userID := tr.RequestHeader().Get("X-User-ID")
+	if userID == "" {
+		return "", status.Error(codes.Unauthenticated, "missing user id")
+	}
+
+	signature := tr.RequestHeader().Get("X-User-ID-Signature")
+	if signature != "" {
+		secret := os.Getenv("HMAC_SECRET")
+		if secret == "" {
+			return "", status.Error(codes.Internal, "HMAC_SECRET not configured")
+		}
+
+		mac := hmac.New(sha256.New, []byte(secret))
+		mac.Write([]byte(userID))
+		expected := base64.StdEncoding.EncodeToString(mac.Sum(nil))
+
+		if !hmac.Equal([]byte(signature), []byte(expected)) {
+			return "", status.Error(codes.Unauthenticated, "invalid user id signature")
 		}
 	}
-	return "", status.Error(codes.Unauthenticated, "missing user id")
+
+	return userID, nil
 }
 
 // Follow follows a user.
@@ -100,6 +127,9 @@ func (s *SocialService) ListFollowers(ctx context.Context, req *pb.ListFollowers
 
 // SearchUsers searches for users.
 func (s *SocialService) SearchUsers(ctx context.Context, req *pb.SearchUsersRequest) (*pb.SocialUserList, error) {
+	if len(req.Query) < 2 {
+		return nil, status.Error(codes.InvalidArgument, "query must be at least 2 characters")
+	}
 	userID, err := userIDFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -189,10 +219,7 @@ func searchUserRowsToProto(rows []gen.SearchUsersRow) []*pb.SocialUser {
 func leaderboardRowsToProto(rows []gen.GetWeeklyLeaderboardRow, currentUserID string) []*pb.LeaderboardEntry {
 	items := make([]*pb.LeaderboardEntry, len(rows))
 	for i, r := range rows {
-		rank := int32(0)
-		if r.Rank != nil {
-			rank = *r.Rank
-		}
+		rank := r.Rank
 		items[i] = &pb.LeaderboardEntry{
 			Rank:          rank,
 			UserId:        r.UserID,

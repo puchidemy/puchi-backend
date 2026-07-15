@@ -46,6 +46,7 @@ func (r *PreferenceRepo) UpsertPreferences(ctx context.Context, prefs *biz.Prefe
 		Promotions:      prefs.Promotions,
 		QuietHoursStart: stringToPgtTime(prefs.QuietHoursStart),
 		QuietHoursEnd:   stringToPgtTime(prefs.QuietHoursEnd),
+		Timezone:        prefs.Timezone,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("upsert preferences: %w", err)
@@ -63,6 +64,7 @@ func preferenceFromGen(row gen.NotificationPreference) *biz.Preference {
 		Promotions:      row.Promotions,
 		QuietHoursStart: pgtTimeToString(row.QuietHoursStart),
 		QuietHoursEnd:   pgtTimeToString(row.QuietHoursEnd),
+		Timezone:        row.Timezone,
 	}
 }
 

@@ -35,14 +35,14 @@ func (s *StatsService) GetStats(ctx context.Context, _ *emptypb.Empty) (*pb.Stat
 		return nil, status.Error(codes.NotFound, "stats not found")
 	}
 
-	return statsToProto(stats, s.uc.GetXPToNextLevel(stats.Level)), nil
+	return statsToProto(stats, s.uc.GetXPToNextLevel(ctx, stats.Level)), nil
 }
 
 // statsToProto converts a gen.CoreUserStat to a proto Stats.
 func statsToProto(stats *gen.CoreUserStat, xpToNextLevel int32) *pb.Stats {
 	return &pb.Stats{
 		TotalLessons:     stats.TotalLessons,
-		CompletedLessons: stats.TotalLessons,
+		CompletedLessons: stats.CompletedLessons,
 		TotalMinutes:     stats.TotalMinutes,
 		Accuracy:         stats.Accuracy,
 		WordsLearned:     stats.WordsLearned,

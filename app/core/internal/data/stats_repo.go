@@ -39,3 +39,13 @@ func (r *StatsRepo) UpdateStats(ctx context.Context, arg gen.UpdateUserStatsPara
 	}
 	return &row, nil
 }
+
+// GetLevelThreshold returns the XP required for a given level.
+func (r *StatsRepo) GetLevelThreshold(ctx context.Context, level int32) (int32, error) {
+	return r.q.GetLevelThreshold(ctx, level)
+}
+
+// GetNextLevelThreshold returns the XP required for the next level.
+func (r *StatsRepo) GetNextLevelThreshold(ctx context.Context, level int32) (int32, error) {
+	return r.q.GetNextLevelThreshold(ctx, level)
+}

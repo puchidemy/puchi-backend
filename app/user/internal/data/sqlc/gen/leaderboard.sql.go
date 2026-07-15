@@ -30,23 +30,24 @@ func (q *Queries) GetUserWeeklyXP(ctx context.Context, arg GetUserWeeklyXPParams
 }
 
 const getWeeklyLeaderboard = `-- name: GetWeeklyLeaderboard :many
-SELECT wl.rank, wl.user_id, u.username, u.avatar_key,
-       COALESCE(us.level, 1) AS level, wl.weekly_xp
+SELECT wl.user_id, u.username, u.avatar_key,
+       COALESCE(us.level, 1) AS level, wl.weekly_xp,
+       ROW_NUMBER() OVER (ORDER BY wl.weekly_xp DESC)::int AS rank
 FROM user_social.weekly_leaderboard wl
 JOIN core.users u ON u.id = wl.user_id
 LEFT JOIN core.user_stats us ON us.user_id = wl.user_id
-WHERE wl.week_start = (SELECT MIN(week_start) FROM user_social.weekly_leaderboard)
-ORDER BY wl.rank ASC
+WHERE wl.week_start = date_trunc('week', current_date)::date
+ORDER BY wl.weekly_xp DESC
 LIMIT $1
 `
 
 type GetWeeklyLeaderboardRow struct {
-	Rank      *int32  `db:"rank"`
 	UserID    string  `db:"user_id"`
 	Username  string  `db:"username"`
 	AvatarKey *string `db:"avatar_key"`
 	Level     int32   `db:"level"`
 	WeeklyXp  int32   `db:"weekly_xp"`
+	Rank      int32   `db:"rank"`
 }
 
 func (q *Queries) GetWeeklyLeaderboard(ctx context.Context, limit int32) ([]GetWeeklyLeaderboardRow, error) {
@@ -59,12 +60,12 @@ func (q *Queries) GetWeeklyLeaderboard(ctx context.Context, limit int32) ([]GetW
 	for rows.Next() {
 		var i GetWeeklyLeaderboardRow
 		if err := rows.Scan(
-			&i.Rank,
 			&i.UserID,
 			&i.Username,
 			&i.AvatarKey,
 			&i.Level,
 			&i.WeeklyXp,
+			&i.Rank,
 		); err != nil {
 			return nil, err
 		}

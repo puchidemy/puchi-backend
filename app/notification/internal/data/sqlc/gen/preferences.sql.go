@@ -12,7 +12,10 @@ import (
 )
 
 const getPreferences = `-- name: GetPreferences :one
-SELECT user_id, push_enabled, email_enabled, streak_reminder, friend_activity, promotions, quiet_hours_start, quiet_hours_end FROM notification.preferences WHERE user_id = $1
+SELECT user_id, push_enabled, email_enabled,
+       streak_reminder, friend_activity, promotions,
+       quiet_hours_start, quiet_hours_end, timezone
+FROM notification.preferences WHERE user_id = $1
 `
 
 func (q *Queries) GetPreferences(ctx context.Context, userID string) (NotificationPreference, error) {
@@ -27,6 +30,7 @@ func (q *Queries) GetPreferences(ctx context.Context, userID string) (Notificati
 		&i.Promotions,
 		&i.QuietHoursStart,
 		&i.QuietHoursEnd,
+		&i.Timezone,
 	)
 	return i, err
 }
@@ -35,8 +39,8 @@ const upsertPreferences = `-- name: UpsertPreferences :one
 INSERT INTO notification.preferences (
     user_id, push_enabled, email_enabled,
     streak_reminder, friend_activity, promotions,
-    quiet_hours_start, quiet_hours_end
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    quiet_hours_start, quiet_hours_end, timezone
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 ON CONFLICT (user_id) DO UPDATE SET
     push_enabled      = COALESCE($2, notification.preferences.push_enabled),
     email_enabled     = COALESCE($3, notification.preferences.email_enabled),
@@ -44,8 +48,11 @@ ON CONFLICT (user_id) DO UPDATE SET
     friend_activity   = COALESCE($5, notification.preferences.friend_activity),
     promotions        = COALESCE($6, notification.preferences.promotions),
     quiet_hours_start = COALESCE($7, notification.preferences.quiet_hours_start),
-    quiet_hours_end   = COALESCE($8, notification.preferences.quiet_hours_end)
-RETURNING user_id, push_enabled, email_enabled, streak_reminder, friend_activity, promotions, quiet_hours_start, quiet_hours_end
+    quiet_hours_end   = COALESCE($8, notification.preferences.quiet_hours_end),
+    timezone          = COALESCE($9, notification.preferences.timezone)
+RETURNING user_id, push_enabled, email_enabled,
+          streak_reminder, friend_activity, promotions,
+          quiet_hours_start, quiet_hours_end, timezone
 `
 
 type UpsertPreferencesParams struct {
@@ -57,6 +64,7 @@ type UpsertPreferencesParams struct {
 	Promotions      bool        `db:"promotions"`
 	QuietHoursStart pgtype.Time `db:"quiet_hours_start"`
 	QuietHoursEnd   pgtype.Time `db:"quiet_hours_end"`
+	Timezone        string      `db:"timezone"`
 }
 
 func (q *Queries) UpsertPreferences(ctx context.Context, arg UpsertPreferencesParams) (NotificationPreference, error) {
@@ -69,6 +77,7 @@ func (q *Queries) UpsertPreferences(ctx context.Context, arg UpsertPreferencesPa
 		arg.Promotions,
 		arg.QuietHoursStart,
 		arg.QuietHoursEnd,
+		arg.Timezone,
 	)
 	var i NotificationPreference
 	err := row.Scan(
@@ -80,6 +89,7 @@ func (q *Queries) UpsertPreferences(ctx context.Context, arg UpsertPreferencesPa
 		&i.Promotions,
 		&i.QuietHoursStart,
 		&i.QuietHoursEnd,
+		&i.Timezone,
 	)
 	return i, err
 }

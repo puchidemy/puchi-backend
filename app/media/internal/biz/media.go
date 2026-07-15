@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"mime"
-	"path/filepath"
+	"path"
 	"strings"
 	"time"
 
@@ -91,9 +91,22 @@ func (uc *MediaUsecase) RequestUpload(ctx context.Context, userID, category, con
 	return obj, uploadURL, objectKey, ttl, nil
 }
 
-// FinalizeUpload marks a media object as uploaded.
+// FinalizeUpload marks a media object as uploaded after verifying the upload.
 func (uc *MediaUsecase) FinalizeUpload(ctx context.Context, mediaID int64) (*gen.MediaObject, error) {
-	obj, err := uc.repo.UpdateMediaStatus(ctx, mediaID, "ready")
+	obj, err := uc.repo.GetMediaObject(ctx, mediaID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrMediaNotFound, err)
+	}
+
+	exists, err := uc.storage.ObjectExists(obj.ObjectKey)
+	if err != nil {
+		return nil, fmt.Errorf("check object exists: %w", err)
+	}
+	if !exists {
+		return nil, fmt.Errorf("upload not completed: object %s not found in storage", obj.ObjectKey)
+	}
+
+	obj, err = uc.repo.UpdateMediaStatus(ctx, mediaID, "ready")
 	if err != nil {
 		return nil, fmt.Errorf("finalize upload: %w", err)
 	}
@@ -153,7 +166,7 @@ func generateObjectKey(category, userID, contentType string) string {
 	}
 	ext = normalizeExt(ext)
 	uid := uuid.New().String()
-	return filepath.Join(category, userID, uid+ext)
+	return path.Join(category, userID, uid+ext)
 }
 
 // normalizeExt normalizes common file extensions.

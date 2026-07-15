@@ -19,7 +19,7 @@ func (q *Queries) CreateUserStats(ctx context.Context, userID string) error {
 }
 
 const getUserStats = `-- name: GetUserStats :one
-SELECT user_id, current_xp, total_xp, level, current_streak, longest_streak, streak_freezes, crowns, gems, total_lessons, total_minutes, accuracy, words_learned, updated_at FROM core.user_stats WHERE user_id = $1
+SELECT user_id, current_xp, total_xp, level, current_streak, longest_streak, streak_freezes, crowns, gems, total_lessons, total_minutes, accuracy, words_learned, updated_at, completed_lessons FROM core.user_stats WHERE user_id = $1
 `
 
 func (q *Queries) GetUserStats(ctx context.Context, userID string) (CoreUserStat, error) {
@@ -40,6 +40,7 @@ func (q *Queries) GetUserStats(ctx context.Context, userID string) (CoreUserStat
 		&i.Accuracy,
 		&i.WordsLearned,
 		&i.UpdatedAt,
+		&i.CompletedLessons,
 	)
 	return i, err
 }
@@ -47,21 +48,23 @@ func (q *Queries) GetUserStats(ctx context.Context, userID string) (CoreUserStat
 const updateUserStats = `-- name: UpdateUserStats :one
 UPDATE core.user_stats
 SET current_xp = $2, total_xp = $3, level = $4, current_streak = $5,
-    total_lessons = $6, total_minutes = $7, accuracy = $8, words_learned = $9, updated_at = now()
+    total_lessons = $6, completed_lessons = $7,
+    total_minutes = $8, accuracy = $9, words_learned = $10, updated_at = now()
 WHERE user_id = $1
-RETURNING user_id, current_xp, total_xp, level, current_streak, longest_streak, streak_freezes, crowns, gems, total_lessons, total_minutes, accuracy, words_learned, updated_at
+RETURNING user_id, current_xp, total_xp, level, current_streak, longest_streak, streak_freezes, crowns, gems, total_lessons, total_minutes, accuracy, words_learned, updated_at, completed_lessons
 `
 
 type UpdateUserStatsParams struct {
-	UserID        string  `db:"user_id"`
-	CurrentXp     int32   `db:"current_xp"`
-	TotalXp       int32   `db:"total_xp"`
-	Level         int32   `db:"level"`
-	CurrentStreak int32   `db:"current_streak"`
-	TotalLessons  int32   `db:"total_lessons"`
-	TotalMinutes  int32   `db:"total_minutes"`
-	Accuracy      float32 `db:"accuracy"`
-	WordsLearned  int32   `db:"words_learned"`
+	UserID           string  `db:"user_id"`
+	CurrentXp        int32   `db:"current_xp"`
+	TotalXp          int32   `db:"total_xp"`
+	Level            int32   `db:"level"`
+	CurrentStreak    int32   `db:"current_streak"`
+	TotalLessons     int32   `db:"total_lessons"`
+	CompletedLessons int32   `db:"completed_lessons"`
+	TotalMinutes     int32   `db:"total_minutes"`
+	Accuracy         float32 `db:"accuracy"`
+	WordsLearned     int32   `db:"words_learned"`
 }
 
 func (q *Queries) UpdateUserStats(ctx context.Context, arg UpdateUserStatsParams) (CoreUserStat, error) {
@@ -72,6 +75,7 @@ func (q *Queries) UpdateUserStats(ctx context.Context, arg UpdateUserStatsParams
 		arg.Level,
 		arg.CurrentStreak,
 		arg.TotalLessons,
+		arg.CompletedLessons,
 		arg.TotalMinutes,
 		arg.Accuracy,
 		arg.WordsLearned,
@@ -92,6 +96,7 @@ func (q *Queries) UpdateUserStats(ctx context.Context, arg UpdateUserStatsParams
 		&i.Accuracy,
 		&i.WordsLearned,
 		&i.UpdatedAt,
+		&i.CompletedLessons,
 	)
 	return i, err
 }

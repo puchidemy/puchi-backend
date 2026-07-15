@@ -59,20 +59,21 @@ type CoreUserAchievement struct {
 }
 
 type CoreUserStat struct {
-	UserID        string    `db:"user_id"`
-	CurrentXp     int32     `db:"current_xp"`
-	TotalXp       int32     `db:"total_xp"`
-	Level         int32     `db:"level"`
-	CurrentStreak int32     `db:"current_streak"`
-	LongestStreak int32     `db:"longest_streak"`
-	StreakFreezes int32     `db:"streak_freezes"`
-	Crowns        int32     `db:"crowns"`
-	Gems          int32     `db:"gems"`
-	TotalLessons  int32     `db:"total_lessons"`
-	TotalMinutes  int32     `db:"total_minutes"`
-	Accuracy      float32   `db:"accuracy"`
-	WordsLearned  int32     `db:"words_learned"`
-	UpdatedAt     time.Time `db:"updated_at"`
+	UserID           string    `db:"user_id"`
+	CurrentXp        int32     `db:"current_xp"`
+	TotalXp          int32     `db:"total_xp"`
+	Level            int32     `db:"level"`
+	CurrentStreak    int32     `db:"current_streak"`
+	LongestStreak    int32     `db:"longest_streak"`
+	StreakFreezes    int32     `db:"streak_freezes"`
+	Crowns           int32     `db:"crowns"`
+	Gems             int32     `db:"gems"`
+	TotalLessons     int32     `db:"total_lessons"`
+	TotalMinutes     int32     `db:"total_minutes"`
+	Accuracy         float32   `db:"accuracy"`
+	WordsLearned     int32     `db:"words_learned"`
+	UpdatedAt        time.Time `db:"updated_at"`
+	CompletedLessons int32     `db:"completed_lessons"`
 }
 
 type CoreXpHistory struct {

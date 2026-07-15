@@ -12,6 +12,8 @@ import (
 type StatsRepoInterface interface {
 	GetUserStats(ctx context.Context, userID string) (*gen.CoreUserStat, error)
 	UpdateStats(ctx context.Context, arg gen.UpdateUserStatsParams) (*gen.CoreUserStat, error)
+	GetLevelThreshold(ctx context.Context, level int32) (int32, error)
+	GetNextLevelThreshold(ctx context.Context, level int32) (int32, error)
 }
 
 // StatsUsecase handles gamification stats operations.
@@ -33,8 +35,13 @@ func (uc *StatsUsecase) GetStats(ctx context.Context, userID string) (*gen.CoreU
 	return stats, nil
 }
 
-// GetXPToNextLevel calculates the XP required to reach the next level.
-// Formula: ceil(level * 60 * 1.5)
-func (uc *StatsUsecase) GetXPToNextLevel(level int32) int32 {
+// GetXPToNextLevel returns the XP required to reach the next level.
+// It queries the level_thresholds table for the correct value.
+// Falls back to the formula-based calculation if not found in DB.
+func (uc *StatsUsecase) GetXPToNextLevel(ctx context.Context, level int32) int32 {
+	xp, err := uc.repo.GetNextLevelThreshold(ctx, level+1)
+	if err == nil {
+		return xp
+	}
 	return int32(math.Ceil(float64(level) * 60 * 1.5))
 }

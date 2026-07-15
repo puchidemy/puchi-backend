@@ -12,6 +12,8 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (CoreUser, error)
 	CreateUserStats(ctx context.Context, userID string) error
 	DeleteUser(ctx context.Context, id string) error
+	GetLevelThreshold(ctx context.Context, level int32) (int32, error)
+	GetNextLevelThreshold(ctx context.Context, level int32) (int32, error)
 	GetUser(ctx context.Context, id string) (CoreUser, error)
 	GetUserAchievement(ctx context.Context, arg GetUserAchievementParams) (CoreUserAchievement, error)
 	GetUserByEmail(ctx context.Context, email string) (CoreUser, error)

@@ -24,6 +24,7 @@ type Preference struct {
 	Promotions      bool
 	QuietHoursStart *string
 	QuietHoursEnd   *string
+	Timezone        string
 }
 
 // GotifySender sends push notifications via Gotify.
@@ -111,7 +112,15 @@ func inQuietHours(prefs *Preference) bool {
 	if prefs.QuietHoursStart == nil || prefs.QuietHoursEnd == nil {
 		return false
 	}
-	now := time.Now()
+
+	loc := time.UTC
+	if prefs.Timezone != "" {
+		if l, err := time.LoadLocation(prefs.Timezone); err == nil {
+			loc = l
+		}
+	}
+	now := time.Now().In(loc)
+
 	start, err := time.Parse("15:04", *prefs.QuietHoursStart)
 	if err != nil {
 		return false
