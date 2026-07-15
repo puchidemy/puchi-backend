@@ -1,7 +1,7 @@
 FROM golang:1.26 AS builder
 COPY . /src
 WORKDIR /src
-RUN make build
+RUN make tidy && make build
 
 FROM debian:stable-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
