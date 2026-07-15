@@ -14,16 +14,16 @@ import (
 // Middleware returns an HTTP middleware that verifies Supertokens sessions.
 // Requests matching public_paths skip verification.
 func Middleware(cfg *conf.Auth) func(http.Handler) http.Handler {
-	public := make(map[string]bool, len(cfg.PublicPaths))
-	for _, p := range cfg.PublicPaths {
-		public[p] = true
-	}
+	public := make([]string, len(cfg.PublicPaths))
+	copy(public, cfg.PublicPaths)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if public[r.URL.Path] {
-				next.ServeHTTP(w, r)
-				return
+			for _, p := range public {
+				if strings.HasPrefix(r.URL.Path, p) {
+					next.ServeHTTP(w, r)
+					return
+				}
 			}
 
 			wrapper := newResponseWriter(w)
