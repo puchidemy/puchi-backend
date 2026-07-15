@@ -18,8 +18,14 @@ func NewUserRepo(pool *pgxpool.Pool) *UserRepo {
 }
 
 // CreateUser inserts a new user and returns it.
-func (r *UserRepo) CreateUser(ctx context.Context, arg gen.CreateUserParams) (*gen.CoreUser, error) {
-	row, err := r.q.CreateUser(ctx, arg)
+func (r *UserRepo) CreateUser(ctx context.Context, id, username, email, firstName, lastName string) (*gen.CoreUser, error) {
+	row, err := r.q.CreateUser(ctx, gen.CreateUserParams{
+		ID:        id,
+		Username:  username,
+		Email:     email,
+		FirstName: firstName,
+		LastName:  lastName,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -45,8 +51,15 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*gen.CoreU
 }
 
 // UpdateUser updates a user and returns the updated row.
-func (r *UserRepo) UpdateUser(ctx context.Context, arg gen.UpdateUserParams) (*gen.CoreUser, error) {
-	row, err := r.q.UpdateUser(ctx, arg)
+func (r *UserRepo) UpdateUser(ctx context.Context, id, firstName, lastName, username string, bio, avatarKey *string) (*gen.CoreUser, error) {
+	row, err := r.q.UpdateUser(ctx, gen.UpdateUserParams{
+		ID:        id,
+		FirstName: firstName,
+		LastName:  lastName,
+		Username:  username,
+		Bio:       bio,
+		AvatarKey: avatarKey,
+	})
 	if err != nil {
 		return nil, err
 	}
