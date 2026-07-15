@@ -4,6 +4,7 @@ go 1.26.0
 
 require (
 	github.com/google/wire v0.6.0
+	github.com/jackc/pgx/v5 v5.10.0
 	github.com/supertokens/supertokens-golang v0.25.2
 	go.einride.tech/aip v0.86.3
 	go.uber.org/automaxprocs v1.6.0
@@ -20,7 +21,6 @@ require (
 	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.10.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect

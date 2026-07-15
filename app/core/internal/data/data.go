@@ -5,15 +5,16 @@ import (
 
 	"github.com/google/wire"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewUserRepo)
+var ProviderSet = wire.NewSet(NewData, NewUserRepo, wire.FieldsOf(new(*Data), "Pool"), wire.Bind(new(biz.UserRepoInterface), new(*UserRepo)))
 
 // Data .
 type Data struct {
-	pool *pgxpool.Pool
+	Pool *pgxpool.Pool
 }
 
 // NewData .
@@ -25,5 +26,5 @@ func NewData(cfg *conf.Data) (*Data, func(), error) {
 	cleanup := func() {
 		pool.Close()
 	}
-	return &Data{pool: pool}, cleanup, nil
+	return &Data{Pool: pool}, cleanup, nil
 }
