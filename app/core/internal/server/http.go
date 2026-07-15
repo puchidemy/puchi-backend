@@ -27,6 +27,7 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, todo *service.TodoService
 				return nil
 			}),
 		),
+		http.Filter(corsFilter),
 		http.Filter(auth.Middleware(authCfg)),
 	}
 	if c.Http.Network != "" {
