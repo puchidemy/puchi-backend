@@ -7,9 +7,11 @@ server:
     timeout: 1s
 data:
   database:
-    driver: mysql
-    source: root:root@tcp(127.0.0.1:3306)/test?parseTime=True&loc=Local
+    source: "postgresql://puchi:puchi-db-prod@192.168.100.201:30433/puchi?sslmode=disable"
   redis:
     addr: 127.0.0.1:6379
     read_timeout: 0.2s
     write_timeout: 0.2s
+gotify:
+  url: "http://gotify.platform.svc.cluster.local"
+  token: "change-me-in-production"

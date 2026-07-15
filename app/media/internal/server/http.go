@@ -1,7 +1,7 @@
 package server
 
 import (
-	v1 "github.com/puchidemy/puchi-backend/app/media/api/todo/v1"
+	pb "github.com/puchidemy/puchi-backend/app/media/api/media/v1"
 	"github.com/puchidemy/puchi-backend/app/media/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/media/internal/service"
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
@@ -13,7 +13,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, todo *service.TodoService) *http.Server {
+func NewHTTPServer(c *conf.Server, mediaService *service.MediaService) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -37,6 +37,6 @@ func NewHTTPServer(c *conf.Server, todo *service.TodoService) *http.Server {
 		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
 	}
 	srv := http.NewServer(opts...)
-	v1.RegisterTodoServiceHTTPServer(srv, todo)
+	pb.RegisterMediaServiceHTTPServer(srv, mediaService)
 	return srv
 }

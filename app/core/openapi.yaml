@@ -35,6 +35,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/puchi.core.profile.v1.User'
+    /v1/profile/achievements:
+        get:
+            tags:
+                - ProfileService
+            operationId: ProfileService_ListAchievements
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.profile.v1.AchievementList'
+    /v1/profile/stats:
+        get:
+            tags:
+                - ProfileService
+            operationId: ProfileService_GetStats
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.profile.v1.Stats'
     /v1/todos/create:
         post:
             tags:
@@ -251,6 +275,81 @@ paths:
                     content: {}
 components:
     schemas:
+        puchi.core.profile.v1.Achievement:
+            type: object
+            properties:
+                id:
+                    type: string
+                title:
+                    type: string
+                description:
+                    type: string
+                icon:
+                    type: string
+                color:
+                    type: string
+                progress:
+                    type: integer
+                    format: int32
+                progressLabel:
+                    type: string
+                unlocked:
+                    type: boolean
+                unlockedAt:
+                    type: string
+                    format: date-time
+        puchi.core.profile.v1.AchievementList:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/puchi.core.profile.v1.Achievement'
+        puchi.core.profile.v1.Stats:
+            type: object
+            properties:
+                totalLessons:
+                    type: integer
+                    format: int32
+                completedLessons:
+                    type: integer
+                    format: int32
+                totalMinutes:
+                    type: integer
+                    format: int32
+                accuracy:
+                    type: number
+                    format: float
+                wordsLearned:
+                    type: integer
+                    format: int32
+                currentXp:
+                    type: integer
+                    format: int32
+                totalXp:
+                    type: integer
+                    format: int32
+                level:
+                    type: integer
+                    format: int32
+                xpToNextLevel:
+                    type: integer
+                    format: int32
+                streak:
+                    type: integer
+                    format: int32
+                longestStreak:
+                    type: integer
+                    format: int32
+                streakFreezes:
+                    type: integer
+                    format: int32
+                crowns:
+                    type: integer
+                    format: int32
+                gems:
+                    type: integer
+                    format: int32
         puchi.core.profile.v1.UpdateProfileRequest:
             type: object
             properties:

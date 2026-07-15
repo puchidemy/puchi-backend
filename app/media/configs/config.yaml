@@ -7,9 +7,20 @@ server:
     timeout: 1s
 data:
   database:
-    driver: mysql
-    source: root:root@tcp(127.0.0.1:3306)/test?parseTime=True&loc=Local
+    driver: postgresql
+    source: "postgresql://puchi:puchi-db-prod@192.168.100.201:30433/puchi?sslmode=disable"
   redis:
     addr: 127.0.0.1:6379
     read_timeout: 0.2s
     write_timeout: 0.2s
+media:
+  storage:
+    endpoint: "http://localhost:3900"
+    access_key_id: "puchi"
+    secret_access_key: "change-in-production"
+    bucket: "puchi-media"
+    use_ssl: false
+    region: "garage"
+  upload:
+    max_size_bytes: 10485760
+    presigned_url_ttl: 900

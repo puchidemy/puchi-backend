@@ -19,10 +19,14 @@ var _ = new(context.Context)
 const _ = http.SupportPackageIsVersion3
 
 const OperationProfileServiceGetProfile = "/puchi.core.profile.v1.ProfileService/GetProfile"
+const OperationProfileServiceGetStats = "/puchi.core.profile.v1.ProfileService/GetStats"
+const OperationProfileServiceListAchievements = "/puchi.core.profile.v1.ProfileService/ListAchievements"
 const OperationProfileServiceUpdateProfile = "/puchi.core.profile.v1.ProfileService/UpdateProfile"
 
 type ProfileServiceHTTPServer interface {
 	GetProfile(context.Context, *emptypb.Empty) (*User, error)
+	GetStats(context.Context, *emptypb.Empty) (*Stats, error)
+	ListAchievements(context.Context, *emptypb.Empty) (*AchievementList, error)
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*User, error)
 }
 
@@ -30,6 +34,8 @@ func RegisterProfileServiceHTTPServer(s *http.Server, srv ProfileServiceHTTPServ
 	r := s.Route("/")
 	r.Handle("GET", "/v1/profile", _ProfileService_GetProfile0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/profile", _ProfileService_UpdateProfile0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/profile/stats", _ProfileService_GetStats0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/profile/achievements", _ProfileService_ListAchievements0_HTTP_Handler(srv))
 }
 
 func _ProfileService_GetProfile0_HTTP_Handler(srv ProfileServiceHTTPServer) func(ctx http.Context) error {
@@ -70,8 +76,48 @@ func _ProfileService_UpdateProfile0_HTTP_Handler(srv ProfileServiceHTTPServer) f
 	}
 }
 
+func _ProfileService_GetStats0_HTTP_Handler(srv ProfileServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in emptypb.Empty
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationProfileServiceGetStats)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetStats(ctx, req.(*emptypb.Empty))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*Stats)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ProfileService_ListAchievements0_HTTP_Handler(srv ProfileServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in emptypb.Empty
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationProfileServiceListAchievements)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListAchievements(ctx, req.(*emptypb.Empty))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*AchievementList)
+		return ctx.Result(200, reply)
+	}
+}
+
 type ProfileServiceHTTPClient interface {
 	GetProfile(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *User, err error)
+	GetStats(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *Stats, err error)
+	ListAchievements(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *AchievementList, err error)
 	UpdateProfile(ctx context.Context, req *UpdateProfileRequest, opts ...http.CallOption) (rsp *User, err error)
 }
 
@@ -90,6 +136,38 @@ func (c *ProfileServiceHTTPClientImpl) GetProfile(ctx context.Context, in *empty
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationProfileServiceGetProfile),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *ProfileServiceHTTPClientImpl) GetStats(ctx context.Context, in *emptypb.Empty, opts ...http.CallOption) (*Stats, error) {
+	var out Stats
+	pattern := "/v1/profile/stats"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationProfileServiceGetStats),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *ProfileServiceHTTPClientImpl) ListAchievements(ctx context.Context, in *emptypb.Empty, opts ...http.CallOption) (*AchievementList, error) {
+	var out AchievementList
+	pattern := "/v1/profile/achievements"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationProfileServiceListAchievements),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

@@ -7,12 +7,12 @@
 package main
 
 import (
+	"github.com/go-kratos/kratos/v3"
 	"github.com/puchidemy/puchi-backend/app/user/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/user/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/user/internal/data"
 	"github.com/puchidemy/puchi-backend/app/user/internal/server"
 	"github.com/puchidemy/puchi-backend/app/user/internal/service"
-	"github.com/go-kratos/kratos/v3"
 	"log/slog"
 )
 
@@ -28,11 +28,12 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger *slog.Logger) 
 	if err != nil {
 		return nil, nil, err
 	}
-	todoRepo := data.NewTodoRepo(dataData)
-	todoUsecase := biz.NewTodoUsecase(todoRepo)
-	todoService := service.NewTodoService(todoUsecase)
-	grpcServer := server.NewGRPCServer(confServer, todoService)
-	httpServer := server.NewHTTPServer(confServer, todoService)
+	pool := dataData.Pool
+	socialRepo := data.NewSocialRepo(pool)
+	socialUsecase := biz.NewSocialUsecase(socialRepo)
+	socialService := service.NewSocialService(socialUsecase)
+	grpcServer := server.NewGRPCServer(confServer, socialService)
+	httpServer := server.NewHTTPServer(confServer, socialService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()

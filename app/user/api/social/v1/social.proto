@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package puchi.user.social.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/puchidemy/puchi-backend/app/user/api/social/v1;v1";
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.social.v1";
+option java_outer_classname = "SocialProto";
+
+service SocialService {
+  rpc Follow(FollowRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/v1/social/follow"; body: "*" };
+  }
+  rpc Unfollow(UnfollowRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { delete: "/v1/social/follow/{following_id}" };
+  }
+  rpc ListFollowing(ListFollowingRequest) returns (SocialUserList);
+  rpc ListFollowers(ListFollowersRequest) returns (SocialUserList);
+  rpc SearchUsers(SearchUsersRequest) returns (SocialUserList);
+  rpc GetWeeklyLeaderboard(google.protobuf.Empty) returns (LeaderboardList);
+}
+
+message FollowRequest {
+  string following_id = 1;
+}
+message UnfollowRequest { string following_id = 1; }
+message ListFollowingRequest { optional string page_token = 1; int32 page_size = 2; }
+message ListFollowersRequest { optional string page_token = 1; int32 page_size = 2; }
+message SearchUsersRequest { string query = 1; int32 page_size = 2; }
+
+message SocialUser {
+  string id = 1;
+  string username = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string avatar_url = 5;
+  int32 level = 6;
+  int32 streak = 7;
+  bool is_following = 8;
+}
+message SocialUserList { repeated SocialUser items = 1; }
+
+message LeaderboardEntry {
+  int32 rank = 1;
+  string user_id = 2;
+  string username = 3;
+  string avatar_url = 4;
+  int32 level = 5;
+  int32 weekly_xp = 6;
+  bool is_current_user = 7;
+}
+message LeaderboardList { repeated LeaderboardEntry items = 1; }

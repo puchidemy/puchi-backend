@@ -1,7 +1,7 @@
 package server
 
 import (
-	v1 "github.com/puchidemy/puchi-backend/app/media/api/todo/v1"
+	pb "github.com/puchidemy/puchi-backend/app/media/api/media/v1"
 	"github.com/puchidemy/puchi-backend/app/media/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/media/internal/service"
 
@@ -10,7 +10,7 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, todo *service.TodoService) *grpc.Server {
+func NewGRPCServer(c *conf.Server, mediaService *service.MediaService) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
@@ -26,6 +26,6 @@ func NewGRPCServer(c *conf.Server, todo *service.TodoService) *grpc.Server {
 		opts = append(opts, grpc.Timeout(c.Grpc.Timeout.AsDuration()))
 	}
 	srv := grpc.NewServer(opts...)
-	v1.RegisterTodoServiceServer(srv, todo)
+	pb.RegisterMediaServiceServer(srv, mediaService)
 	return srv
 }

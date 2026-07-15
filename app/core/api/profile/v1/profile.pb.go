@@ -24,6 +24,306 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type Achievement struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Icon          string                 `protobuf:"bytes,4,opt,name=icon,proto3" json:"icon,omitempty"`
+	Color         string                 `protobuf:"bytes,5,opt,name=color,proto3" json:"color,omitempty"`
+	Progress      int32                  `protobuf:"varint,6,opt,name=progress,proto3" json:"progress,omitempty"`
+	ProgressLabel string                 `protobuf:"bytes,7,opt,name=progress_label,json=progressLabel,proto3" json:"progress_label,omitempty"`
+	Unlocked      bool                   `protobuf:"varint,8,opt,name=unlocked,proto3" json:"unlocked,omitempty"`
+	UnlockedAt    *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=unlocked_at,json=unlockedAt,proto3" json:"unlocked_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Achievement) Reset() {
+	*x = Achievement{}
+	mi := &file_profile_v1_profile_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Achievement) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Achievement) ProtoMessage() {}
+
+func (x *Achievement) ProtoReflect() protoreflect.Message {
+	mi := &file_profile_v1_profile_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Achievement.ProtoReflect.Descriptor instead.
+func (*Achievement) Descriptor() ([]byte, []int) {
+	return file_profile_v1_profile_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Achievement) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Achievement) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Achievement) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *Achievement) GetIcon() string {
+	if x != nil {
+		return x.Icon
+	}
+	return ""
+}
+
+func (x *Achievement) GetColor() string {
+	if x != nil {
+		return x.Color
+	}
+	return ""
+}
+
+func (x *Achievement) GetProgress() int32 {
+	if x != nil {
+		return x.Progress
+	}
+	return 0
+}
+
+func (x *Achievement) GetProgressLabel() string {
+	if x != nil {
+		return x.ProgressLabel
+	}
+	return ""
+}
+
+func (x *Achievement) GetUnlocked() bool {
+	if x != nil {
+		return x.Unlocked
+	}
+	return false
+}
+
+func (x *Achievement) GetUnlockedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UnlockedAt
+	}
+	return nil
+}
+
+type AchievementList struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*Achievement         `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AchievementList) Reset() {
+	*x = AchievementList{}
+	mi := &file_profile_v1_profile_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AchievementList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AchievementList) ProtoMessage() {}
+
+func (x *AchievementList) ProtoReflect() protoreflect.Message {
+	mi := &file_profile_v1_profile_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AchievementList.ProtoReflect.Descriptor instead.
+func (*AchievementList) Descriptor() ([]byte, []int) {
+	return file_profile_v1_profile_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *AchievementList) GetItems() []*Achievement {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type Stats struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	TotalLessons     int32                  `protobuf:"varint,1,opt,name=total_lessons,json=totalLessons,proto3" json:"total_lessons,omitempty"`
+	CompletedLessons int32                  `protobuf:"varint,2,opt,name=completed_lessons,json=completedLessons,proto3" json:"completed_lessons,omitempty"`
+	TotalMinutes     int32                  `protobuf:"varint,3,opt,name=total_minutes,json=totalMinutes,proto3" json:"total_minutes,omitempty"`
+	Accuracy         float32                `protobuf:"fixed32,4,opt,name=accuracy,proto3" json:"accuracy,omitempty"`
+	WordsLearned     int32                  `protobuf:"varint,5,opt,name=words_learned,json=wordsLearned,proto3" json:"words_learned,omitempty"`
+	CurrentXp        int32                  `protobuf:"varint,6,opt,name=current_xp,json=currentXp,proto3" json:"current_xp,omitempty"`
+	TotalXp          int32                  `protobuf:"varint,7,opt,name=total_xp,json=totalXp,proto3" json:"total_xp,omitempty"`
+	Level            int32                  `protobuf:"varint,8,opt,name=level,proto3" json:"level,omitempty"`
+	XpToNextLevel    int32                  `protobuf:"varint,9,opt,name=xp_to_next_level,json=xpToNextLevel,proto3" json:"xp_to_next_level,omitempty"`
+	Streak           int32                  `protobuf:"varint,10,opt,name=streak,proto3" json:"streak,omitempty"`
+	LongestStreak    int32                  `protobuf:"varint,11,opt,name=longest_streak,json=longestStreak,proto3" json:"longest_streak,omitempty"`
+	StreakFreezes    int32                  `protobuf:"varint,12,opt,name=streak_freezes,json=streakFreezes,proto3" json:"streak_freezes,omitempty"`
+	Crowns           int32                  `protobuf:"varint,13,opt,name=crowns,proto3" json:"crowns,omitempty"`
+	Gems             int32                  `protobuf:"varint,14,opt,name=gems,proto3" json:"gems,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *Stats) Reset() {
+	*x = Stats{}
+	mi := &file_profile_v1_profile_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Stats) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Stats) ProtoMessage() {}
+
+func (x *Stats) ProtoReflect() protoreflect.Message {
+	mi := &file_profile_v1_profile_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Stats.ProtoReflect.Descriptor instead.
+func (*Stats) Descriptor() ([]byte, []int) {
+	return file_profile_v1_profile_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Stats) GetTotalLessons() int32 {
+	if x != nil {
+		return x.TotalLessons
+	}
+	return 0
+}
+
+func (x *Stats) GetCompletedLessons() int32 {
+	if x != nil {
+		return x.CompletedLessons
+	}
+	return 0
+}
+
+func (x *Stats) GetTotalMinutes() int32 {
+	if x != nil {
+		return x.TotalMinutes
+	}
+	return 0
+}
+
+func (x *Stats) GetAccuracy() float32 {
+	if x != nil {
+		return x.Accuracy
+	}
+	return 0
+}
+
+func (x *Stats) GetWordsLearned() int32 {
+	if x != nil {
+		return x.WordsLearned
+	}
+	return 0
+}
+
+func (x *Stats) GetCurrentXp() int32 {
+	if x != nil {
+		return x.CurrentXp
+	}
+	return 0
+}
+
+func (x *Stats) GetTotalXp() int32 {
+	if x != nil {
+		return x.TotalXp
+	}
+	return 0
+}
+
+func (x *Stats) GetLevel() int32 {
+	if x != nil {
+		return x.Level
+	}
+	return 0
+}
+
+func (x *Stats) GetXpToNextLevel() int32 {
+	if x != nil {
+		return x.XpToNextLevel
+	}
+	return 0
+}
+
+func (x *Stats) GetStreak() int32 {
+	if x != nil {
+		return x.Streak
+	}
+	return 0
+}
+
+func (x *Stats) GetLongestStreak() int32 {
+	if x != nil {
+		return x.LongestStreak
+	}
+	return 0
+}
+
+func (x *Stats) GetStreakFreezes() int32 {
+	if x != nil {
+		return x.StreakFreezes
+	}
+	return 0
+}
+
+func (x *Stats) GetCrowns() int32 {
+	if x != nil {
+		return x.Crowns
+	}
+	return 0
+}
+
+func (x *Stats) GetGems() int32 {
+	if x != nil {
+		return x.Gems
+	}
+	return 0
+}
+
 type User struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -41,7 +341,7 @@ type User struct {
 
 func (x *User) Reset() {
 	*x = User{}
-	mi := &file_profile_v1_profile_proto_msgTypes[0]
+	mi := &file_profile_v1_profile_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -53,7 +353,7 @@ func (x *User) String() string {
 func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
-	mi := &file_profile_v1_profile_proto_msgTypes[0]
+	mi := &file_profile_v1_profile_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -66,7 +366,7 @@ func (x *User) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use User.ProtoReflect.Descriptor instead.
 func (*User) Descriptor() ([]byte, []int) {
-	return file_profile_v1_profile_proto_rawDescGZIP(), []int{0}
+	return file_profile_v1_profile_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *User) GetId() string {
@@ -144,7 +444,7 @@ type UpdateProfileRequest struct {
 
 func (x *UpdateProfileRequest) Reset() {
 	*x = UpdateProfileRequest{}
-	mi := &file_profile_v1_profile_proto_msgTypes[1]
+	mi := &file_profile_v1_profile_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -156,7 +456,7 @@ func (x *UpdateProfileRequest) String() string {
 func (*UpdateProfileRequest) ProtoMessage() {}
 
 func (x *UpdateProfileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_profile_v1_profile_proto_msgTypes[1]
+	mi := &file_profile_v1_profile_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -169,7 +469,7 @@ func (x *UpdateProfileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProfileRequest.ProtoReflect.Descriptor instead.
 func (*UpdateProfileRequest) Descriptor() ([]byte, []int) {
-	return file_profile_v1_profile_proto_rawDescGZIP(), []int{1}
+	return file_profile_v1_profile_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *UpdateProfileRequest) GetFirstName() string {
@@ -204,7 +504,37 @@ var File_profile_v1_profile_proto protoreflect.FileDescriptor
 
 const file_profile_v1_profile_proto_rawDesc = "" +
 	"\n" +
-	"\x18profile/v1/profile.proto\x12\x15puchi.core.profile.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xab\x02\n" +
+	"\x18profile/v1/profile.proto\x12\x15puchi.core.profile.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\x9b\x02\n" +
+	"\vAchievement\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x12\n" +
+	"\x04icon\x18\x04 \x01(\tR\x04icon\x12\x14\n" +
+	"\x05color\x18\x05 \x01(\tR\x05color\x12\x1a\n" +
+	"\bprogress\x18\x06 \x01(\x05R\bprogress\x12%\n" +
+	"\x0eprogress_label\x18\a \x01(\tR\rprogressLabel\x12\x1a\n" +
+	"\bunlocked\x18\b \x01(\bR\bunlocked\x12;\n" +
+	"\vunlocked_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"unlockedAt\"K\n" +
+	"\x0fAchievementList\x128\n" +
+	"\x05items\x18\x01 \x03(\v2\".puchi.core.profile.v1.AchievementR\x05items\"\xca\x03\n" +
+	"\x05Stats\x12#\n" +
+	"\rtotal_lessons\x18\x01 \x01(\x05R\ftotalLessons\x12+\n" +
+	"\x11completed_lessons\x18\x02 \x01(\x05R\x10completedLessons\x12#\n" +
+	"\rtotal_minutes\x18\x03 \x01(\x05R\ftotalMinutes\x12\x1a\n" +
+	"\baccuracy\x18\x04 \x01(\x02R\baccuracy\x12#\n" +
+	"\rwords_learned\x18\x05 \x01(\x05R\fwordsLearned\x12\x1d\n" +
+	"\n" +
+	"current_xp\x18\x06 \x01(\x05R\tcurrentXp\x12\x19\n" +
+	"\btotal_xp\x18\a \x01(\x05R\atotalXp\x12\x14\n" +
+	"\x05level\x18\b \x01(\x05R\x05level\x12'\n" +
+	"\x10xp_to_next_level\x18\t \x01(\x05R\rxpToNextLevel\x12\x16\n" +
+	"\x06streak\x18\n" +
+	" \x01(\x05R\x06streak\x12%\n" +
+	"\x0elongest_streak\x18\v \x01(\x05R\rlongestStreak\x12%\n" +
+	"\x0estreak_freezes\x18\f \x01(\x05R\rstreakFreezes\x12\x16\n" +
+	"\x06crowns\x18\r \x01(\x05R\x06crowns\x12\x12\n" +
+	"\x04gems\x18\x0e \x01(\x05R\x04gems\"\xab\x02\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1d\n" +
@@ -224,11 +554,13 @@ const file_profile_v1_profile_proto_rawDesc = "" +
 	"first_name\x18\x01 \x01(\tR\tfirstName\x12\x1b\n" +
 	"\tlast_name\x18\x02 \x01(\tR\blastName\x12\x1a\n" +
 	"\busername\x18\x03 \x01(\tR\busername\x12\x10\n" +
-	"\x03bio\x18\x04 \x01(\tR\x03bio2\xdb\x01\n" +
+	"\x03bio\x18\x04 \x01(\tR\x03bio2\xae\x03\n" +
 	"\x0eProfileService\x12V\n" +
 	"\n" +
 	"GetProfile\x12\x16.google.protobuf.Empty\x1a\x1b.puchi.core.profile.v1.User\"\x13\x82\xd3\xe4\x93\x02\r\x12\v/v1/profile\x12q\n" +
-	"\rUpdateProfile\x12+.puchi.core.profile.v1.UpdateProfileRequest\x1a\x1b.puchi.core.profile.v1.User\"\x16\x82\xd3\xe4\x93\x02\x10:\x01*\x1a\v/v1/profileBl\n" +
+	"\rUpdateProfile\x12+.puchi.core.profile.v1.UpdateProfileRequest\x1a\x1b.puchi.core.profile.v1.User\"\x16\x82\xd3\xe4\x93\x02\x10:\x01*\x1a\v/v1/profile\x12[\n" +
+	"\bGetStats\x12\x16.google.protobuf.Empty\x1a\x1c.puchi.core.profile.v1.Stats\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/profile/stats\x12t\n" +
+	"\x10ListAchievements\x12\x16.google.protobuf.Empty\x1a&.puchi.core.profile.v1.AchievementList\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/v1/profile/achievementsBl\n" +
 	"\x1bio.grpc.examples.profile.v1B\fProfileProtoP\x01Z=github.com/puchidemy/puchi-backend/app/core/api/profile/v1;v1b\x06proto3"
 
 var (
@@ -243,25 +575,34 @@ func file_profile_v1_profile_proto_rawDescGZIP() []byte {
 	return file_profile_v1_profile_proto_rawDescData
 }
 
-var file_profile_v1_profile_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_profile_v1_profile_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_profile_v1_profile_proto_goTypes = []any{
-	(*User)(nil),                  // 0: puchi.core.profile.v1.User
-	(*UpdateProfileRequest)(nil),  // 1: puchi.core.profile.v1.UpdateProfileRequest
-	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),         // 3: google.protobuf.Empty
+	(*Achievement)(nil),           // 0: puchi.core.profile.v1.Achievement
+	(*AchievementList)(nil),       // 1: puchi.core.profile.v1.AchievementList
+	(*Stats)(nil),                 // 2: puchi.core.profile.v1.Stats
+	(*User)(nil),                  // 3: puchi.core.profile.v1.User
+	(*UpdateProfileRequest)(nil),  // 4: puchi.core.profile.v1.UpdateProfileRequest
+	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),         // 6: google.protobuf.Empty
 }
 var file_profile_v1_profile_proto_depIdxs = []int32{
-	2, // 0: puchi.core.profile.v1.User.created_at:type_name -> google.protobuf.Timestamp
-	2, // 1: puchi.core.profile.v1.User.updated_at:type_name -> google.protobuf.Timestamp
-	3, // 2: puchi.core.profile.v1.ProfileService.GetProfile:input_type -> google.protobuf.Empty
-	1, // 3: puchi.core.profile.v1.ProfileService.UpdateProfile:input_type -> puchi.core.profile.v1.UpdateProfileRequest
-	0, // 4: puchi.core.profile.v1.ProfileService.GetProfile:output_type -> puchi.core.profile.v1.User
-	0, // 5: puchi.core.profile.v1.ProfileService.UpdateProfile:output_type -> puchi.core.profile.v1.User
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	5, // 0: puchi.core.profile.v1.Achievement.unlocked_at:type_name -> google.protobuf.Timestamp
+	0, // 1: puchi.core.profile.v1.AchievementList.items:type_name -> puchi.core.profile.v1.Achievement
+	5, // 2: puchi.core.profile.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	5, // 3: puchi.core.profile.v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	6, // 4: puchi.core.profile.v1.ProfileService.GetProfile:input_type -> google.protobuf.Empty
+	4, // 5: puchi.core.profile.v1.ProfileService.UpdateProfile:input_type -> puchi.core.profile.v1.UpdateProfileRequest
+	6, // 6: puchi.core.profile.v1.ProfileService.GetStats:input_type -> google.protobuf.Empty
+	6, // 7: puchi.core.profile.v1.ProfileService.ListAchievements:input_type -> google.protobuf.Empty
+	3, // 8: puchi.core.profile.v1.ProfileService.GetProfile:output_type -> puchi.core.profile.v1.User
+	3, // 9: puchi.core.profile.v1.ProfileService.UpdateProfile:output_type -> puchi.core.profile.v1.User
+	2, // 10: puchi.core.profile.v1.ProfileService.GetStats:output_type -> puchi.core.profile.v1.Stats
+	1, // 11: puchi.core.profile.v1.ProfileService.ListAchievements:output_type -> puchi.core.profile.v1.AchievementList
+	8, // [8:12] is the sub-list for method output_type
+	4, // [4:8] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_profile_v1_profile_proto_init() }
@@ -275,7 +616,7 @@ func file_profile_v1_profile_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_profile_v1_profile_proto_rawDesc), len(file_profile_v1_profile_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

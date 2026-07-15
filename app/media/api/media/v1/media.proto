@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package puchi.media.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/puchidemy/puchi-backend/app/media/api/media/v1;v1";
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.media.v1";
+option java_outer_classname = "MediaProto";
+
+service MediaService {
+  rpc RequestUploadURL(RequestUploadURLRequest) returns (RequestUploadURLResponse) {
+    option (google.api.http) = { post: "/v1/media/upload-url"; body: "*" };
+  }
+  rpc FinalizeUpload(FinalizeUploadRequest) returns (MediaObject) {
+    option (google.api.http) = { post: "/v1/media/finalize"; body: "*" };
+  }
+  rpc GetMedia(GetMediaRequest) returns (MediaObject);
+  rpc DeleteMedia(DeleteMediaRequest) returns (google.protobuf.Empty);
+}
+
+message RequestUploadURLRequest {
+  string category = 1;       // "avatar", "lesson_image", "lesson_audio", "recording"
+  string content_type = 2;   // "image/webp", "audio/mpeg"
+  int64 content_length = 3;  // for validation
+}
+message RequestUploadURLResponse {
+  string upload_url = 1;
+  string object_key = 2;
+  int64 media_id = 3;
+  int64 expires_in_seconds = 4;
+}
+message FinalizeUploadRequest { int64 media_id = 1; }
+message MediaObject {
+  int64 id = 1;
+  string url = 2;            // CDN or presigned GET URL
+  int64 size_bytes = 3;
+  int32 width = 4;
+  int32 height = 5;
+  int32 duration_ms = 6;
+  string category = 7;
+  string content_type = 8;
+}
+message GetMediaRequest { int64 id = 1; }
+message DeleteMediaRequest { int64 id = 1; }

@@ -17,12 +17,34 @@ import (
 // ProfileService implements both ProfileServiceServer (gRPC) and ProfileServiceHTTPServer (HTTP).
 type ProfileService struct {
 	pb.UnimplementedProfileServiceServer
-	uc *biz.ProfileUsecase
+	uc            *biz.ProfileUsecase
+	achievementUC *biz.AchievementUsecase
+	statsSvc      *StatsService
 }
 
 // NewProfileService creates a new ProfileService.
-func NewProfileService(uc *biz.ProfileUsecase) *ProfileService {
-	return &ProfileService{uc: uc}
+func NewProfileService(uc *biz.ProfileUsecase, achievementUC *biz.AchievementUsecase, statsSvc *StatsService) *ProfileService {
+	return &ProfileService{uc: uc, achievementUC: achievementUC, statsSvc: statsSvc}
+}
+
+// GetStats returns the authenticated user's gamification stats.
+func (s *ProfileService) GetStats(ctx context.Context, req *emptypb.Empty) (*pb.Stats, error) {
+	return s.statsSvc.GetStats(ctx, req)
+}
+
+// ListAchievements returns the authenticated user's achievements with progress.
+func (s *ProfileService) ListAchievements(ctx context.Context, _ *emptypb.Empty) (*pb.AchievementList, error) {
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "not authenticated")
+	}
+
+	items, err := s.achievementUC.ListAchievements(ctx, userID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to list achievements")
+	}
+
+	return achievementItemsToProto(items), nil
 }
 
 // GetProfile returns the authenticated user's profile.
@@ -76,6 +98,28 @@ func userToProto(u *gen.CoreUser) *pb.User {
 		CreatedAt: timestamppb.New(u.CreatedAt),
 		UpdatedAt: timestamppb.New(u.UpdatedAt),
 	}
+}
+
+// achievementItemsToProto converts biz achievement items to proto AchievementList.
+func achievementItemsToProto(items []biz.AchievementItem) *pb.AchievementList {
+	pbItems := make([]*pb.Achievement, 0, len(items))
+	for _, item := range items {
+		a := &pb.Achievement{
+			Id:            item.ID,
+			Title:         item.Title,
+			Description:   item.Description,
+			Icon:          item.Icon,
+			Color:         item.Color,
+			Progress:      item.Progress,
+			ProgressLabel: item.ProgressLabel,
+			Unlocked:      item.Unlocked,
+		}
+		if item.UnlockedAt.Valid {
+			a.UnlockedAt = timestamppb.New(item.UnlockedAt.Time)
+		}
+		pbItems = append(pbItems, a)
+	}
+	return &pb.AchievementList{Items: pbItems}
 }
 
 // safePtr dereferences a string pointer, returning empty string for nil.

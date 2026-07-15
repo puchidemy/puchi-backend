@@ -24,6 +24,49 @@ service ProfileService {
       body: "*"
     };
   }
+
+  rpc GetStats(google.protobuf.Empty) returns (Stats) {
+    option (google.api.http) = {
+      get: "/v1/profile/stats"
+    };
+  }
+
+  rpc ListAchievements(google.protobuf.Empty) returns (AchievementList) {
+    option (google.api.http) = {
+      get: "/v1/profile/achievements"
+    };
+  }
+}
+
+message Achievement {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string icon = 4;
+  string color = 5;
+  int32 progress = 6;
+  string progress_label = 7;
+  bool unlocked = 8;
+  google.protobuf.Timestamp unlocked_at = 9;
+}
+
+message AchievementList { repeated Achievement items = 1; }
+
+message Stats {
+  int32 total_lessons = 1;
+  int32 completed_lessons = 2;
+  int32 total_minutes = 3;
+  float accuracy = 4;
+  int32 words_learned = 5;
+  int32 current_xp = 6;
+  int32 total_xp = 7;
+  int32 level = 8;
+  int32 xp_to_next_level = 9;
+  int32 streak = 10;
+  int32 longest_streak = 11;
+  int32 streak_freezes = 12;
+  int32 crowns = 13;
+  int32 gems = 14;
 }
 
 message User {

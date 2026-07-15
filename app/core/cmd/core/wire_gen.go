@@ -31,7 +31,12 @@ func wireApp(confServer *conf.Server, confData *conf.Data, auth *conf.Auth, logg
 	pool := dataData.Pool
 	userRepo := data.NewUserRepo(pool)
 	profileUsecase := biz.NewProfileUsecase(userRepo)
-	profileService := service.NewProfileService(profileUsecase)
+	achievementRepo := data.NewAchievementRepo(pool)
+	achievementUsecase := biz.NewAchievementUsecase(achievementRepo)
+	statsRepo := data.NewStatsRepo(pool)
+	statsUsecase := biz.NewStatsUsecase(statsRepo)
+	statsService := service.NewStatsService(statsUsecase)
+	profileService := service.NewProfileService(profileUsecase, achievementUsecase, statsService)
 	grpcServer := server.NewGRPCServer(confServer, auth, profileService)
 	httpServer := server.NewHTTPServer(confServer, auth, profileService, profileUsecase)
 	app := newApp(logger, grpcServer, httpServer)

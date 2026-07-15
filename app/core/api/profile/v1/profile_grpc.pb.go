@@ -20,8 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProfileService_GetProfile_FullMethodName    = "/puchi.core.profile.v1.ProfileService/GetProfile"
-	ProfileService_UpdateProfile_FullMethodName = "/puchi.core.profile.v1.ProfileService/UpdateProfile"
+	ProfileService_GetProfile_FullMethodName       = "/puchi.core.profile.v1.ProfileService/GetProfile"
+	ProfileService_UpdateProfile_FullMethodName    = "/puchi.core.profile.v1.ProfileService/UpdateProfile"
+	ProfileService_GetStats_FullMethodName         = "/puchi.core.profile.v1.ProfileService/GetStats"
+	ProfileService_ListAchievements_FullMethodName = "/puchi.core.profile.v1.ProfileService/ListAchievements"
 )
 
 // ProfileServiceClient is the client API for ProfileService service.
@@ -30,6 +32,8 @@ const (
 type ProfileServiceClient interface {
 	GetProfile(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*User, error)
 	UpdateProfile(ctx context.Context, in *UpdateProfileRequest, opts ...grpc.CallOption) (*User, error)
+	GetStats(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Stats, error)
+	ListAchievements(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*AchievementList, error)
 }
 
 type profileServiceClient struct {
@@ -60,12 +64,34 @@ func (c *profileServiceClient) UpdateProfile(ctx context.Context, in *UpdateProf
 	return out, nil
 }
 
+func (c *profileServiceClient) GetStats(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Stats, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Stats)
+	err := c.cc.Invoke(ctx, ProfileService_GetStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileServiceClient) ListAchievements(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*AchievementList, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AchievementList)
+	err := c.cc.Invoke(ctx, ProfileService_ListAchievements_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProfileServiceServer is the server API for ProfileService service.
 // All implementations must embed UnimplementedProfileServiceServer
 // for forward compatibility.
 type ProfileServiceServer interface {
 	GetProfile(context.Context, *emptypb.Empty) (*User, error)
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*User, error)
+	GetStats(context.Context, *emptypb.Empty) (*Stats, error)
+	ListAchievements(context.Context, *emptypb.Empty) (*AchievementList, error)
 	mustEmbedUnimplementedProfileServiceServer()
 }
 
@@ -81,6 +107,12 @@ func (UnimplementedProfileServiceServer) GetProfile(context.Context, *emptypb.Em
 }
 func (UnimplementedProfileServiceServer) UpdateProfile(context.Context, *UpdateProfileRequest) (*User, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateProfile not implemented")
+}
+func (UnimplementedProfileServiceServer) GetStats(context.Context, *emptypb.Empty) (*Stats, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetStats not implemented")
+}
+func (UnimplementedProfileServiceServer) ListAchievements(context.Context, *emptypb.Empty) (*AchievementList, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAchievements not implemented")
 }
 func (UnimplementedProfileServiceServer) mustEmbedUnimplementedProfileServiceServer() {}
 func (UnimplementedProfileServiceServer) testEmbeddedByValue()                        {}
@@ -139,6 +171,42 @@ func _ProfileService_UpdateProfile_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProfileService_GetStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).GetStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfileService_GetStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).GetStats(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProfileService_ListAchievements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).ListAchievements(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfileService_ListAchievements_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).ListAchievements(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProfileService_ServiceDesc is the grpc.ServiceDesc for ProfileService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -153,6 +221,14 @@ var ProfileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateProfile",
 			Handler:    _ProfileService_UpdateProfile_Handler,
+		},
+		{
+			MethodName: "GetStats",
+			Handler:    _ProfileService_GetStats_Handler,
+		},
+		{
+			MethodName: "ListAchievements",
+			Handler:    _ProfileService_ListAchievements_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

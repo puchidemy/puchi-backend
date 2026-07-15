@@ -3,13 +3,43 @@
 
 openapi: 3.0.3
 info:
-    title: TodoService API
-    description: |-
-        TodoService provides a simple CRUD example for managing todo items.
-         It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
-         together with AIP-style list filtering, ordering, and pagination.
+    title: ""
     version: 0.0.1
 paths:
+    /v1/notifications/preferences:
+        get:
+            tags:
+                - NotificationService
+            operationId: NotificationService_GetPreferences
+            parameters:
+                - name: userId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.notification.v1.Preferences'
+        put:
+            tags:
+                - NotificationService
+            operationId: NotificationService_UpdatePreferences
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.notification.v1.UpdatePreferencesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.notification.v1.Preferences'
     /v1/todos/create:
         post:
             tags:
@@ -226,6 +256,36 @@ paths:
                     content: {}
 components:
     schemas:
+        puchi.notification.v1.Preferences:
+            type: object
+            properties:
+                userId:
+                    type: string
+                pushEnabled:
+                    type: boolean
+                emailEnabled:
+                    type: boolean
+                streakReminder:
+                    type: boolean
+                friendActivity:
+                    type: boolean
+                promotions:
+                    type: boolean
+                quietHoursStart:
+                    type: string
+                quietHoursEnd:
+                    type: string
+        puchi.notification.v1.UpdatePreferencesRequest:
+            type: object
+            properties:
+                userId:
+                    type: string
+                pushEnabled:
+                    type: boolean
+                streakReminder:
+                    type: boolean
+                friendActivity:
+                    type: boolean
         todo.v1.SyncTodoRequest:
             type: object
             properties:
@@ -306,4 +366,9 @@ components:
                          Empty when there are no more results.
             description: TodoSet is a paginated collection of todo items returned by ListTodos.
 tags:
+    - name: NotificationService
     - name: TodoService
+      description: |-
+        TodoService provides a simple CRUD example for managing todo items.
+         It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
+         together with AIP-style list filtering, ordering, and pagination.

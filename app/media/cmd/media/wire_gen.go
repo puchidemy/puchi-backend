@@ -7,12 +7,12 @@
 package main
 
 import (
+	"github.com/go-kratos/kratos/v3"
 	"github.com/puchidemy/puchi-backend/app/media/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/media/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/media/internal/data"
 	"github.com/puchidemy/puchi-backend/app/media/internal/server"
 	"github.com/puchidemy/puchi-backend/app/media/internal/service"
-	"github.com/go-kratos/kratos/v3"
 	"log/slog"
 )
 
@@ -23,16 +23,18 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, logger *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, confData *conf.Data, media *conf.Media, logger *slog.Logger) (*kratos.App, func(), error) {
 	dataData, cleanup, err := data.NewData(confData)
 	if err != nil {
 		return nil, nil, err
 	}
-	todoRepo := data.NewTodoRepo(dataData)
-	todoUsecase := biz.NewTodoUsecase(todoRepo)
-	todoService := service.NewTodoService(todoUsecase)
-	grpcServer := server.NewGRPCServer(confServer, todoService)
-	httpServer := server.NewHTTPServer(confServer, todoService)
+	pool := dataData.Pool
+	mediaRepo := data.NewMediaRepo(pool)
+	mockStorage := data.NewStorageProvider()
+	mediaUsecase := biz.NewMediaUsecase(mediaRepo, mockStorage)
+	mediaService := service.NewMediaService(mediaUsecase)
+	grpcServer := server.NewGRPCServer(confServer, mediaService)
+	httpServer := server.NewHTTPServer(confServer, mediaService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()

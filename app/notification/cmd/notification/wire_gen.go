@@ -7,12 +7,12 @@
 package main
 
 import (
+	"github.com/go-kratos/kratos/v3"
 	"github.com/puchidemy/puchi-backend/app/notification/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/notification/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/notification/internal/data"
 	"github.com/puchidemy/puchi-backend/app/notification/internal/server"
 	"github.com/puchidemy/puchi-backend/app/notification/internal/service"
-	"github.com/go-kratos/kratos/v3"
 	"log/slog"
 )
 
@@ -23,7 +23,7 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, logger *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, confData *conf.Data, gotify *conf.Gotify, logger *slog.Logger) (*kratos.App, func(), error) {
 	dataData, cleanup, err := data.NewData(confData)
 	if err != nil {
 		return nil, nil, err
@@ -31,8 +31,13 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger *slog.Logger) 
 	todoRepo := data.NewTodoRepo(dataData)
 	todoUsecase := biz.NewTodoUsecase(todoRepo)
 	todoService := service.NewTodoService(todoUsecase)
-	grpcServer := server.NewGRPCServer(confServer, todoService)
-	httpServer := server.NewHTTPServer(confServer, todoService)
+	pool := dataData.Pool
+	preferenceRepo := data.NewPreferenceRepo(pool)
+	gotifyClient := data.NewGotifyClient(gotify)
+	notificationUsecase := biz.NewNotificationUsecase(preferenceRepo, gotifyClient)
+	notificationService := service.NewNotificationService(notificationUsecase)
+	grpcServer := server.NewGRPCServer(confServer, todoService, notificationService)
+	httpServer := server.NewHTTPServer(confServer, todoService, notificationService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()

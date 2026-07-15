@@ -1,30 +1,19 @@
 package server
 
 import (
-	v1 "github.com/puchidemy/puchi-backend/app/notification/api/todo/v1"
+	todov1 "github.com/puchidemy/puchi-backend/app/notification/api/todo/v1"
+	notifv1 "github.com/puchidemy/puchi-backend/app/notification/api/notification/v1"
 	"github.com/puchidemy/puchi-backend/app/notification/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/notification/internal/service"
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
-	"github.com/go-kratos/kratos/v3/middleware/validate"
 	"github.com/go-kratos/kratos/v3/transport/http"
-
-	"go.einride.tech/aip/fieldbehavior"
-	"google.golang.org/protobuf/proto"
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, todo *service.TodoService) *http.Server {
+func NewHTTPServer(c *conf.Server, todo *service.TodoService, notif *service.NotificationService) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
-			validate.Validator(func(req any) error {
-				if msg, ok := req.(proto.Message); ok {
-					if err := fieldbehavior.ValidateRequiredFields(msg); err != nil {
-						return err
-					}
-				}
-				return nil
-			}),
 		),
 	}
 	if c.Http.Network != "" {
@@ -37,6 +26,7 @@ func NewHTTPServer(c *conf.Server, todo *service.TodoService) *http.Server {
 		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
 	}
 	srv := http.NewServer(opts...)
-	v1.RegisterTodoServiceHTTPServer(srv, todo)
+	todov1.RegisterTodoServiceHTTPServer(srv, todo)
+	notifv1.RegisterNotificationServiceHTTPServer(srv, notif)
 	return srv
 }

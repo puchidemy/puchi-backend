@@ -3,13 +3,45 @@
 
 openapi: 3.0.3
 info:
-    title: TodoService API
-    description: |-
-        TodoService provides a simple CRUD example for managing todo items.
-         It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
-         together with AIP-style list filtering, ordering, and pagination.
+    title: ""
     version: 0.0.1
 paths:
+    /v1/media/finalize:
+        post:
+            tags:
+                - MediaService
+            operationId: MediaService_FinalizeUpload
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.media.v1.FinalizeUploadRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.media.v1.MediaObject'
+    /v1/media/upload-url:
+        post:
+            tags:
+                - MediaService
+            operationId: MediaService_RequestUploadURL
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.media.v1.RequestUploadURLRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.media.v1.RequestUploadURLResponse'
     /v1/todos/create:
         post:
             tags:
@@ -226,6 +258,53 @@ paths:
                     content: {}
 components:
     schemas:
+        puchi.media.v1.FinalizeUploadRequest:
+            type: object
+            properties:
+                mediaId:
+                    type: string
+        puchi.media.v1.MediaObject:
+            type: object
+            properties:
+                id:
+                    type: string
+                url:
+                    type: string
+                sizeBytes:
+                    type: string
+                width:
+                    type: integer
+                    format: int32
+                height:
+                    type: integer
+                    format: int32
+                durationMs:
+                    type: integer
+                    format: int32
+                category:
+                    type: string
+                contentType:
+                    type: string
+        puchi.media.v1.RequestUploadURLRequest:
+            type: object
+            properties:
+                category:
+                    type: string
+                contentType:
+                    type: string
+                contentLength:
+                    type: string
+        puchi.media.v1.RequestUploadURLResponse:
+            type: object
+            properties:
+                uploadUrl:
+                    type: string
+                objectKey:
+                    type: string
+                mediaId:
+                    type: string
+                expiresInSeconds:
+                    type: string
         todo.v1.SyncTodoRequest:
             type: object
             properties:
@@ -306,4 +385,9 @@ components:
                          Empty when there are no more results.
             description: TodoSet is a paginated collection of todo items returned by ListTodos.
 tags:
+    - name: MediaService
     - name: TodoService
+      description: |-
+        TodoService provides a simple CRUD example for managing todo items.
+         It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
+         together with AIP-style list filtering, ordering, and pagination.
