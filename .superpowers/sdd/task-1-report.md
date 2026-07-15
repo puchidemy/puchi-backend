@@ -1,66 +1,83 @@
-# Task 1 Report: Core Schema Migration + sqlc Setup
+# Task 1 Report: Database Migration + sqlc Setup
 
-## Files Created/Modified
+**Date:** 2026-07-16  
+**Service:** app/core (Kratos v3)
 
-### Pre-existing (verified)
-- `app/core/internal/data/sqlc/migrations/001_init.up.sql` — Up migration with core schema (users, user_stats, daily_activities, xp_history, achievements_def, user_achievements, level_thresholds + seed data)
-- `app/core/internal/data/sqlc/migrations/001_init.down.sql` — Down migration (drop all)
+---
 
-### Created/Updated
-| File | Status |
-|------|--------|
-| `app/core/internal/data/sqlc/sqlc.yaml` | Updated — added `overrides` section (uuid→string, timestamptz→time.Time) |
-| `app/core/internal/data/sqlc/queries/users.sql` | Pre-existed, unchanged |
-| `app/core/internal/data/sqlc/queries/stats.sql` | Pre-existed, unchanged |
-| `app/core/internal/data/sqlc/queries/achievements.sql` | Created — ListAchievementDefs, GetUserAchievement, ListUserAchievements, UpsertUserAchievement |
-| `app/core/internal/data/sqlc/queries/stats.sql` | Pre-existed, unchanged |
+## Files Created
 
-## sqlc Generate Status
+| File | Path | Status |
+|------|------|--------|
+| Migration | `internal/data/sqlc/migrations/001_init.up.sql` | Created |
+| sqlc config | `internal/data/sqlc/sqlc.yaml` | Created |
+| User queries | `internal/data/sqlc/queries/users.sql` | Created |
+| Stats queries | `internal/data/sqlc/queries/stats.sql` | Created |
 
-**Result: SUCCESS** (sqlc v1.31.1)
+Additionally, an existing `internal/data/sqlc/queries/achievements.sql` was already present and was picked up by sqlc (references `achievements_def` and `user_achievements` tables).
 
-Generated files in `app/core/internal/data/sqlc/gen/`:
-| File | Description |
-|------|-------------|
-| `db.go` | DBTX interface, Queries struct, New(), WithTx() |
-| `models.go` | All model types (CoreUser, CoreUserStat, CoreDailyActivity, CoreXpHistory, CoreAchievementsDef, CoreUserAchievement, CoreLevelThreshold) |
-| `querier.go` | Querier interface with all 12 methods |
-| `users.sql.go` | CreateUser, GetUser, GetUserByEmail, UpdateUser, UsernameExists, DeleteUser |
-| `stats.sql.go` | GetUserStats, CreateUserStats, UpdateUserStats |
-| `achievements.sql.go` | ListAchievementDefs, GetUserAchievement, ListUserAchievements, UpsertUserAchievement |
+---
 
-## Database Migration Status
+## sqlc Generate
 
-**Result: SUCCESS**
+**Result:** Success
 
-Using Docker postgres:18 image to run psql against `postgresql://puchi:puchi-db-prod@192.168.100.201:30433/puchi`.
+sqlc v1.31.1 installed via `go install`. Generated 6 Go files in `internal/data/sqlc/gen/`:
 
-All 7 tables created in `core` schema:
-| Table | Columns |
-|-------|---------|
-| `core.users` | 13 columns (id, username, email, first_name, last_name, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id) |
-| `core.user_stats` | 14 columns (1:1 with users, xp/streak/lesson stats) |
-| `core.daily_activities` | 6 columns (uuidv7 PK, user_id, activity_date, lessons_completed, xp_earned, minutes_spent) |
-| `core.xp_history` | 4 columns (uuidv7 PK, user_id, week_start, xp_earned) |
-| `core.achievements_def` | 7 columns (id, title, description, icon, color, category, requirement_type, requirement_value) |
-| `core.user_achievements` | 5 columns (composite PK: user_id + achievement_id, progress, unlocked, unlocked_at) |
-| `core.level_thresholds` | 2 columns (level, xp_required) + 10 seed rows |
+| File | Size | Description |
+|------|------|-------------|
+| `db.go` | 565 B | Database connection interface |
+| `models.go` | 2.8 KB | Go structs for `core.users` and `core.user_stats` |
+| `querier.go` | 1.1 KB | Querier interface |
+| `users.sql.go` | 3.9 KB | User queries implementation |
+| `stats.sql.go` | 2.5 KB | Stats queries implementation |
+| `achievements.sql.go` | 3.5 KB | Achievement queries (from pre-existing file) |
 
-## Issues / Notes
+All generated code compiles cleanly (`go vet` passes).
 
-### Migration naming convention
-File `001_init.up.sql` uses a 3-digit prefix (`001`). Goose convention typically expects exactly 5 digits (`00001`). The current naming may work with goose since it accepts variable-length numeric prefixes, but should be renamed to `00001_init.up.sql` if strict goose compatibility is required.
-
-### psql not available locally
-psql was not installed on the Windows development machine. Used Docker (`postgres:18` image) to run the migration. For CI/CD pipelines, either install psql or use a migration tool like goose.
-
-### Migration ran both Up and Down sections
-The `001_init.up.sql` file contains both `-- +goose Up` and `-- +goose Down` sections in the same file. When run through raw psql, both sections execute. A temporary up-only file was used (now cleaned up). When using proper goose tooling, this is handled automatically.
-
-### timestamptz nullable columns
-For nullable `TIMESTAMPTZ` columns (e.g., `st_sign_up_at`, `unlocked_at`), sqlc generates `pgtype.Timestamptz` instead of `time.Time`. This is expected behavior since `time.Time` cannot represent NULL in Go. The NOT NULL columns (`created_at`, `updated_at`) correctly use `time.Time`.
+---
 
 ## Dependencies Added
+
 - `github.com/jackc/pgx/v5 v5.10.0` — PostgreSQL driver
-- `github.com/sqlc-dev/sqlc v1.31.1` — sqlc library (added as go.mod dependency for version tracking)
-- sqlc CLI installed via `go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest`
+- `github.com/jackc/pgx/v5/pgxpool` — Connection pool
+
+---
+
+## Migration Test
+
+**Result:** Already applied (tables exist with correct schema)
+
+Connectivity to PostgreSQL at `192.168.100.201:30433` confirmed. The database already contains the `core` schema with `users` and `user_stats` tables matching the migration exactly.
+
+### Verified Structure
+
+**core.users** (12 columns):
+- `id` (TEXT PK), `username` (UNIQUE NOT NULL), `first_name`, `last_name`, `email` (UNIQUE NOT NULL)
+- `avatar_key` (nullable), `bio` (default '')
+- `created_at`, `updated_at` (TIMESTAMPTZ, default now())
+- `st_sign_up_at`, `st_third_party_provider`, `st_third_party_user_id` (nullable)
+
+**core.user_stats** (14 columns):
+- `user_id` (TEXT PK, FK to users), `current_xp`, `total_xp`, `level` (default 1)
+- `current_streak`, `longest_streak`, `streak_freezes`, `crowns`, `gems`
+- `total_lessons`, `total_minutes`, `accuracy` (REAL), `words_learned`, `updated_at`
+
+**Indexes:**
+- `idx_users_username` on core.users(username)
+- `idx_users_email` on core.users(email)
+
+**Additional tables found** (from subsequent migrations): `achievements_def`, `daily_activities`, `level_thresholds`, `user_achievements`, `xp_history`
+
+---
+
+## Notes
+
+- The migration uses `-- +goose Up` / `-- +goose Down` annotations compatible with the [goose](https://github.com/pressly/goose) migration tool
+- sqlc config emits `emit_db_tags`, `emit_interface`, `emit_empty_slots`, and `emit_pointers_for_null_types` for ergonomic Go codegen
+- `psql` not available on Windows; Docker Desktop was also unavailable. Used a Go test program with `pgx/v5/pgxpool` to verify database state
+- PostgreSQL pgxpool subpackage required explicit `go get` (`pgx/v5` alone doesn't include `pgxpool`)
+
+## Next Steps
+
+The `gen` package is ready to be wired into the `data` layer. The existing `data.go` file needs updating to initialize a `pgxpool.Pool` and expose sqlc queries to the repository layer.

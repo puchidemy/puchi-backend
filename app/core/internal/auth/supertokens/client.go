@@ -9,6 +9,7 @@ import (
 type Config struct {
 	ConnectionURI string
 	APIKey        string
+	APIDomain     string
 	CookieDomain  string
 	CookieSecure  bool
 }
@@ -17,6 +18,11 @@ func Init(cfg Config) error {
 	apiBasePath := "/auth"
 	websiteBasePath := "/auth"
 
+	apiDomain := cfg.APIDomain
+	if apiDomain == "" {
+		apiDomain = "http://localhost:8000"
+	}
+
 	return supertokens.Init(supertokens.TypeInput{
 		Supertokens: &supertokens.ConnectionInfo{
 			ConnectionURI: cfg.ConnectionURI,
@@ -24,7 +30,7 @@ func Init(cfg Config) error {
 		},
 		AppInfo: supertokens.AppInfo{
 			AppName:         "puchi",
-			APIDomain:       "http://localhost:8000",
+			APIDomain:       apiDomain,
 			WebsiteDomain:   cfg.CookieDomain,
 			APIBasePath:     &apiBasePath,
 			WebsiteBasePath: &websiteBasePath,

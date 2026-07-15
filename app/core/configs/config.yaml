@@ -7,8 +7,7 @@ server:
     timeout: 1s
 data:
   database:
-    driver: mysql
-    source: root:root@tcp(127.0.0.1:3306)/test?parseTime=True&loc=Local
+    source: "postgresql://puchi:puchi-db-prod@192.168.100.201:30433/puchi?sslmode=disable"
   redis:
     addr: 127.0.0.1:6379
     read_timeout: 0.2s
@@ -19,6 +18,7 @@ auth:
     api_key: "change-in-production-please"
     cookie_domain: "localhost"
     cookie_secure: false
+    # api_domain: "http://localhost:8000"  # default nếu SUPERTOKENS_API_DOMAIN env không set
   public_paths:
     - /v1/health
     - /v1/healthz

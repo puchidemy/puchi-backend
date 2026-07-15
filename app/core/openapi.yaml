@@ -3,13 +3,38 @@
 
 openapi: 3.0.3
 info:
-    title: TodoService API
-    description: |-
-        TodoService provides a simple CRUD example for managing todo items.
-         It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
-         together with AIP-style list filtering, ordering, and pagination.
+    title: ""
     version: 0.0.1
 paths:
+    /v1/profile:
+        get:
+            tags:
+                - ProfileService
+            operationId: ProfileService_GetProfile
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.profile.v1.User'
+        put:
+            tags:
+                - ProfileService
+            operationId: ProfileService_UpdateProfile
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.core.profile.v1.UpdateProfileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.profile.v1.User'
     /v1/todos/create:
         post:
             tags:
@@ -226,6 +251,40 @@ paths:
                     content: {}
 components:
     schemas:
+        puchi.core.profile.v1.UpdateProfileRequest:
+            type: object
+            properties:
+                firstName:
+                    type: string
+                lastName:
+                    type: string
+                username:
+                    type: string
+                bio:
+                    type: string
+        puchi.core.profile.v1.User:
+            type: object
+            properties:
+                id:
+                    type: string
+                username:
+                    type: string
+                firstName:
+                    type: string
+                lastName:
+                    type: string
+                email:
+                    type: string
+                avatarUrl:
+                    type: string
+                bio:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
         todo.v1.SyncTodoRequest:
             type: object
             properties:
@@ -306,4 +365,9 @@ components:
                          Empty when there are no more results.
             description: TodoSet is a paginated collection of todo items returned by ListTodos.
 tags:
+    - name: ProfileService
     - name: TodoService
+      description: |-
+        TodoService provides a simple CRUD example for managing todo items.
+         It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
+         together with AIP-style list filtering, ordering, and pagination.
