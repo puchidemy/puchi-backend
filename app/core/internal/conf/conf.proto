@@ -28,8 +28,7 @@ message Server {
 
 message Data {
   message Database {
-    string driver = 1;
-    string source = 2;
+    string source = 1;
   }
   message Redis {
     string network = 1;

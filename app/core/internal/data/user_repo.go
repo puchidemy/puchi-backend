@@ -1,0 +1,63 @@
+package data
+
+import (
+	"context"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/puchidemy/puchi-backend/app/core/internal/data/sqlc/gen"
+)
+
+// UserRepo wraps sqlc-generated queries for core.users.
+type UserRepo struct {
+	q *gen.Queries
+}
+
+// NewUserRepo creates a new UserRepo.
+func NewUserRepo(pool *pgxpool.Pool) *UserRepo {
+	return &UserRepo{q: gen.New(pool)}
+}
+
+// CreateUser inserts a new user and returns it.
+func (r *UserRepo) CreateUser(ctx context.Context, arg gen.CreateUserParams) (*gen.CoreUser, error) {
+	row, err := r.q.CreateUser(ctx, arg)
+	if err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
+// GetUser retrieves a user by ID.
+func (r *UserRepo) GetUser(ctx context.Context, id string) (*gen.CoreUser, error) {
+	row, err := r.q.GetUser(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
+// GetUserByEmail retrieves a user by email.
+func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*gen.CoreUser, error) {
+	row, err := r.q.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
+// UpdateUser updates a user and returns the updated row.
+func (r *UserRepo) UpdateUser(ctx context.Context, arg gen.UpdateUserParams) (*gen.CoreUser, error) {
+	row, err := r.q.UpdateUser(ctx, arg)
+	if err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
+// UsernameExists checks whether a username is already taken.
+func (r *UserRepo) UsernameExists(ctx context.Context, username string) (bool, error) {
+	row, err := r.q.UsernameExists(ctx, username)
+	if err != nil {
+		return false, err
+	}
+	return row, nil
+}

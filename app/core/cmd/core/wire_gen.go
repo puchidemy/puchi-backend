@@ -8,11 +8,9 @@ package main
 
 import (
 	"github.com/go-kratos/kratos/v3"
-	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/core/internal/data"
 	"github.com/puchidemy/puchi-backend/app/core/internal/server"
-	"github.com/puchidemy/puchi-backend/app/core/internal/service"
 	"log/slog"
 )
 
@@ -28,11 +26,9 @@ func wireApp(confServer *conf.Server, confData *conf.Data, auth *conf.Auth, logg
 	if err != nil {
 		return nil, nil, err
 	}
-	todoRepo := data.NewTodoRepo(dataData)
-	todoUsecase := biz.NewTodoUsecase(todoRepo)
-	todoService := service.NewTodoService(todoUsecase)
-	grpcServer := server.NewGRPCServer(confServer, auth, todoService)
-	httpServer := server.NewHTTPServer(confServer, auth, todoService)
+	_ = dataData
+	grpcServer := server.NewGRPCServer(confServer, auth)
+	httpServer := server.NewHTTPServer(confServer, auth)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()

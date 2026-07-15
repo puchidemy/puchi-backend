@@ -1,24 +1,29 @@
 package data
 
 import (
-	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
+	"context"
 
-	"github.com/go-kratos/kratos/v3/log"
 	"github.com/google/wire"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewTodoRepo)
+var ProviderSet = wire.NewSet(NewData, NewUserRepo)
 
 // Data .
 type Data struct {
-	// TODO wrapped database client
+	pool *pgxpool.Pool
 }
 
 // NewData .
-func NewData(c *conf.Data) (*Data, func(), error) {
-	cleanup := func() {
-		log.Info("closing the data resources")
+func NewData(cfg *conf.Data) (*Data, func(), error) {
+	pool, err := pgxpool.New(context.Background(), cfg.Database.Source)
+	if err != nil {
+		return nil, nil, err
 	}
-	return &Data{}, cleanup, nil
+	cleanup := func() {
+		pool.Close()
+	}
+	return &Data{pool: pool}, cleanup, nil
 }
