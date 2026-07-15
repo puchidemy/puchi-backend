@@ -45,6 +45,15 @@ app/{service}/
 - **Logger**: Dùng `log/slog` (Kratos v3 standard)
 - **Config**: Đọc từ `configs/config.yaml`, parse bằng proto
 
+## Auth middleware (core service)
+
+Auth middleware nằm trong `app/core/internal/auth/`:
+
+- `auth.InitSupertokens(cfg)` — gọi ở main.go trước wireApp
+- `auth.Middleware(cfg)` — HTTP middleware, verify session, inject UserID vào context
+- Public paths cấu hình trong config: `auth.public_paths` (mặc định: `/auth`, `/v1/health`, `/v1/healthz`)
+- Lấy UserID từ context: `auth.UserIDFromContext(ctx)`
+
 ## Event-driven (NATS)
 
 - Service emit event → Grading `lesson.completed` → NATS

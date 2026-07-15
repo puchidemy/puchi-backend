@@ -1,27 +1,28 @@
 ---
-description: Tong quan Puchi Backend - Go monorepo voi Kratos v3
+description: Tổng quan Puchi Backend — Go monorepo với Kratos v3
 alwaysApply: true
 ---
 
 # Puchi Backend
 
-Monorepo Go microservices voi **Kratos v3**. 7 service modules trong `app/`, workspace qua `go.work`.
+Monorepo Go microservices với **Kratos v3**. 7 service modules trong `app/`, workspace qua `go.work`.
 
 ## Tech Stack
 
-| Thanh phan | Cong nghe |
+| Thành phần | Công nghệ |
 |------------|-----------|
-| Ngon ngu | Go 1.26 |
+| Ngôn ngữ | Go 1.26 |
 | Framework | Kratos v3 (HTTP/gRPC hybrid, Protobuf-first) |
 | DI | Wire (compile-time) |
-| Auth | Supertokens (self-host, Email/Password + Google + Facebook + TikTok) |
+| Auth | Supertokens (self-host) — **chỉ verify session**, signin/signup do supertokens-node (Next.js) xử lý |
+| Auth middleware | `app/core/internal/auth/` (supertokens-golang) + Envoy Gateway ext_auth (lớp chính) |
 | Database | PostgreSQL 18 (CloudNativePG) |
 | Cache | Valkey/Redis |
 | Message Queue | NATS (event-driven) |
 | Object Storage | Garage (S3 API) |
 | Migration | goose |
 
-## Cau truc monorepo
+## Cấu trúc monorepo
 
 ```
 puchi-backend/
@@ -30,7 +31,7 @@ puchi-backend/
 │   ├── content/v1/
 │   └── ...
 ├── app/                           # 7 Go service modules
-│   ├── core/                      # Auth + User + Game (Phase 1)
+│   ├── core/                      # Auth verify + User + Game (Phase 1)
 │   ├── content/                   # Courses, units, lessons
 │   ├── grading/                   # Dictation, listening grading
 │   ├── user/                      # Profile, settings (Phase 3)
@@ -42,7 +43,7 @@ puchi-backend/
 └── Makefile                       # Build helper
 ```
 
-## Quy tac layered architecture (Kratos)
+## Quy tắc layered architecture (Kratos)
 
 ```
 internal/
@@ -51,15 +52,54 @@ internal/
 └── data/          # Data layer - repository implementations (DB, cache)
 ```
 
-**Dependency rule:** `service -> biz -> data` (biz khong import data)
+**Dependency rule:** `service -> biz -> data` (biz không import data)
+
+## Auth middleware
+
+Auth middleware nằm trong `app/core/internal/auth/`, gồm:
+
+| File | Mô tả |
+|------|-------|
+| `auth.go` | Init Supertokens SDK từ config |
+| `middleware.go` | HTTP middleware — verify session, inject UserID vào context |
+| `supertokens/client.go` | Supertokens golang SDK wrapper |
+
+**Quan trọng**: Envoy Gateway ext_auth là lớp xác thực chính (gọi `/session/verify` tới Supertokens core). Middleware Go là lớp dự phòng, public_paths mặc định: `/auth`, `/v1/health`, `/v1/healthz`.
+
+Session verification flow:
+```
+Request → Envoy Gateway (ext_auth → st-core-svc/session/verify)
+       → Go service (middleware verify lại session → inject UserID)
+```
 
 ## CI/CD
 
-- **CI**: GitHub Actions (`backend.yml`) - Matrix build 7 services
-- **Docker**: Moi service co Dockerfile rieng, Go 1.26
+- **CI**: GitHub Actions (`backend.yml`) — Matrix build 7 services, Go 1.26
+- **Paths trigger**: `app/**`, `api/**`, `pkg/**`
+- **Docker**: Mỗi service có Dockerfile riêng (Go 1.26 builder → debian slim runner)
 - **Registry**: `ghcr.io/puchidemy/puchi-{service}`
+- **Ports**: HTTP 8000, gRPC 9000
 
-## Ket noi Infra
+## Dockerfile pattern
+
+```dockerfile
+FROM golang:1.26 AS builder
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN go mod tidy && go build -o /bin/{service} ./cmd/{service}/
+
+FROM debian:stable-slim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates netbase && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /bin/{service} /app/{service}
+WORKDIR /app
+EXPOSE 8000 9000
+CMD ["./{service}", "-conf", "/data/conf"]
+```
+
+## Kết nối Infra
 
 | Service | Internal DNS |
 |---------|--------------|
@@ -68,4 +108,15 @@ internal/
 | NATS | `nats.platform.svc.cluster.local:4222` |
 | Garage (S3) | `http://garage.platform.svc.cluster.local:3900` |
 | Valkey/Redis | `valkey-node.platform.svc.cluster.local:6379` |
-| Supertokens | `supertokens.puchi-infra.svc.cluster.local:3567` |
+| Supertokens | `st-core-svc.puchi-infra.svc.cluster.local:3567` |
+| Supertokens (alt) | `st-core.puchi-infra.svc.cluster.local:3567` |
+
+## Dev Local
+
+```
+# Backend
+cd app/core && go run ./cmd/core/
+
+# Supertokens local (qua NodePort trên K3s LAN)
+# configs/config.yaml: auth.supertokens.connection_uri = http://localhost:30567
+```
