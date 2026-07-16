@@ -166,7 +166,7 @@ func runMigrations(pool *pgxpool.Pool) error {
 | Schema | `{service}_name` | `core`, `user_social` |
 | Table | `snake_case`, plural only if collection | `users`, `daily_activities` |
 | Column | `snake_case` | `first_name`, `created_at` |
-| Primary key | `id TEXT` (UUID from Supertokens for users), `BIGSERIAL` for auto-increment | |
+| Primary key | `id TEXT` (UUID from Zitadel for users), `BIGSERIAL` for auto-increment | |
 | Foreign key | `{referenced_table}_id` | `user_id` |
 | Timestamp | `TIMESTAMPTZ`, suffix `_at` | `created_at`, `unlocked_at` |
 | Boolean | `IS_` prefix or `_enabled` suffix | `unlocked`, `push_enabled` |
@@ -301,27 +301,27 @@ Subject format: `puchi.{domain}.{event}`
 
 ---
 
-## 5. Auth Sync — Supertokens → Core DB
+## 5. Auth Sync — Zitadel JWT → Core DB
 
-### 5.1 Hybrid Strategy
+### Hybrid Strategy
 
-**Path A — Webhook (primary):**
+**Path A — JWT lazy creation (primary):**
 ```
-Supertokens Core ──POST──→ Core Service
-  /v1/internal/webhooks/supertokens (public_paths, WEBHOOK_SECRET)
-  user.created → INSERT users + user_stats + seed achievements
-```
-
-**Path B — Lazy creation (fallback):**
-```
-FE request → Core middleware verify session → userId from session
+FE request → Core middleware verify JWT → userId từ sub claim
   → SELECT users WHERE id = userId → NOT FOUND
-  → st.GetUserPublicInfo(userId).Email
+  → Extract email từ JWT claims
   → INSERT users (auto-generate username), INSERT user_stats
   → NATS publish "user.created"
 ```
 
-### 5.2 Username Auto-generation
+**Path B — Fallback via Zitadel API:**
+```
+Khi JWT không có email claim, gọi Zitadel Management API để lấy user info
+  → GET /v2beta/users/{userId}
+  → INSERT users
+```
+
+### Username Auto-generation
 
 ```go
 func generateUsername(ctx context.Context, email string, repo UserRepo) string {
@@ -461,14 +461,12 @@ data:
   redis:
     addr: valkey:6379
 auth:
-  supertokens:
-    connection_uri: "http://st-core-svc.puchi-infra:3567"
-    api_key: "${SUPERTOKENS_API_KEY}"
-    cookie_domain: "puchi.io.vn"
+  zitadel:
+    issuer_url: "https://auth.puchi.io.vn"
+    jwks_url: "https://auth.puchi.io.vn/oauth/v2/keys"
   public_paths:
     - /v1/health
     - /v1/healthz
-    - /v1/internal/webhooks/supertokens
 ```
 
 Config proto for data section (update existing template):

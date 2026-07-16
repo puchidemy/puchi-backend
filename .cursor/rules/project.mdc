@@ -14,8 +14,8 @@ Monorepo Go microservices với **Kratos v3**. 7 service modules trong `app/`, w
 | Ngôn ngữ | Go 1.26 |
 | Framework | Kratos v3 (HTTP/gRPC hybrid, Protobuf-first) |
 | DI | Wire (compile-time) |
-| Auth | Supertokens (self-host) — **chỉ verify session**, signin/signup do supertokens-node (Next.js) xử lý |
-| Auth middleware | `app/core/internal/auth/` (supertokens-golang) + Envoy Gateway ext_auth (lớp chính) |
+| Auth | Zitadel (self-host) — JWT verification qua JWKS |
+| Auth middleware | `app/core/internal/auth/` (JWT middleware verify signature + issuer) |
 | Database | PostgreSQL 18 (CloudNativePG) |
 | Cache | Valkey/Redis |
 | Message Queue | NATS (event-driven) |
@@ -60,16 +60,19 @@ Auth middleware nằm trong `app/core/internal/auth/`, gồm:
 
 | File | Mô tả |
 |------|-------|
-| `auth.go` | Init Supertokens SDK từ config |
-| `middleware.go` | HTTP middleware — verify session, inject UserID vào context |
-| `supertokens/client.go` | Supertokens golang SDK wrapper |
+| `auth.go` | Khởi tạo JWTValidator từ config |
+| `jwt.go` | JWTValidator — fetch JWKS từ Zitadel, verify signature + issuer |
+| `middleware.go` | HTTP middleware — parse JWT từ `Authorization` header, inject UserID vào context |
+| `context.go` | `UserIDFromContext()` / `NewContextWithUserID()` |
+| `sync.go` | Lazy user sync — tạo user trong DB từ JWT claims |
 
-**Quan trọng**: Envoy Gateway ext_auth là lớp xác thực chính (gọi `/session/verify` tới Supertokens core). Middleware Go là lớp dự phòng, public_paths mặc định: `/auth`, `/v1/health`, `/v1/healthz`.
-
-Session verification flow:
+JWT verification flow:
 ```
-Request → Envoy Gateway (ext_auth → st-core-svc/session/verify)
-       → Go service (middleware verify lại session → inject UserID)
+Request → Authorization: Bearer <JWT>
+       → JWTValidator.ParseAndValidate()
+       → Fetch JWKS từ https://auth.puchi.io.vn/oauth/v2/keys (cached 15 phút)
+       → Verify signature + issuer claim
+       → Extract sub (userID) + email → inject context
 ```
 
 ## CI/CD
@@ -104,12 +107,11 @@ CMD ["./{service}", "-conf", "/data/conf"]
 | Service | Internal DNS |
 |---------|--------------|
 | PostgreSQL (Puchi) | `pg-puchi-rw.puchi-db.svc.cluster.local:5432` |
-| PostgreSQL (Supertokens) | `pg-supertokens-rw.puchi-db.svc.cluster.local:5432` |
 | NATS | `nats.platform.svc.cluster.local:4222` |
 | Garage (S3) | `http://garage.platform.svc.cluster.local:3900` |
 | Valkey/Redis | `valkey-node.platform.svc.cluster.local:6379` |
-| Supertokens | `st-core-svc.puchi-infra.svc.cluster.local:3567` |
-| Supertokens (alt) | `st-core.puchi-infra.svc.cluster.local:3567` |
+| Zitadel | `zitadel.puchi-auth.svc.cluster.local:8080` |
+| Zitadel JWKS | `https://auth.puchi.io.vn/oauth/v2/keys` |
 
 ## Dev Local
 
@@ -117,6 +119,6 @@ CMD ["./{service}", "-conf", "/data/conf"]
 # Backend
 cd app/core && go run ./cmd/core/
 
-# Supertokens local (qua NodePort trên K3s LAN)
-# configs/config.yaml: auth.supertokens.connection_uri = http://localhost:30567
+# Config
+configs/config.yaml: auth.zitadel.issuer_url = https://auth.puchi.io.vn
 ```
