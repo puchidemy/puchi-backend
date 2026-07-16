@@ -13,6 +13,7 @@ import (
 	"github.com/puchidemy/puchi-backend/app/media/internal/data"
 	"github.com/puchidemy/puchi-backend/app/media/internal/server"
 	"github.com/puchidemy/puchi-backend/app/media/internal/service"
+	"github.com/puchidemy/puchi-backend/pkg/auth"
 	"log/slog"
 )
 
@@ -23,7 +24,7 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, media *conf.Media, logger *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, confData *conf.Data, media *conf.Media, confAuth *conf.Auth, jwtValidator *auth.JWTValidator, logger *slog.Logger) (*kratos.App, func(), error) {
 	dataData, cleanup, err := data.NewData(confData)
 	if err != nil {
 		return nil, nil, err
@@ -34,7 +35,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, media *conf.Media, lo
 	mediaUsecase := biz.NewMediaUsecase(mediaRepo, mockStorage)
 	mediaService := service.NewMediaService(mediaUsecase)
 	grpcServer := server.NewGRPCServer(confServer, mediaService)
-	httpServer := server.NewHTTPServer(confServer, mediaService)
+	httpServer := server.NewHTTPServer(confServer, confAuth, jwtValidator, mediaService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()

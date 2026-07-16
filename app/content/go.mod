@@ -3,7 +3,7 @@ module github.com/puchidemy/puchi-backend/app/content
 go 1.25.7
 
 require (
-	github.com/google/wire v0.6.0
+	github.com/google/wire v0.7.0
 	go.einride.tech/aip v0.86.3
 	go.uber.org/automaxprocs v1.6.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260519071638-aa98bba5eb94
@@ -13,7 +13,9 @@ require (
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 )
 

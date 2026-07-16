@@ -94,27 +94,6 @@ func (uc *ProfileUsecase) UpdateProfile(ctx context.Context, userID string, inpu
 	return user, nil
 }
 
-// CreateUserFromAuth creates a new user during auth sync
-func (uc *ProfileUsecase) CreateUserFromAuth(ctx context.Context, userID, email string) (*gen.CoreUser, error) {
-	username := generateUsername(email)
-
-	// Ensure uniqueness
-	base := username
-	for i := 1; ; i++ {
-		exists, _ := uc.repo.UsernameExists(ctx, username)
-		if !exists {
-			break
-		}
-		username = fmt.Sprintf("%s%d", base, i)
-	}
-
-	user, err := uc.repo.CreateUser(ctx, userID, username, email, "", "")
-	if err != nil {
-		return nil, fmt.Errorf("create user from auth: %w", err)
-	}
-	return user, nil
-}
-
 // GetProfileByUsername returns a user's public profile by username.
 func (uc *ProfileUsecase) GetProfileByUsername(ctx context.Context, username string) (*gen.CoreUser, error) {
 	user, err := uc.repo.GetUserByUsername(ctx, username)

@@ -1,0 +1,28 @@
+server:
+  http:
+    addr: "0.0.0.0:8080"
+    timeout: "30s"
+  grpc:
+    addr: "0.0.0.0:9090"
+    timeout: "30s"
+
+data:
+  database:
+    driver: postgres
+    source: "postgres://puchi:puchi-db-prod@localhost:5432/puchi?sslmode=disable&search_path=auth"
+  valkey:
+    addr: "localhost:6379"
+    db: 0
+    pool_size: 10
+  nats:
+    url: "nats://localhost:4222"
+
+auth:
+  issuer: "http://localhost:8080"
+  key_id: "dev-key-1"
+  private_key_path: "configs/private.pem"
+  access_token_ttl: 900
+  refresh_token_ttl: 2592000
+  cors_allowed_origins:
+    - "http://localhost:3000"
+    - "http://localhost:3001"

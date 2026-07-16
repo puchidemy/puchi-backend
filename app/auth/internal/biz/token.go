@@ -4,9 +4,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -170,4 +173,45 @@ func (uc *TokenUsecase) PublicKey() *rsa.PublicKey {
 // KeyID returns the key ID configured for JWT headers.
 func (uc *TokenUsecase) KeyID() string {
 	return uc.cfg.KeyID
+}
+
+// JWKSJSON returns the JWKS (JSON Web Key Set) as a JSON byte slice
+// containing the current public key. Used by backend services to verify tokens.
+func (uc *TokenUsecase) JWKSJSON() ([]byte, error) {
+	der, err := x509.MarshalPKIXPublicKey(uc.cfg.PublicKey)
+	if err != nil {
+		return nil, fmt.Errorf("marshal public key: %w", err)
+	}
+
+	// Base64url-encode the DER bytes (without padding)
+	nBig := uc.cfg.PublicKey.N
+	e := uc.cfg.PublicKey.E
+
+	// Encode modulus (N) as base64url
+	nBytes := nBig.Bytes()
+	jwk := map[string]any{
+		"kty": "RSA",
+		"kid": uc.cfg.KeyID,
+		"use": "sig",
+		"alg": "RS256",
+		"n":   base64.RawURLEncoding.EncodeToString(nBytes),
+		"e":   base64.RawURLEncoding.EncodeToString(big.NewInt(int64(e)).Bytes()),
+		"x5c": []string{base64.StdEncoding.EncodeToString(der)},
+	}
+
+	jwks := map[string]any{
+		"keys": []any{jwk},
+	}
+
+	return json.Marshal(jwks)
+}
+
+// AccessTokenTTL returns the configured access token time-to-live.
+func (uc *TokenUsecase) AccessTokenTTL() time.Duration {
+	return uc.cfg.AccessTokenTTL
+}
+
+// RefreshTokenTTL returns the configured refresh token time-to-live.
+func (uc *TokenUsecase) RefreshTokenTTL() time.Duration {
+	return uc.cfg.RefreshTokenTTL
 }

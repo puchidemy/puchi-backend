@@ -41,10 +41,6 @@ message Data {
 }
 
 message Auth {
-  message Zitadel {
-    string issuer_url = 1;
-    string jwks_url = 2;
-  }
-  Zitadel zitadel = 1;
+  string auth_service_url = 1;
   repeated string public_paths = 2;
 }

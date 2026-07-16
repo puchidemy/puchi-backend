@@ -4,7 +4,7 @@ import (
 	"context"
 
 	pb "github.com/puchidemy/puchi-backend/app/core/api/profile/v1"
-	"github.com/puchidemy/puchi-backend/app/core/internal/auth"
+	auth "github.com/puchidemy/puchi-backend/pkg/auth"
 	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/data/sqlc/gen"
 

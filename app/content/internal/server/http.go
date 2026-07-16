@@ -4,6 +4,7 @@ import (
 	v1 "github.com/puchidemy/puchi-backend/app/content/api/todo/v1"
 	"github.com/puchidemy/puchi-backend/app/content/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/content/internal/service"
+	authpkg "github.com/puchidemy/puchi-backend/pkg/auth"
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
 	"github.com/go-kratos/kratos/v3/middleware/validate"
 	"github.com/go-kratos/kratos/v3/transport/http"
@@ -13,7 +14,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, todo *service.TodoService) *http.Server {
+func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWTValidator, todo *service.TodoService) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -26,6 +27,10 @@ func NewHTTPServer(c *conf.Server, todo *service.TodoService) *http.Server {
 				return nil
 			}),
 		),
+		http.Filter(authpkg.Middleware(authpkg.MiddlewareConfig{
+			PublicPaths: authCfg.PublicPaths,
+			Validator:   jwtValidator,
+		})),
 	}
 	if c.Http.Network != "" {
 		opts = append(opts, http.Network(c.Http.Network))

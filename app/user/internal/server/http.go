@@ -6,6 +6,7 @@ import (
 	pb "github.com/puchidemy/puchi-backend/app/user/api/social/v1"
 	"github.com/puchidemy/puchi-backend/app/user/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/user/internal/service"
+	authpkg "github.com/puchidemy/puchi-backend/pkg/auth"
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
 	"github.com/go-kratos/kratos/v3/middleware/validate"
 	kratoshttp "github.com/go-kratos/kratos/v3/transport/http"
@@ -15,7 +16,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, socialService *service.SocialService) *kratoshttp.Server {
+func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWTValidator, socialService *service.SocialService) *kratoshttp.Server {
 	var opts = []kratoshttp.ServerOption{
 		kratoshttp.Middleware(
 			recovery.Recovery(),
@@ -28,6 +29,10 @@ func NewHTTPServer(c *conf.Server, socialService *service.SocialService) *kratos
 				return nil
 			}),
 		),
+		kratoshttp.Filter(authpkg.Middleware(authpkg.MiddlewareConfig{
+			PublicPaths: authCfg.PublicPaths,
+			Validator:   jwtValidator,
+		})),
 		kratoshttp.Filter(corsFilter),
 	}
 	if c.Http.Network != "" {

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/puchidemy/puchi-backend/app/notification/internal/conf"
+	authpkg "github.com/puchidemy/puchi-backend/pkg/auth"
 
 	"github.com/go-kratos/kratos/contrib/otel/v3/tracing"
 	"github.com/go-kratos/kratos/v3"
@@ -78,7 +79,9 @@ func main() {
 		panic(err)
 	}
 
-	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Gotify, logger)
+	jwtValidator := authpkg.InitAuth(bc.Auth.AuthServiceUrl)
+
+	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Gotify, bc.Auth, jwtValidator, logger)
 	if err != nil {
 		panic(err)
 	}

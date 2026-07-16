@@ -13,12 +13,13 @@ import (
 	"github.com/puchidemy/puchi-backend/app/notification/internal/data"
 	"github.com/puchidemy/puchi-backend/app/notification/internal/server"
 	"github.com/puchidemy/puchi-backend/app/notification/internal/service"
+	authpkg "github.com/puchidemy/puchi-backend/pkg/auth"
 
 	"github.com/go-kratos/kratos/v3"
 	"github.com/google/wire"
 )
 
 // wireApp init kratos application.
-func wireApp(*conf.Server, *conf.Data, *conf.Gotify, *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(*conf.Server, *conf.Data, *conf.Gotify, *conf.Auth, *authpkg.JWTValidator, *slog.Logger) (*kratos.App, func(), error) {
 	panic(wire.Build(server.ProviderSet, data.ProviderSet, biz.ProviderSet, service.ProviderSet, newApp))
 }

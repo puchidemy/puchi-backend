@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package conf;
+
+option go_package = "github.com/puchidemy/puchi-backend/app/auth/internal/conf;conf";
+
+import "google/protobuf/duration.proto";
+
+message Bootstrap {
+  Server server = 1;
+  Data data = 2;
+  Auth auth = 3;
+}
+
+message Server {
+  message HTTP {
+    string addr = 1;
+    google.protobuf.Duration timeout = 2;
+  }
+  message GRPC {
+    string addr = 1;
+    google.protobuf.Duration timeout = 2;
+  }
+  HTTP http = 1;
+  GRPC grpc = 2;
+}
+
+message Data {
+  message Database {
+    string driver = 1;
+    string source = 2;
+  }
+  message Valkey {
+    string addr = 1;
+    int32 db = 2;
+    int32 pool_size = 3;
+  }
+  message NATS {
+    string url = 1;
+  }
+  Database database = 1;
+  Valkey valkey = 2;
+  NATS nats = 3;
+}
+
+message Auth {
+  string issuer = 1;
+  string key_id = 2;
+  string private_key_path = 3;
+  int64 access_token_ttl = 4;
+  int64 refresh_token_ttl = 5;
+  repeated string cors_allowed_origins = 6;
+}

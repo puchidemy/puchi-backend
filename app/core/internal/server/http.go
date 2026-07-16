@@ -2,10 +2,10 @@ package server
 
 import (
 	pb "github.com/puchidemy/puchi-backend/app/core/api/profile/v1"
-	"github.com/puchidemy/puchi-backend/app/core/internal/auth"
 	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/core/internal/service"
+	authpkg "github.com/puchidemy/puchi-backend/pkg/auth"
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
 	"github.com/go-kratos/kratos/v3/middleware/validate"
 	"github.com/go-kratos/kratos/v3/transport/http"
@@ -15,9 +15,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *auth.JWTValidator, profileService *service.ProfileService, profileUC *biz.ProfileUsecase) *http.Server {
-	syncer := auth.NewUserSyncerFromUsecase(profileUC)
-
+func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWTValidator, profileService *service.ProfileService, _ *biz.ProfileUsecase) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -31,7 +29,10 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *auth.JWTVal
 			}),
 		),
 		http.Filter(corsFilter),
-		http.Filter(auth.Middleware(authCfg, jwtValidator, syncer)),
+		http.Filter(authpkg.Middleware(authpkg.MiddlewareConfig{
+			PublicPaths: authCfg.PublicPaths,
+			Validator:   jwtValidator,
+		})),
 	}
 	if c.Http.Network != "" {
 		opts = append(opts, http.Network(c.Http.Network))
