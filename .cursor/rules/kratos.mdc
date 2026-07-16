@@ -35,6 +35,16 @@ app/{service}/
 └── go.mod
 ```
 
+## Auth middleware (shared — pkg/auth/)
+
+Auth middleware nằm trong `pkg/auth/`, các service có thể dùng lại:
+
+- `auth.InitZitadel(issuerURL, jwksURL)` — khởi tạo JWT verifier (gọi ở main.go trước wireApp)
+- `auth.Middleware()` — HTTP middleware, verify JWT (JWKS), inject UserID vào context
+- `auth.UserIDFromContext(ctx)` — lấy UserID từ context
+- JWT verification: fetch JWKS từ Zitadel, verify signature + issuer (không phải session verification)
+- Note: `app/core/internal/auth/` re-exports từ `pkg/auth/` qua type aliases (backward compat)
+
 ## Coding rules
 
 - **Service layer**: Validate input, ko business logic
@@ -44,15 +54,6 @@ app/{service}/
 - **Error**: Dùng Kratos error với `error_reason.proto`
 - **Logger**: Dùng `log/slog` (Kratos v3 standard)
 - **Config**: Đọc từ `configs/config.yaml`, parse bằng proto
-
-## Auth middleware (core service)
-
-Auth middleware nằm trong `app/core/internal/auth/`:
-
-- `auth.InitSupertokens(cfg)` — gọi ở main.go trước wireApp
-- `auth.Middleware(cfg)` — HTTP middleware, verify session, inject UserID vào context
-- Public paths cấu hình trong config: `auth.public_paths` (mặc định: `/auth`, `/v1/health`, `/v1/healthz`)
-- Lấy UserID từ context: `auth.UserIDFromContext(ctx)`
 
 ## Event-driven (NATS)
 

@@ -15,7 +15,7 @@ Monorepo Go microservices với **Kratos v3**. 7 service modules trong `app/`, w
 | Framework | Kratos v3 (HTTP/gRPC hybrid, Protobuf-first) |
 | DI | Wire (compile-time) |
 | Auth | Zitadel (self-host) — JWT verification qua JWKS |
-| Auth middleware | `app/core/internal/auth/` (JWT middleware verify signature + issuer) |
+| Auth middleware | `pkg/auth/` (shared across services, JWT middleware verify signature + issuer) |
 | Database | PostgreSQL 18 (CloudNativePG) |
 | Cache | Valkey/Redis |
 | Message Queue | NATS (event-driven) |
@@ -38,7 +38,7 @@ puchi-backend/
 │   ├── game/                      # XP, leaderboard (Phase 3)
 │   ├── media/                     # Upload, resize (Phase 1)
 │   └── notification/              # Push, email (Phase 3)
-├── pkg/                           # Shared Kit library
+├── pkg/                           # Shared Kit library (includes pkg/auth/ for JWT auth middleware)
 ├── go.work                        # Go workspace (dev only)
 └── Makefile                       # Build helper
 ```
@@ -56,7 +56,7 @@ internal/
 
 ## Auth middleware
 
-Auth middleware nằm trong `app/core/internal/auth/`, gồm:
+Auth middleware nằm trong `pkg/auth/` (shared across services), gồm:
 
 | File | Mô tả |
 |------|-------|
