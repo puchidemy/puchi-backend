@@ -21,17 +21,29 @@ var (
 
 // AuthUsecase handles authentication business logic: register, login.
 type AuthUsecase struct {
-	userRepo    UserRepo
-	sessionRepo SessionRepo
-	tokenUC     *TokenUsecase
+	userRepo           UserRepo
+	sessionRepo        SessionRepo
+	passwordResetToken PasswordResetTokenRepo
+	tokenUC            *TokenUsecase
+	auditUC            *AuditUsecase
+	eventPublisher     EventPublisher
+	sessionCache       SessionCache
+	tokenBlacklist     TokenBlacklist
+	rateLimiter        RateLimiter
 }
 
 // NewAuthUsecase creates a new AuthUsecase.
-func NewAuthUsecase(userRepo UserRepo, sessionRepo SessionRepo, tokenUC *TokenUsecase) *AuthUsecase {
+func NewAuthUsecase(userRepo UserRepo, sessionRepo SessionRepo, passwordResetToken PasswordResetTokenRepo, tokenUC *TokenUsecase, auditUC *AuditUsecase, eventPublisher EventPublisher, sessionCache SessionCache, tokenBlacklist TokenBlacklist, rateLimiter RateLimiter) *AuthUsecase {
 	return &AuthUsecase{
-		userRepo:    userRepo,
-		sessionRepo: sessionRepo,
-		tokenUC:     tokenUC,
+		userRepo:           userRepo,
+		sessionRepo:        sessionRepo,
+		passwordResetToken: passwordResetToken,
+		tokenUC:            tokenUC,
+		auditUC:            auditUC,
+		eventPublisher:     eventPublisher,
+		sessionCache:       sessionCache,
+		tokenBlacklist:     tokenBlacklist,
+		rateLimiter:        rateLimiter,
 	}
 }
 
@@ -65,11 +77,27 @@ func (uc *AuthUsecase) Register(ctx context.Context, input RegisterInput) (*User
 		return nil, fmt.Errorf("create user: %w", err)
 	}
 
+	uc.auditUC.Log(ctx, &user.ID, "user.register", "user", user.ID.String(), input.IP, input.UserAgent, nil)
+
+	_ = uc.eventPublisher.Publish(ctx, "auth.user.created", map[string]any{
+		"user_id": user.ID.String(),
+		"email":   user.Email,
+	})
+
 	return user, nil
 }
 
 // Login authenticates a user with email and password, returning a token pair.
 func (uc *AuthUsecase) Login(ctx context.Context, input LoginInput) (*TokenPair, error) {
+	// Rate limit: max 10 attempts per email per 15 minutes
+	allowed, err := uc.rateLimiter.Allow(ctx, "login:"+strings.ToLower(strings.TrimSpace(input.Email)), 10, 15*time.Minute)
+	if err != nil {
+		return nil, fmt.Errorf("rate limiter: %w", err)
+	}
+	if !allowed {
+		return nil, ErrInvalidCredentials
+	}
+
 	emailNorm := strings.ToLower(strings.TrimSpace(input.Email))
 
 	user, err := uc.userRepo.GetByEmail(ctx, emailNorm)
@@ -122,6 +150,8 @@ func (uc *AuthUsecase) Login(ctx context.Context, input LoginInput) (*TokenPair,
 		return nil, fmt.Errorf("issue access token: %w", err)
 	}
 
+	uc.auditUC.Log(ctx, &user.ID, "auth.login", "session", session.ID.String(), input.IP, input.UserAgent, nil)
+
 	return &TokenPair{
 		AccessToken:  accessToken,
 		RefreshToken: raw,
@@ -131,15 +161,23 @@ func (uc *AuthUsecase) Login(ctx context.Context, input LoginInput) (*TokenPair,
 }
 
 // Logout revokes the current session.
-func (uc *AuthUsecase) Logout(ctx context.Context, sessionID uuid.UUID, userID uuid.UUID) error {
+func (uc *AuthUsecase) Logout(ctx context.Context, sessionID uuid.UUID, userID uuid.UUID, ip string, ua string) error {
 	if err := uc.sessionRepo.Revoke(ctx, sessionID); err != nil {
 		return fmt.Errorf("revoke session: %w", err)
 	}
+
+	uc.auditUC.Log(ctx, &userID, "auth.logout", "session", sessionID.String(), ip, ua, nil)
+
+	_ = uc.eventPublisher.Publish(ctx, "auth.session.revoked", map[string]any{
+		"session_id": sessionID.String(),
+		"user_id":    userID.String(),
+	})
+
 	return nil
 }
 
 // LogoutAllDevices revokes all sessions except the current one.
-func (uc *AuthUsecase) LogoutAllDevices(ctx context.Context, userID uuid.UUID, currentSessionID uuid.UUID) error {
+func (uc *AuthUsecase) LogoutAllDevices(ctx context.Context, userID uuid.UUID, currentSessionID uuid.UUID, ip string, ua string) error {
 	sessions, err := uc.sessionRepo.ListByUser(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("list sessions: %w", err)
@@ -151,12 +189,13 @@ func (uc *AuthUsecase) LogoutAllDevices(ctx context.Context, userID uuid.UUID, c
 			}
 		}
 	}
+	uc.auditUC.Log(ctx, &userID, "auth.logout_all", "user", userID.String(), ip, ua, nil)
 	return nil
 }
 
 // ChangePassword changes the user's password, verifying the old password first.
 // Revokes all sessions except the current one as a security measure.
-func (uc *AuthUsecase) ChangePassword(ctx context.Context, userID uuid.UUID, sessionID uuid.UUID, oldPassword, newPassword string) error {
+func (uc *AuthUsecase) ChangePassword(ctx context.Context, userID uuid.UUID, sessionID uuid.UUID, oldPassword, newPassword string, ip string, ua string) error {
 	if len(newPassword) < MinPasswordLength {
 		return ErrPasswordTooShort
 	}
@@ -194,6 +233,8 @@ func (uc *AuthUsecase) ChangePassword(ctx context.Context, userID uuid.UUID, ses
 		}
 	}
 
+	uc.auditUC.Log(ctx, &userID, "password.change", "user", userID.String(), ip, ua, nil)
+
 	return nil
 }
 
@@ -207,17 +248,23 @@ func (uc *AuthUsecase) RequestPasswordReset(ctx context.Context, email string) e
 		return nil
 	}
 
-	// Generate reset token
-	token, _, err := uc.tokenUC.GenerateRefreshToken() // reuse random generator
+	// Generate reset token (store hash in DB, return raw for email)
+	raw, hash, err := uc.tokenUC.GenerateRefreshToken()
 	if err != nil {
 		return fmt.Errorf("generate reset token: %w", err)
 	}
 
-	// Store token in DB (in Phase 3 this goes through outbox + NATS)
-	// For now just return — email sending will be implemented in Phase 3
-	_ = token
-	_ = user
-	_ = emailNorm
+	// Store token hash in DB
+	resetToken := &PasswordResetToken{
+		UserID: user.ID,
+		Token:  hash,
+	}
+	if err := uc.passwordResetToken.Create(ctx, resetToken); err != nil {
+		return fmt.Errorf("store password reset token: %w", err)
+	}
+
+	// In Phase 3: send email with raw token link via NATS
+	_ = raw
 
 	return nil
 }
@@ -228,15 +275,45 @@ func normalizeEmail(email string) string {
 }
 
 // CompletePasswordReset completes the password reset flow.
-// In Phase 3: look up token, verify not expired, update password, revoke all sessions.
-func (uc *AuthUsecase) CompletePasswordReset(ctx context.Context, token, newPassword string) error {
+// Looks up token hash, verifies not expired, updates password, revokes all sessions.
+func (uc *AuthUsecase) CompletePasswordReset(ctx context.Context, token, newPassword string, ip string, ua string) error {
 	if len(newPassword) < MinPasswordLength {
 		return ErrPasswordTooShort
 	}
-	return fmt.Errorf("password reset not fully implemented")
+
+	// Hash the incoming token to look up in DB
+	tokenHash := uc.tokenUC.HashRefreshToken(token)
+
+	resetToken, err := uc.passwordResetToken.GetByToken(ctx, tokenHash)
+	if err != nil {
+		return ErrInvalidCredentials
+	}
+
+	// Hash the new password
+	hash, err := HashPassword(newPassword)
+	if err != nil {
+		return fmt.Errorf("hash new password: %w", err)
+	}
+
+	// Update password
+	if err := uc.userRepo.UpdatePassword(ctx, resetToken.UserID, hash); err != nil {
+		return fmt.Errorf("update password: %w", err)
+	}
+
+	// Revoke all sessions
+	_ = uc.sessionRepo.RevokeAllForUser(ctx, resetToken.UserID)
+
+	// Mark token as used
+	if err := uc.passwordResetToken.MarkUsed(ctx, resetToken.ID); err != nil {
+		return fmt.Errorf("mark password reset token used: %w", err)
+	}
+
+	uc.auditUC.Log(ctx, &resetToken.UserID, "password.reset", "user", resetToken.UserID.String(), ip, ua, nil)
+
+	return nil
 }
 
-func (uc *AuthUsecase) RefreshTokens(ctx context.Context, rawRefreshToken string) (*TokenPair, error) {
+func (uc *AuthUsecase) RefreshTokens(ctx context.Context, rawRefreshToken string, ip string, ua string) (*TokenPair, error) {
 	hash := uc.tokenUC.HashRefreshToken(rawRefreshToken)
 
 	session, err := uc.sessionRepo.GetByRefreshTokenHash(ctx, hash)
@@ -305,6 +382,8 @@ func (uc *AuthUsecase) RefreshTokens(ctx context.Context, rawRefreshToken string
 	if err != nil {
 		return nil, fmt.Errorf("issue access token: %w", err)
 	}
+
+	uc.auditUC.Log(ctx, &session.UserID, "auth.refresh", "session", newSession.ID.String(), ip, ua, nil)
 
 	return &TokenPair{
 		AccessToken:  accessToken,

@@ -31,22 +31,34 @@ func wireApp(confServer *conf.Server, confData *conf.Data, auth *conf.Auth, logg
 	}
 	userRepo := data.NewUserRepo(dataData)
 	sessionRepo := data.NewSessionRepo(dataData)
+	passwordResetTokenRepo := data.NewPasswordResetTokenRepo(dataData)
 	tokenConfig, err := NewTokenConfig(auth)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
 	tokenUsecase := biz.NewTokenUsecase(tokenConfig)
-	authUsecase := biz.NewAuthUsecase(userRepo, sessionRepo, tokenUsecase)
+	auditRepo := data.NewAuditRepo(dataData)
+	auditUsecase := biz.NewAuditUsecase(auditRepo, logger)
+	publisher := data.NewPublisherProvider(dataData)
+	authUsecase := biz.NewAuthUsecase(userRepo, sessionRepo, passwordResetTokenRepo, tokenUsecase, auditUsecase, publisher)
 	authService := service.NewAuthService(authUsecase, tokenUsecase)
 	magicLinkRepo := data.NewMagicLinkRepo(dataData)
 	magicLinkUsecase := biz.NewMagicLinkUsecase(magicLinkRepo, userRepo, sessionRepo, tokenUsecase)
 	magicLinkService := service.NewMagicLinkService(magicLinkUsecase)
 	totpRepo := data.NewTOTPRepo(dataData)
-	v := NewEncryptionKey()
+	v, err := NewEncryptionKey()
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	mfaUsecase := biz.NewMFAUsecase(totpRepo, v)
 	mfaService := service.NewMFAService(mfaUsecase, tokenUsecase)
-	httpServer := server.NewHTTPServer(confServer, auth, authService, magicLinkService, mfaService)
+	roleRepo := data.NewRoleRepo(dataData)
+	permissionRepo := data.NewPermissionRepo(dataData)
+	rbacUsecase := biz.NewRBACUsecase(roleRepo, permissionRepo, userRepo)
+	adminService := service.NewAdminService(rbacUsecase, authUsecase, tokenUsecase)
+	httpServer := server.NewHTTPServer(confServer, auth, authService, magicLinkService, mfaService, adminService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()

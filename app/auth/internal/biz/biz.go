@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,7 +10,12 @@ import (
 )
 
 // ProviderSet is biz providers.
-var ProviderSet = wire.NewSet(NewAuthUsecase, NewTokenUsecase, NewSocialUsecase, NewMagicLinkUsecase, NewMFAUsecase)
+var ProviderSet = wire.NewSet(NewAuthUsecase, NewTokenUsecase, NewSocialUsecase, NewMagicLinkUsecase, NewMFAUsecase, NewRBACUsecase, NewAuditUsecase)
+
+// EventPublisher defines the interface for publishing domain events.
+type EventPublisher interface {
+	Publish(ctx context.Context, topic string, payload any) error
+}
 
 const MinPasswordLength = 8
 
@@ -45,6 +51,8 @@ type RegisterInput struct {
 	Email       string
 	Password    string
 	DisplayName string
+	IP          string
+	UserAgent   string
 }
 
 // LoginInput holds the login request data.
@@ -121,6 +129,42 @@ type MagicLinkRepo interface {
 	MarkUsed(ctx context.Context, id uuid.UUID) error
 }
 
+// AuditLog represents an audit log entry.
+type AuditLog struct {
+	ID         uuid.UUID
+	UserID     *uuid.UUID
+	Action     string
+	Resource   string
+	ResourceID string
+	IPAddress  string
+	UserAgent  string
+	Metadata   json.RawMessage // map[string]any
+	CreatedAt  time.Time
+}
+
+// AuditRepo defines the data access interface for audit logs.
+type AuditRepo interface {
+	Create(ctx context.Context, log *AuditLog) error
+}
+
+// SessionCache defines the interface for caching session metadata.
+type SessionCache interface {
+	Set(ctx context.Context, sessionID string, data []byte, ttl time.Duration) error
+	Get(ctx context.Context, sessionID string) ([]byte, error)
+	Del(ctx context.Context, sessionID string) error
+}
+
+// TokenBlacklist defines the interface for blacklisting revoked JTIs.
+type TokenBlacklist interface {
+	BlacklistJTI(ctx context.Context, jti string, ttl time.Duration) error
+	IsBlacklisted(ctx context.Context, jti string) (bool, error)
+}
+
+// RateLimiter defines the interface for rate limiting actions.
+type RateLimiter interface {
+	Allow(ctx context.Context, key string, maxAttempts int, window time.Duration) (bool, error)
+}
+
 // TOTPSecret represents an encrypted TOTP secret with recovery codes.
 type TOTPSecret struct {
 	ID              uuid.UUID
@@ -132,6 +176,23 @@ type TOTPSecret struct {
 	LastUsedAt      *time.Time
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+}
+
+// PasswordResetToken represents a password reset token entity.
+type PasswordResetToken struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Token     string
+	ExpiresAt time.Time
+	UsedAt    *time.Time
+	CreatedAt time.Time
+}
+
+// PasswordResetTokenRepo defines the data access interface for password reset tokens.
+type PasswordResetTokenRepo interface {
+	Create(ctx context.Context, token *PasswordResetToken) error
+	GetByToken(ctx context.Context, tokenHash string) (*PasswordResetToken, error)
+	MarkUsed(ctx context.Context, id uuid.UUID) error
 }
 
 // TOTPRepo defines the data access interface for TOTP secrets.
@@ -151,4 +212,40 @@ type SessionRepo interface {
 	RevokeAllForUser(ctx context.Context, userID uuid.UUID) error
 	ListByUser(ctx context.Context, userID uuid.UUID) ([]*Session, error)
 	HasActiveInFamily(ctx context.Context, family uuid.UUID, excludeSessionID uuid.UUID) (bool, error)
+}
+
+// Role represents an auth role entity.
+type Role struct {
+	ID          uuid.UUID
+	Name        string
+	Description string
+	IsSystem    bool
+	CreatedAt   time.Time
+}
+
+// Permission represents an auth permission entity.
+type Permission struct {
+	ID          uuid.UUID
+	Name        string
+	Resource    string
+	Action      string
+	Description string
+	CreatedAt   time.Time
+}
+
+// RoleRepo defines the data access interface for roles.
+type RoleRepo interface {
+	GetByName(ctx context.Context, name string) (*Role, error)
+	List(ctx context.Context) ([]*Role, error)
+	GetRolePermissions(ctx context.Context, roleID uuid.UUID) ([]*Permission, error)
+	GetUserRoles(ctx context.Context, userID uuid.UUID) ([]*Role, error)
+	AssignToUser(ctx context.Context, userID uuid.UUID, roleID uuid.UUID, grantedBy uuid.UUID) error
+	RemoveFromUser(ctx context.Context, userID uuid.UUID, roleID uuid.UUID) error
+}
+
+// PermissionRepo defines the data access interface for permissions.
+type PermissionRepo interface {
+	List(ctx context.Context) ([]*Permission, error)
+	IncrementVersion(ctx context.Context) error
+	GetVersion(ctx context.Context) (int64, error)
 }

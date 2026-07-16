@@ -34,6 +34,7 @@ type SocialUsecase struct {
 	sessionRepo    SessionRepo
 	tokenUC        *TokenUsecase
 	providers      map[string]interface{} // OAuth2Provider instances (wired in Phase 3)
+	eventPublisher EventPublisher
 }
 
 // NewSocialUsecase creates a new SocialUsecase.
@@ -42,6 +43,7 @@ func NewSocialUsecase(
 	socialConnRepo SocialConnectionRepo,
 	sessionRepo SessionRepo,
 	tokenUC *TokenUsecase,
+	eventPublisher EventPublisher,
 ) *SocialUsecase {
 	return &SocialUsecase{
 		userRepo:       userRepo,
@@ -49,6 +51,7 @@ func NewSocialUsecase(
 		sessionRepo:    sessionRepo,
 		tokenUC:        tokenUC,
 		providers:      make(map[string]interface{}),
+		eventPublisher: eventPublisher,
 	}
 }
 
@@ -87,6 +90,13 @@ func (uc *SocialUsecase) LoginOrLink(ctx context.Context, providerName string, p
 		if err := uc.socialConnRepo.Create(ctx, conn); err != nil {
 			return nil, fmt.Errorf("link social connection: %w", err)
 		}
+
+		_ = uc.eventPublisher.Publish(ctx, "auth.social.linked", map[string]any{
+			"user_id":        user.ID.String(),
+			"provider":       providerName,
+			"provider_user":  providerUser.ProviderID,
+		})
+
 		return uc.createTokensForUser(ctx, user)
 	}
 
@@ -124,6 +134,12 @@ func (uc *SocialUsecase) LoginOrLink(ctx context.Context, providerName string, p
 	if err := uc.socialConnRepo.Create(ctx, conn); err != nil {
 		return nil, fmt.Errorf("create social connection: %w", err)
 	}
+
+	_ = uc.eventPublisher.Publish(ctx, "auth.social.linked", map[string]any{
+		"user_id":        newUser.ID.String(),
+		"provider":       providerName,
+		"provider_user":  providerUser.ProviderID,
+	})
 
 	return uc.createTokensForUser(ctx, newUser)
 }
