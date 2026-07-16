@@ -27,5 +27,6 @@ func wireApp(*conf.Server, *conf.Data, *conf.Auth, *slog.Logger) (*kratos.App, f
 		service.ProviderSet,
 		newApp,
 		NewTokenConfig,
+		NewEncryptionKey,
 	))
 }

@@ -222,6 +222,11 @@ func (uc *AuthUsecase) RequestPasswordReset(ctx context.Context, email string) e
 	return nil
 }
 
+// normalizeEmail normalizes an email for storage and lookup.
+func normalizeEmail(email string) string {
+	return strings.ToLower(strings.TrimSpace(email))
+}
+
 // CompletePasswordReset completes the password reset flow.
 // In Phase 3: look up token, verify not expired, update password, revoke all sessions.
 func (uc *AuthUsecase) CompletePasswordReset(ctx context.Context, token, newPassword string) error {
