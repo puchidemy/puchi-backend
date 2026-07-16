@@ -9,7 +9,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, authService *service.AuthService) *http.Server {
+func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, authService *service.AuthService, magicLinkService *service.MagicLinkService, mfaService *service.MFAService) *http.Server {
 	var opts = []http.ServerOption{}
 	if c.Http.Addr != "" {
 		opts = append(opts, http.Address(c.Http.Addr))
@@ -32,6 +32,15 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, authService *service.Auth
 
 	// Register refresh endpoint (raw handler, not via proto-defined route)
 	srv.HandleFunc("/api/auth/refresh", authService.HandleRefresh)
+
+	// Register magic link endpoints
+	srv.HandleFunc("/api/auth/magic-link/send", magicLinkService.HandleSend)
+	srv.HandleFunc("/api/auth/magic-link/verify", magicLinkService.HandleVerify)
+
+	// Register MFA endpoints
+	srv.HandleFunc("/api/auth/mfa/enroll", mfaService.HandleEnroll)
+	srv.HandleFunc("/api/auth/mfa/verify", mfaService.HandleVerify)
+	srv.HandleFunc("/api/auth/mfa/disable", mfaService.HandleDisable)
 
 	// Wrap with CORS middleware
 	if len(authCfg.CorsAllowedOrigins) > 0 {

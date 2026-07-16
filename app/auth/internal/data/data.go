@@ -14,8 +14,14 @@ var ProviderSet = wire.NewSet(
 	NewData,
 	NewUserRepo,
 	NewSessionRepo,
+	NewSocialConnectionRepo,
+	NewMagicLinkRepo,
+	NewTOTPRepo,
 	wire.Bind(new(biz.UserRepo), new(*UserRepo)),
 	wire.Bind(new(biz.SessionRepo), new(*SessionRepo)),
+	wire.Bind(new(biz.SocialConnectionRepo), new(*SocialConnectionRepo)),
+	wire.Bind(new(biz.MagicLinkRepo), new(*MagicLinkRepo)),
+	wire.Bind(new(biz.TOTPRepo), new(*TOTPRepo)),
 )
 
 // Data .

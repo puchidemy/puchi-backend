@@ -9,17 +9,26 @@ import (
 )
 
 type Querier interface {
+	CreateMagicLink(ctx context.Context, arg CreateMagicLinkParams) (AuthMagicLink, error)
+	CreatePasswordResetToken(ctx context.Context, arg CreatePasswordResetTokenParams) (AuthPasswordResetToken, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (AuthSession, error)
 	CreateSocialConnection(ctx context.Context, arg CreateSocialConnectionParams) (AuthSocialConnection, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (AuthUser, error)
 	DeleteSocialConnection(ctx context.Context, arg DeleteSocialConnectionParams) error
+	DisableTOTP(ctx context.Context, userID string) error
+	EnableTOTP(ctx context.Context, userID string) error
+	GetMagicLinkByToken(ctx context.Context, token string) (AuthMagicLink, error)
+	GetPasswordResetToken(ctx context.Context, token string) (AuthPasswordResetToken, error)
 	GetSessionByHash(ctx context.Context, refreshTokenHash string) (AuthSession, error)
 	GetSocialConnection(ctx context.Context, arg GetSocialConnectionParams) (AuthSocialConnection, error)
+	GetTOTPSecret(ctx context.Context, userID string) (AuthTotpSecret, error)
 	GetUserByEmail(ctx context.Context, emailNormalized string) (AuthUser, error)
 	GetUserByID(ctx context.Context, id string) (AuthUser, error)
 	HasActiveSessionsInFamily(ctx context.Context, arg HasActiveSessionsInFamilyParams) (bool, error)
 	ListSessionsByUser(ctx context.Context, userID string) ([]AuthSession, error)
 	ListSocialConnectionsByUser(ctx context.Context, userID string) ([]AuthSocialConnection, error)
+	MarkMagicLinkUsed(ctx context.Context, id string) error
+	MarkPasswordResetTokenUsed(ctx context.Context, id string) error
 	RevokeAllForUser(ctx context.Context, userID string) error
 	RevokeFamily(ctx context.Context, tokenFamily string) error
 	RevokeSession(ctx context.Context, id string) error
@@ -28,6 +37,7 @@ type Querier interface {
 	UpdateSessionLastUsed(ctx context.Context, id string) error
 	UpdateUserLastLogin(ctx context.Context, id string) error
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
+	UpsertTOTPSecret(ctx context.Context, arg UpsertTOTPSecretParams) (AuthTotpSecret, error)
 }
 
 var _ Querier = (*Queries)(nil)
