@@ -12,7 +12,7 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO core.users (id, username, email, first_name, last_name)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id
+RETURNING id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id, age_range, onboarding_completed
 `
 
 type CreateUserParams struct {
@@ -45,6 +45,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CoreUse
 		&i.StSignUpAt,
 		&i.StThirdPartyProvider,
 		&i.StThirdPartyUserID,
+		&i.AgeRange,
+		&i.OnboardingCompleted,
 	)
 	return i, err
 }
@@ -59,7 +61,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id string) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id FROM core.users WHERE id = $1
+SELECT id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id, age_range, onboarding_completed FROM core.users WHERE id = $1
 `
 
 func (q *Queries) GetUser(ctx context.Context, id string) (CoreUser, error) {
@@ -78,12 +80,14 @@ func (q *Queries) GetUser(ctx context.Context, id string) (CoreUser, error) {
 		&i.StSignUpAt,
 		&i.StThirdPartyProvider,
 		&i.StThirdPartyUserID,
+		&i.AgeRange,
+		&i.OnboardingCompleted,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id FROM core.users WHERE email = $1
+SELECT id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id, age_range, onboarding_completed FROM core.users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (CoreUser, error) {
@@ -102,6 +106,76 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (CoreUser, e
 		&i.StSignUpAt,
 		&i.StThirdPartyProvider,
 		&i.StThirdPartyUserID,
+		&i.AgeRange,
+		&i.OnboardingCompleted,
+	)
+	return i, err
+}
+
+const getUserByUsername = `-- name: GetUserByUsername :one
+SELECT id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id, age_range, onboarding_completed FROM core.users WHERE username = $1
+`
+
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (CoreUser, error) {
+	row := q.db.QueryRow(ctx, getUserByUsername, username)
+	var i CoreUser
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.AvatarKey,
+		&i.Bio,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.StSignUpAt,
+		&i.StThirdPartyProvider,
+		&i.StThirdPartyUserID,
+		&i.AgeRange,
+		&i.OnboardingCompleted,
+	)
+	return i, err
+}
+
+const updateOnboardingInfo = `-- name: UpdateOnboardingInfo :one
+UPDATE core.users 
+SET first_name = $2, last_name = $3, age_range = $4, 
+    onboarding_completed = true, updated_at = now()
+WHERE id = $1
+RETURNING id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id, age_range, onboarding_completed
+`
+
+type UpdateOnboardingInfoParams struct {
+	ID        string `db:"id"`
+	FirstName string `db:"first_name"`
+	LastName  string `db:"last_name"`
+	AgeRange  string `db:"age_range"`
+}
+
+func (q *Queries) UpdateOnboardingInfo(ctx context.Context, arg UpdateOnboardingInfoParams) (CoreUser, error) {
+	row := q.db.QueryRow(ctx, updateOnboardingInfo,
+		arg.ID,
+		arg.FirstName,
+		arg.LastName,
+		arg.AgeRange,
+	)
+	var i CoreUser
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.AvatarKey,
+		&i.Bio,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.StSignUpAt,
+		&i.StThirdPartyProvider,
+		&i.StThirdPartyUserID,
+		&i.AgeRange,
+		&i.OnboardingCompleted,
 	)
 	return i, err
 }
@@ -110,7 +184,7 @@ const updateUser = `-- name: UpdateUser :one
 UPDATE core.users
 SET first_name = $2, last_name = $3, username = $4, bio = $5, avatar_key = $6, updated_at = now()
 WHERE id = $1
-RETURNING id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id
+RETURNING id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id, age_range, onboarding_completed
 `
 
 type UpdateUserParams struct {
@@ -145,6 +219,45 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (CoreUse
 		&i.StSignUpAt,
 		&i.StThirdPartyProvider,
 		&i.StThirdPartyUserID,
+		&i.AgeRange,
+		&i.OnboardingCompleted,
+	)
+	return i, err
+}
+
+const upsertUserOnboarding = `-- name: UpsertUserOnboarding :one
+INSERT INTO core.user_onboarding (user_id, how_heard, why_learn, level)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (user_id) 
+DO UPDATE SET how_heard = EXCLUDED.how_heard, 
+              why_learn = EXCLUDED.why_learn, 
+              level = EXCLUDED.level,
+              updated_at = now()
+RETURNING user_id, how_heard, why_learn, level, created_at, updated_at
+`
+
+type UpsertUserOnboardingParams struct {
+	UserID   string `db:"user_id"`
+	HowHeard string `db:"how_heard"`
+	WhyLearn string `db:"why_learn"`
+	Level    string `db:"level"`
+}
+
+func (q *Queries) UpsertUserOnboarding(ctx context.Context, arg UpsertUserOnboardingParams) (CoreUserOnboarding, error) {
+	row := q.db.QueryRow(ctx, upsertUserOnboarding,
+		arg.UserID,
+		arg.HowHeard,
+		arg.WhyLearn,
+		arg.Level,
+	)
+	var i CoreUserOnboarding
+	err := row.Scan(
+		&i.UserID,
+		&i.HowHeard,
+		&i.WhyLearn,
+		&i.Level,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

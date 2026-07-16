@@ -17,12 +17,15 @@ type Querier interface {
 	GetUser(ctx context.Context, id string) (CoreUser, error)
 	GetUserAchievement(ctx context.Context, arg GetUserAchievementParams) (CoreUserAchievement, error)
 	GetUserByEmail(ctx context.Context, email string) (CoreUser, error)
+	GetUserByUsername(ctx context.Context, username string) (CoreUser, error)
 	GetUserStats(ctx context.Context, userID string) (CoreUserStat, error)
 	ListAchievementDefs(ctx context.Context) ([]CoreAchievementsDef, error)
 	ListUserAchievements(ctx context.Context, userID string) ([]CoreUserAchievement, error)
+	UpdateOnboardingInfo(ctx context.Context, arg UpdateOnboardingInfoParams) (CoreUser, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (CoreUser, error)
 	UpdateUserStats(ctx context.Context, arg UpdateUserStatsParams) (CoreUserStat, error)
 	UpsertUserAchievement(ctx context.Context, arg UpsertUserAchievementParams) (CoreUserAchievement, error)
+	UpsertUserOnboarding(ctx context.Context, arg UpsertUserOnboardingParams) (CoreUserOnboarding, error)
 	UsernameExists(ctx context.Context, username string) (bool, error)
 }
 

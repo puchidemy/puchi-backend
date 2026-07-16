@@ -48,6 +48,8 @@ type CoreUser struct {
 	StSignUpAt           pgtype.Timestamptz `db:"st_sign_up_at"`
 	StThirdPartyProvider *string            `db:"st_third_party_provider"`
 	StThirdPartyUserID   *string            `db:"st_third_party_user_id"`
+	AgeRange             string             `db:"age_range"`
+	OnboardingCompleted  bool               `db:"onboarding_completed"`
 }
 
 type CoreUserAchievement struct {
@@ -56,6 +58,15 @@ type CoreUserAchievement struct {
 	Progress      int32              `db:"progress"`
 	Unlocked      bool               `db:"unlocked"`
 	UnlockedAt    pgtype.Timestamptz `db:"unlocked_at"`
+}
+
+type CoreUserOnboarding struct {
+	UserID    string    `db:"user_id"`
+	HowHeard  string    `db:"how_heard"`
+	WhyLearn  string    `db:"why_learn"`
+	Level     string    `db:"level"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type CoreUserStat struct {
