@@ -1,10 +1,19 @@
 FROM golang:1.26 AS builder
 WORKDIR /src
-COPY go.mod go.sum ./
-RUN go mod download
 
-COPY . .
-RUN go mod tidy && go build -o /bin/notification ./cmd/notification/
+# Copy pkg module (needed for replace directive)
+COPY pkg/go.mod pkg/go.sum ./pkg/
+
+# Copy service dependency files
+COPY app/notification/go.mod app/notification/go.sum ./app/notification/
+RUN cd app/notification && go mod download
+
+# Copy source
+COPY pkg/ ./pkg/
+COPY app/notification/ ./app/notification/
+
+# Build
+RUN cd app/notification && go build -o /bin/notification ./cmd/notification/
 
 FROM debian:stable-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \

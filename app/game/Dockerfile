@@ -1,10 +1,19 @@
 FROM golang:1.26 AS builder
 WORKDIR /src
-COPY go.mod go.sum ./
-RUN go mod download
 
-COPY . .
-RUN go mod tidy && go build -o /bin/game ./cmd/game/
+# Copy pkg module (needed for replace directive)
+COPY pkg/go.mod pkg/go.sum ./pkg/
+
+# Copy service dependency files
+COPY app/game/go.mod app/game/go.sum ./app/game/
+RUN cd app/game && go mod download
+
+# Copy source
+COPY pkg/ ./pkg/
+COPY app/game/ ./app/game/
+
+# Build
+RUN cd app/game && go build -o /bin/game ./cmd/game/
 
 FROM debian:stable-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \

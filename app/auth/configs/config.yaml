@@ -9,20 +9,21 @@ server:
 data:
   database:
     driver: postgres
-    source: "postgres://puchi:puchi-db-prod@localhost:5432/puchi?sslmode=disable&search_path=auth"
+    source: "postgres://puchi:puchi-db-prod@pg-puchi-rw.puchi-db.svc.cluster.local:5432/puchi?sslmode=disable&search_path=auth"
   valkey:
-    addr: "localhost:6379"
+    addr: "valkey.platform.svc.cluster.local:6379"
     db: 0
     pool_size: 10
   nats:
-    url: "nats://localhost:4222"
+    url: "nats://nats.platform.svc.cluster.local:4222"
 
 auth:
-  issuer: "http://localhost:8080"
-  key_id: "dev-key-1"
+  issuer: "https://api.puchi.io.vn"
+  key_id: "2026-07-17-prod-1"
   private_key_path: "configs/private.pem"
   access_token_ttl: 900
   refresh_token_ttl: 2592000
   cors_allowed_origins:
+    - "https://puchi.io.vn"
     - "http://localhost:3000"
     - "http://localhost:3001"

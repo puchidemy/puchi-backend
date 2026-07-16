@@ -1,10 +1,19 @@
 FROM golang:1.26 AS builder
 WORKDIR /src
-COPY go.mod go.sum ./
-RUN go mod download
 
-COPY . .
-RUN go mod tidy && go build -o /bin/user ./cmd/user/
+# Copy pkg module (needed for replace directive)
+COPY pkg/go.mod pkg/go.sum ./pkg/
+
+# Copy service dependency files
+COPY app/user/go.mod app/user/go.sum ./app/user/
+RUN cd app/user && go mod download
+
+# Copy source
+COPY pkg/ ./pkg/
+COPY app/user/ ./app/user/
+
+# Build
+RUN cd app/user && go build -o /bin/user ./cmd/user/
 
 FROM debian:stable-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \

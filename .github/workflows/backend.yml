@@ -26,9 +26,11 @@ jobs:
           - core
           - content
           - grading
+          - game
           - user
           - media
           - notification
+          - auth
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -48,9 +50,11 @@ jobs:
           - core
           - content
           - grading
+          - game
           - user
           - media
           - notification
+          - auth
     steps:
       - uses: actions/checkout@v4
 
@@ -76,7 +80,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: app/${{ matrix.service }}
+          context: .
+          dockerfile: app/${{ matrix.service }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -100,7 +105,7 @@ jobs:
       - name: Update all backend deployment images
         run: |
           SHA_TAG="git-${GITHUB_SHA::7}"
-          for service in core content grading game user media notification; do
+          for service in core content grading game user media notification auth; do
             DEPLOY="puchi-infra/infra/backend/$service/deployment.yaml"
             OLD_IMAGE="ghcr.io/puchidemy/puchi-$service:latest"
             NEW_IMAGE="ghcr.io/puchidemy/puchi-$service:$SHA_TAG"
