@@ -9,6 +9,8 @@ import (
 )
 
 type Querier interface {
+	AssignRoleToUser(ctx context.Context, arg AssignRoleToUserParams) error
+	CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) (AuthAuditLog, error)
 	CreateMagicLink(ctx context.Context, arg CreateMagicLinkParams) (AuthMagicLink, error)
 	CreatePasswordResetToken(ctx context.Context, arg CreatePasswordResetTokenParams) (AuthPasswordResetToken, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (AuthSession, error)
@@ -19,16 +21,25 @@ type Querier interface {
 	EnableTOTP(ctx context.Context, userID string) error
 	GetMagicLinkByToken(ctx context.Context, token string) (AuthMagicLink, error)
 	GetPasswordResetToken(ctx context.Context, token string) (AuthPasswordResetToken, error)
+	GetPermissionVersion(ctx context.Context) (int64, error)
+	GetRoleByName(ctx context.Context, name string) (AuthRole, error)
+	GetRolePermissions(ctx context.Context, roleID string) ([]AuthPermission, error)
 	GetSessionByHash(ctx context.Context, refreshTokenHash string) (AuthSession, error)
 	GetSocialConnection(ctx context.Context, arg GetSocialConnectionParams) (AuthSocialConnection, error)
 	GetTOTPSecret(ctx context.Context, userID string) (AuthTotpSecret, error)
 	GetUserByEmail(ctx context.Context, emailNormalized string) (AuthUser, error)
 	GetUserByID(ctx context.Context, id string) (AuthUser, error)
+	GetUserRoles(ctx context.Context, userID string) ([]AuthRole, error)
 	HasActiveSessionsInFamily(ctx context.Context, arg HasActiveSessionsInFamilyParams) (bool, error)
+	IncrementPermissionVersion(ctx context.Context) error
+	ListAuditLogsByUser(ctx context.Context, arg ListAuditLogsByUserParams) ([]AuthAuditLog, error)
+	ListPermissions(ctx context.Context) ([]AuthPermission, error)
+	ListRoles(ctx context.Context) ([]AuthRole, error)
 	ListSessionsByUser(ctx context.Context, userID string) ([]AuthSession, error)
 	ListSocialConnectionsByUser(ctx context.Context, userID string) ([]AuthSocialConnection, error)
 	MarkMagicLinkUsed(ctx context.Context, id string) error
 	MarkPasswordResetTokenUsed(ctx context.Context, id string) error
+	RemoveRoleFromUser(ctx context.Context, arg RemoveRoleFromUserParams) error
 	RevokeAllForUser(ctx context.Context, userID string) error
 	RevokeFamily(ctx context.Context, tokenFamily string) error
 	RevokeSession(ctx context.Context, id string) error

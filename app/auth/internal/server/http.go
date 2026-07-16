@@ -1,6 +1,8 @@
 package server
 
 import (
+	nethttp "net/http"
+
 	"github.com/go-kratos/kratos/v3/transport/http"
 
 	authv1 "github.com/puchidemy/puchi-backend/app/auth/api/auth/v1"
@@ -9,7 +11,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, authService *service.AuthService, magicLinkService *service.MagicLinkService, mfaService *service.MFAService) *http.Server {
+func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, authService *service.AuthService, magicLinkService *service.MagicLinkService, mfaService *service.MFAService, adminService *service.AdminService) *http.Server {
 	var opts = []http.ServerOption{}
 	if c.Http.Addr != "" {
 		opts = append(opts, http.Address(c.Http.Addr))
@@ -41,6 +43,23 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, authService *service.Auth
 	srv.HandleFunc("/api/auth/mfa/enroll", mfaService.HandleEnroll)
 	srv.HandleFunc("/api/auth/mfa/verify", mfaService.HandleVerify)
 	srv.HandleFunc("/api/auth/mfa/disable", mfaService.HandleDisable)
+
+	// Register admin RBAC endpoints
+	srv.HandleFunc("/admin/roles", adminService.HandleListRoles)
+	srv.HandleFunc("/admin/permissions", adminService.HandleListPermissions)
+	srv.HandleFunc("/admin/users/{id}/roles", func(w http.ResponseWriter, r *nethttp.Request) {
+		switch r.Method {
+		case nethttp.MethodGet:
+			adminService.HandleGetUserRoles(w, r)
+		case nethttp.MethodPost:
+			adminService.HandleAssignRole(w, r)
+		case nethttp.MethodDelete:
+			adminService.HandleRemoveRole(w, r)
+		default:
+			w.WriteHeader(nethttp.StatusMethodNotAllowed)
+		}
+	})
+	srv.HandleFunc("/admin/users/{id}/permissions", adminService.HandleGetUserPermissions)
 
 	// Wrap with CORS middleware
 	if len(authCfg.CorsAllowedOrigins) > 0 {

@@ -41,7 +41,12 @@ func wireApp(confServer *conf.Server, confData *conf.Data, auth *conf.Auth, logg
 	auditRepo := data.NewAuditRepo(dataData)
 	auditUsecase := biz.NewAuditUsecase(auditRepo, logger)
 	publisher := data.NewPublisherProvider(dataData)
-	authUsecase := biz.NewAuthUsecase(userRepo, sessionRepo, passwordResetTokenRepo, tokenUsecase, auditUsecase, publisher)
+	cache, cleanup2, err := data.NewCache(confData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	authUsecase := biz.NewAuthUsecase(userRepo, sessionRepo, passwordResetTokenRepo, tokenUsecase, auditUsecase, publisher, cache, cache, cache)
 	authService := service.NewAuthService(authUsecase, tokenUsecase)
 	magicLinkRepo := data.NewMagicLinkRepo(dataData)
 	magicLinkUsecase := biz.NewMagicLinkUsecase(magicLinkRepo, userRepo, sessionRepo, tokenUsecase)
@@ -49,6 +54,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, auth *conf.Auth, logg
 	totpRepo := data.NewTOTPRepo(dataData)
 	v, err := NewEncryptionKey()
 	if err != nil {
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
@@ -61,6 +67,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, auth *conf.Auth, logg
 	httpServer := server.NewHTTPServer(confServer, auth, authService, magicLinkService, mfaService, adminService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
+		cleanup2()
 		cleanup()
 	}, nil
 }

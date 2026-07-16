@@ -33,8 +33,8 @@ func (uc *MagicLinkUsecase) Send(ctx context.Context, email string, redirectTo s
 		userID = user.ID
 	}
 
-	// Generate token
-	raw, _, err := uc.tokenUC.GenerateRefreshToken()
+	// Generate token (store hash in DB, return raw to caller)
+	raw, hash, err := uc.tokenUC.GenerateRefreshToken()
 	if err != nil {
 		return "", fmt.Errorf("generate magic link token: %w", err)
 	}
@@ -42,7 +42,7 @@ func (uc *MagicLinkUsecase) Send(ctx context.Context, email string, redirectTo s
 	ml := &MagicLink{
 		Email:      emailNorm,
 		UserID:     userID,
-		Token:      raw,
+		Token:      hash,
 		RedirectTo: redirectTo,
 	}
 
@@ -58,14 +58,10 @@ func (uc *MagicLinkUsecase) Send(ctx context.Context, email string, redirectTo s
 
 // Verify validates a magic link token and logs the user in.
 func (uc *MagicLinkUsecase) Verify(ctx context.Context, token string) (*TokenPair, error) {
-	ml, err := uc.mlRepo.GetByToken(ctx, token)
+	tokenHash := uc.tokenUC.HashRefreshToken(token)
+	ml, err := uc.mlRepo.GetByToken(ctx, tokenHash)
 	if err != nil {
 		return nil, ErrInvalidCredentials
-	}
-
-	// Mark used (prevent replay)
-	if err := uc.mlRepo.MarkUsed(ctx, ml.ID); err != nil {
-		return nil, fmt.Errorf("mark magic link used: %w", err)
 	}
 
 	var user *User
@@ -127,6 +123,11 @@ func (uc *MagicLinkUsecase) Verify(ctx context.Context, token string) (*TokenPai
 	})
 	if err != nil {
 		return nil, fmt.Errorf("issue access token: %w", err)
+	}
+
+	// Mark used (prevent replay) — AFTER user + session creation succeed
+	if err := uc.mlRepo.MarkUsed(ctx, ml.ID); err != nil {
+		return nil, fmt.Errorf("mark magic link used: %w", err)
 	}
 
 	return &TokenPair{

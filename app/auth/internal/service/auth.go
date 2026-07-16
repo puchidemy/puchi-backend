@@ -38,6 +38,8 @@ func (s *AuthService) Register(ctx context.Context, req *authv1.RegisterRequest)
 		Email:       req.Email,
 		Password:    req.Password,
 		DisplayName: req.DisplayName,
+		IP:          getClientIP(ctx),
+		UserAgent:   getUserAgent(ctx),
 	})
 	if err != nil {
 		return nil, mapAuthError(err)
@@ -101,11 +103,11 @@ func (s *AuthService) HandleRefresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pair, err := s.uc.RefreshTokens(r.Context(), cookie.Value)
+	pair, err := s.uc.RefreshTokens(r.Context(), cookie.Value, getClientIPFromReq(r), getUserAgentFromReq(r))
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		json.NewEncoder(w).Encode(map[string]string{"error": "invalid refresh token"})
 		return
 	}
 
@@ -148,12 +150,26 @@ func getClientIP(ctx context.Context) string {
 	return ""
 }
 
+// getClientIPFromReq extracts the client IP from an http.Request.
+func getClientIPFromReq(r *http.Request) string {
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
+}
+
 // getUserAgent extracts the User-Agent from the HTTP transport context.
 func getUserAgent(ctx context.Context) string {
 	if hctx, ok := ctx.(khttp.Context); ok {
 		return hctx.Request().UserAgent()
 	}
 	return ""
+}
+
+// getUserAgentFromReq extracts the User-Agent from an http.Request.
+func getUserAgentFromReq(r *http.Request) string {
+	return r.UserAgent()
 }
 
 // setRefreshTokenCookie sets the refresh token as an HttpOnly, Secure, cross-origin cookie.
@@ -189,23 +205,23 @@ func clearRefreshTokenCookie(w http.ResponseWriter) {
 }
 
 // extractJWTClaims parses and validates the JWT access token from the
-// Authorization header, returning the user ID and session ID.
-func (s *AuthService) extractJWTClaims(r *http.Request) (userID uuid.UUID, sessionID uuid.UUID, err error) {
+// Authorization header, returning the user ID, session ID, and JTI.
+func (s *AuthService) extractJWTClaims(r *http.Request) (userID uuid.UUID, sessionID uuid.UUID, jti string, err error) {
 	authHeader := r.Header.Get("Authorization")
 	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 	if tokenStr == authHeader {
-		return uuid.Nil, uuid.Nil, fmt.Errorf("no bearer token")
+		return uuid.Nil, uuid.Nil, "", fmt.Errorf("no bearer token")
 	}
 	claims, err := s.tokenUC.VerifyAccessToken(tokenStr)
 	if err != nil {
-		return uuid.Nil, uuid.Nil, fmt.Errorf("verify token: %w", err)
+		return uuid.Nil, uuid.Nil, "", fmt.Errorf("verify token: %w", err)
 	}
-	return claims.UserID, claims.SessionID, nil
+	return claims.UserID, claims.SessionID, claims.JTI, nil
 }
 
 // HandleLogout revokes the current session and clears the refresh token cookie.
 func (s *AuthService) HandleLogout(w http.ResponseWriter, r *http.Request) {
-	userID, sessionID, err := s.extractJWTClaims(r)
+	userID, sessionID, jti, err := s.extractJWTClaims(r)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -213,7 +229,7 @@ func (s *AuthService) HandleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.uc.Logout(r.Context(), sessionID, userID); err != nil {
+	if err := s.uc.Logout(r.Context(), sessionID, userID, getClientIPFromReq(r), getUserAgentFromReq(r), jti); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "failed to logout"})
@@ -235,7 +251,7 @@ func (s *AuthService) HandleChangePassword(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	userID, sessionID, err := s.extractJWTClaims(r)
+	userID, sessionID, jti, err := s.extractJWTClaims(r)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -254,7 +270,7 @@ func (s *AuthService) HandleChangePassword(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := s.uc.ChangePassword(r.Context(), userID, sessionID, req.OldPassword, req.NewPassword); err != nil {
+	if err := s.uc.ChangePassword(r.Context(), userID, sessionID, req.OldPassword, req.NewPassword, getClientIPFromReq(r), getUserAgentFromReq(r), jti); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		status := http.StatusBadRequest
 		switch {
@@ -305,7 +321,7 @@ func (s *AuthService) HandleResetRequest(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(map[string]string{"message": "if the email exists, a reset link has been sent"})
 }
 
-// HandleResetComplete completes the password reset (not fully implemented).
+// HandleResetComplete completes the password reset.
 func (s *AuthService) HandleResetComplete(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Content-Type", "application/json")
@@ -314,7 +330,34 @@ func (s *AuthService) HandleResetComplete(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	var req struct {
+		Token       string `json:"token"`
+		NewPassword string `json:"new_password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"})
+		return
+	}
+
+	if err := s.uc.CompletePasswordReset(r.Context(), req.Token, req.NewPassword, getClientIPFromReq(r), getUserAgentFromReq(r)); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		switch {
+		case errors.Is(err, biz.ErrInvalidCredentials):
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]string{"error": "invalid or expired reset token"})
+		case errors.Is(err, biz.ErrPasswordTooShort):
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "password must be at least 8 characters"})
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": "internal error"})
+		}
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusNotImplemented)
-	json.NewEncoder(w).Encode(map[string]string{"error": "password reset not fully implemented"})
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "password has been reset"})
 }

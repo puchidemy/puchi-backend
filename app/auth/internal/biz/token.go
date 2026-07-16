@@ -40,6 +40,7 @@ type AccessTokenClaims struct {
 	Roles         []string  `json:"roles"`
 	PermVersion   int64     `json:"perm_version"`
 	SessionID     uuid.UUID `json:"sid"`
+	JTI           string    `json:"jti"`
 }
 
 // TokenUsecase handles JWT token issuance and verification.
@@ -134,6 +135,8 @@ func (uc *TokenUsecase) VerifyAccessToken(tokenStr string) (*AccessTokenClaims, 
 	sidStr, _ := claims["sid"].(string)
 	sid, _ := uuid.Parse(sidStr)
 
+	jti, _ := claims["jti"].(string)
+
 	return &AccessTokenClaims{
 		UserID:        userID,
 		Email:         email,
@@ -141,6 +144,7 @@ func (uc *TokenUsecase) VerifyAccessToken(tokenStr string) (*AccessTokenClaims, 
 		Roles:         roles,
 		PermVersion:   permVersion,
 		SessionID:     sid,
+		JTI:           jti,
 	}, nil
 }
 

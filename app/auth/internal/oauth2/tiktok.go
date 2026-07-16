@@ -103,7 +103,7 @@ func (p *TikTokProvider) fetchUserInfo(ctx context.Context, accessToken string) 
 		return nil, fmt.Errorf("parse userinfo response: %w", err)
 	}
 
-	if info.Error.Code != "" {
+	if info.Error.Code != "" && info.Error.Code != "ok" {
 		return nil, fmt.Errorf("tiktok API error: code=%s message=%s", info.Error.Code, info.Error.Message)
 	}
 

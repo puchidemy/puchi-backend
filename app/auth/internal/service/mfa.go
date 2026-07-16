@@ -28,7 +28,7 @@ func (s *MFAService) HandleEnroll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, _, err := extractJWTClaims(r, s.tokenUC)
+	userID, _, email, err := extractJWTClaims(r, s.tokenUC)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -36,7 +36,7 @@ func (s *MFAService) HandleEnroll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	enrollment, err := s.uc.Enroll(r.Context(), userID, "")
+	enrollment, err := s.uc.Enroll(r.Context(), userID, email)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -55,7 +55,7 @@ func (s *MFAService) HandleVerify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, _, err := extractJWTClaims(r, s.tokenUC)
+	userID, _, _, err := extractJWTClaims(r, s.tokenUC)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -91,7 +91,7 @@ func (s *MFAService) HandleDisable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, _, err := extractJWTClaims(r, s.tokenUC)
+	userID, _, _, err := extractJWTClaims(r, s.tokenUC)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -111,16 +111,16 @@ func (s *MFAService) HandleDisable(w http.ResponseWriter, r *http.Request) {
 }
 
 // extractJWTClaims parses and validates the JWT access token from the
-// Authorization header, returning the user ID and session ID.
-func extractJWTClaims(r *http.Request, tokenUC *biz.TokenUsecase) (userID uuid.UUID, sessionID uuid.UUID, err error) {
+// Authorization header, returning the user ID, session ID, and email.
+func extractJWTClaims(r *http.Request, tokenUC *biz.TokenUsecase) (userID uuid.UUID, sessionID uuid.UUID, email string, err error) {
 	authHeader := r.Header.Get("Authorization")
 	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 	if tokenStr == authHeader {
-		return uuid.Nil, uuid.Nil, fmt.Errorf("no bearer token")
+		return uuid.Nil, uuid.Nil, "", fmt.Errorf("no bearer token")
 	}
 	claims, err := tokenUC.VerifyAccessToken(tokenStr)
 	if err != nil {
-		return uuid.Nil, uuid.Nil, fmt.Errorf("verify token: %w", err)
+		return uuid.Nil, uuid.Nil, "", fmt.Errorf("verify token: %w", err)
 	}
-	return claims.UserID, claims.SessionID, nil
+	return claims.UserID, claims.SessionID, claims.Email, nil
 }

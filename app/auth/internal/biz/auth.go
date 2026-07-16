@@ -161,9 +161,14 @@ func (uc *AuthUsecase) Login(ctx context.Context, input LoginInput) (*TokenPair,
 }
 
 // Logout revokes the current session.
-func (uc *AuthUsecase) Logout(ctx context.Context, sessionID uuid.UUID, userID uuid.UUID, ip string, ua string) error {
+func (uc *AuthUsecase) Logout(ctx context.Context, sessionID uuid.UUID, userID uuid.UUID, ip string, ua string, jti string) error {
 	if err := uc.sessionRepo.Revoke(ctx, sessionID); err != nil {
 		return fmt.Errorf("revoke session: %w", err)
+	}
+
+	// Blacklist the access token's JTI so it can't be used after logout
+	if jti != "" {
+		_ = uc.tokenBlacklist.BlacklistJTI(ctx, jti, uc.tokenUC.AccessTokenTTL())
 	}
 
 	uc.auditUC.Log(ctx, &userID, "auth.logout", "session", sessionID.String(), ip, ua, nil)
@@ -195,7 +200,7 @@ func (uc *AuthUsecase) LogoutAllDevices(ctx context.Context, userID uuid.UUID, c
 
 // ChangePassword changes the user's password, verifying the old password first.
 // Revokes all sessions except the current one as a security measure.
-func (uc *AuthUsecase) ChangePassword(ctx context.Context, userID uuid.UUID, sessionID uuid.UUID, oldPassword, newPassword string, ip string, ua string) error {
+func (uc *AuthUsecase) ChangePassword(ctx context.Context, userID uuid.UUID, sessionID uuid.UUID, oldPassword, newPassword string, ip string, ua string, jti string) error {
 	if len(newPassword) < MinPasswordLength {
 		return ErrPasswordTooShort
 	}
@@ -231,6 +236,11 @@ func (uc *AuthUsecase) ChangePassword(ctx context.Context, userID uuid.UUID, ses
 		if s.ID != sessionID {
 			_ = uc.sessionRepo.Revoke(ctx, s.ID)
 		}
+	}
+
+	// Blacklist current access token
+	if jti != "" {
+		_ = uc.tokenBlacklist.BlacklistJTI(ctx, jti, uc.tokenUC.AccessTokenTTL())
 	}
 
 	uc.auditUC.Log(ctx, &userID, "password.change", "user", userID.String(), ip, ua, nil)
@@ -369,6 +379,13 @@ func (uc *AuthUsecase) RefreshTokens(ctx context.Context, rawRefreshToken string
 
 	if err := uc.sessionRepo.Create(ctx, newSession); err != nil {
 		return nil, fmt.Errorf("create new session: %w", err)
+	}
+
+	// Cache the old session data (with new session ID mapping) for faster lookups
+	ttl := time.Until(newSession.ExpiresAt)
+	if ttl > 0 {
+		sessionData := []byte(newSession.UserID.String()) // store minimal info
+		_ = uc.sessionCache.Set(ctx, newSession.ID.String(), sessionData, ttl)
 	}
 
 	accessToken, err := uc.tokenUC.IssueAccessToken(AccessTokenClaims{

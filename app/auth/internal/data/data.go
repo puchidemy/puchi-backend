@@ -26,9 +26,6 @@ var ProviderSet = wire.NewSet(
 	NewPermissionRepo,
 	NewAuditRepo,
 	NewPublisherProvider,
-	NewSessionCache,
-	NewTokenBlacklist,
-	NewRateLimiter,
 	wire.Bind(new(biz.UserRepo), new(*UserRepo)),
 	wire.Bind(new(biz.SessionRepo), new(*SessionRepo)),
 	wire.Bind(new(biz.SocialConnectionRepo), new(*SocialConnectionRepo)),
@@ -39,9 +36,9 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(biz.PermissionRepo), new(*PermissionRepo)),
 	wire.Bind(new(biz.EventPublisher), new(*publisher.Publisher)),
 	wire.Bind(new(biz.AuditRepo), new(*AuditRepo)),
-	wire.Bind(new(biz.SessionCache), new(*SessionCache)),
-	wire.Bind(new(biz.TokenBlacklist), new(*TokenBlacklist)),
-	wire.Bind(new(biz.RateLimiter), new(*RateLimiter)),
+	wire.Bind(new(biz.SessionCache), new(*cache.Cache)),
+	wire.Bind(new(biz.TokenBlacklist), new(*cache.Cache)),
+	wire.Bind(new(biz.RateLimiter), new(*cache.Cache)),
 )
 
 // NewPublisherProvider extracts the publisher from Data for dependency injection.
