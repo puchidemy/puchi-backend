@@ -3,6 +3,7 @@ module github.com/puchidemy/puchi-backend/app/auth
 go 1.26.3
 
 require (
+	github.com/MicahParks/keyfunc/v2 v2.1.0
 	github.com/go-kratos/kratos/v3 v3.0.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
@@ -10,6 +11,7 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/crypto v0.54.0
+	golang.org/x/oauth2 v0.36.0
 	google.golang.org/protobuf v1.36.11
 )
 

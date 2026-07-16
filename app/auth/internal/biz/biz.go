@@ -91,4 +91,5 @@ type SessionRepo interface {
 	RevokeFamily(ctx context.Context, family uuid.UUID) error
 	RevokeAllForUser(ctx context.Context, userID uuid.UUID) error
 	ListByUser(ctx context.Context, userID uuid.UUID) ([]*Session, error)
+	HasActiveInFamily(ctx context.Context, family uuid.UUID, excludeSessionID uuid.UUID) (bool, error)
 }

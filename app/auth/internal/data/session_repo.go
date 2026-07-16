@@ -87,6 +87,15 @@ func (r *SessionRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([]*biz.
 	return sessions, nil
 }
 
+// HasActiveInFamily checks if there are active sessions in the given token family,
+// excluding the specified session ID.
+func (r *SessionRepo) HasActiveInFamily(ctx context.Context, family uuid.UUID, excludeSessionID uuid.UUID) (bool, error) {
+	return r.q.HasActiveSessionsInFamily(ctx, gen.HasActiveSessionsInFamilyParams{
+		TokenFamily: family.String(),
+		ID:          excludeSessionID.String(),
+	})
+}
+
 // toSession converts a gen.AuthSession (sqlc-generated) to a biz.Session.
 func toSession(row gen.AuthSession) *biz.Session {
 	s := &biz.Session{

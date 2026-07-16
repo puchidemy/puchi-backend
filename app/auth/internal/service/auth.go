@@ -4,8 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
+	"strings"
+
+	"github.com/google/uuid"
 
 	authv1 "github.com/puchidemy/puchi-backend/app/auth/api/auth/v1"
 	"github.com/puchidemy/puchi-backend/app/auth/internal/biz"
@@ -87,6 +91,33 @@ func (s *AuthService) HandleJWKS(w http.ResponseWriter, r *http.Request) {
 	w.Write(jwks)
 }
 
+// HandleRefresh handles refresh token rotation.
+func (s *AuthService) HandleRefresh(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("refresh_token")
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "no refresh token"})
+		return
+	}
+
+	pair, err := s.uc.RefreshTokens(r.Context(), cookie.Value)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+
+	setRefreshTokenCookie(r.Context(), pair.RefreshToken)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"access_token": pair.AccessToken,
+		"expires_in":   pair.ExpiresIn,
+	})
+}
+
 // mapAuthError maps biz errors to gRPC status codes (converted to HTTP by Kratos).
 func mapAuthError(err error) error {
 	switch {
@@ -98,6 +129,8 @@ func mapAuthError(err error) error {
 		return status.Error(codes.PermissionDenied, "account is not active")
 	case errors.Is(err, biz.ErrPasswordTooShort):
 		return status.Error(codes.InvalidArgument, "password must be at least 8 characters")
+	case errors.Is(err, biz.ErrSessionExpired):
+		return status.Error(codes.Unauthenticated, "session expired")
 	default:
 		return status.Error(codes.Internal, "an internal error occurred")
 	}
@@ -139,4 +172,149 @@ func setRefreshTokenCookie(ctx context.Context, token string) {
 		MaxAge:   30 * 24 * 60 * 60,    // 30 days
 	}
 	http.SetCookie(hctx.Response(), cookie)
+}
+
+// clearRefreshTokenCookie clears the refresh_token cookie by setting MaxAge to -1.
+func clearRefreshTokenCookie(w http.ResponseWriter) {
+	cookie := &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/api/auth",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+		MaxAge:   -1,
+	}
+	http.SetCookie(w, cookie)
+}
+
+// extractJWTClaims parses and validates the JWT access token from the
+// Authorization header, returning the user ID and session ID.
+func (s *AuthService) extractJWTClaims(r *http.Request) (userID uuid.UUID, sessionID uuid.UUID, err error) {
+	authHeader := r.Header.Get("Authorization")
+	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+	if tokenStr == authHeader {
+		return uuid.Nil, uuid.Nil, fmt.Errorf("no bearer token")
+	}
+	claims, err := s.tokenUC.VerifyAccessToken(tokenStr)
+	if err != nil {
+		return uuid.Nil, uuid.Nil, fmt.Errorf("verify token: %w", err)
+	}
+	return claims.UserID, claims.SessionID, nil
+}
+
+// HandleLogout revokes the current session and clears the refresh token cookie.
+func (s *AuthService) HandleLogout(w http.ResponseWriter, r *http.Request) {
+	userID, sessionID, err := s.extractJWTClaims(r)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
+		return
+	}
+
+	if err := s.uc.Logout(r.Context(), sessionID, userID); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "failed to logout"})
+		return
+	}
+
+	clearRefreshTokenCookie(w)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+}
+
+// HandleChangePassword changes the user's password after verifying the old one.
+func (s *AuthService) HandleChangePassword(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{"error": "method not allowed"})
+		return
+	}
+
+	userID, sessionID, err := s.extractJWTClaims(r)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
+		return
+	}
+
+	var req struct {
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"})
+		return
+	}
+
+	if err := s.uc.ChangePassword(r.Context(), userID, sessionID, req.OldPassword, req.NewPassword); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		status := http.StatusBadRequest
+		switch {
+		case errors.Is(err, biz.ErrInvalidCredentials):
+			status = http.StatusUnauthorized
+		case errors.Is(err, biz.ErrPasswordTooShort):
+			status = http.StatusBadRequest
+		default:
+			status = http.StatusInternalServerError
+		}
+		w.WriteHeader(status)
+		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+
+	// Clear refresh_token cookie since all other sessions were revoked
+	clearRefreshTokenCookie(w)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+}
+
+// HandleResetRequest initiates a password reset (token generation, no email yet).
+func (s *AuthService) HandleResetRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{"error": "method not allowed"})
+		return
+	}
+
+	var req struct {
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"})
+		return
+	}
+
+	// Always return success (prevent email enumeration)
+	_ = s.uc.RequestPasswordReset(r.Context(), req.Email)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "if the email exists, a reset link has been sent"})
+}
+
+// HandleResetComplete completes the password reset (not fully implemented).
+func (s *AuthService) HandleResetComplete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{"error": "method not allowed"})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNotImplemented)
+	json.NewEncoder(w).Encode(map[string]string{"error": "password reset not fully implemented"})
 }

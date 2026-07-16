@@ -94,6 +94,23 @@ func (q *Queries) GetSessionByHash(ctx context.Context, refreshTokenHash string)
 	return i, err
 }
 
+const hasActiveSessionsInFamily = `-- name: HasActiveSessionsInFamily :one
+SELECT EXISTS(SELECT 1 FROM auth.sessions
+    WHERE token_family = $1 AND is_active = true AND id != $2)
+`
+
+type HasActiveSessionsInFamilyParams struct {
+	TokenFamily string `db:"token_family"`
+	ID          string `db:"id"`
+}
+
+func (q *Queries) HasActiveSessionsInFamily(ctx context.Context, arg HasActiveSessionsInFamilyParams) (bool, error) {
+	row := q.db.QueryRow(ctx, hasActiveSessionsInFamily, arg.TokenFamily, arg.ID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const listSessionsByUser = `-- name: ListSessionsByUser :many
 SELECT id, user_id, refresh_token_hash, token_family, child_number, ip_address, user_agent, device_name, device_type, os, location, is_active, expires_at, last_used_at, revoked_at, created_at FROM auth.sessions WHERE user_id = $1 AND is_active = true
 ORDER BY created_at DESC

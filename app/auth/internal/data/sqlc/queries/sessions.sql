@@ -24,3 +24,7 @@ ORDER BY created_at DESC;
 
 -- name: UpdateSessionLastUsed :exec
 UPDATE auth.sessions SET last_used_at = now() WHERE id = $1;
+
+-- name: HasActiveSessionsInFamily :one
+SELECT EXISTS(SELECT 1 FROM auth.sessions
+    WHERE token_family = $1 AND is_active = true AND id != $2);

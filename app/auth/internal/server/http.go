@@ -24,6 +24,15 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, authService *service.Auth
 	// Register JWKS endpoint (before CORS wrapper so JWKS needs no CORS)
 	srv.HandleFunc("/.well-known/jwks.json", authService.HandleJWKS)
 
+	// Register auth REST handlers
+	srv.HandleFunc("/api/auth/logout", authService.HandleLogout)
+	srv.HandleFunc("/api/auth/password/change", authService.HandleChangePassword)
+	srv.HandleFunc("/api/auth/password/reset/request", authService.HandleResetRequest)
+	srv.HandleFunc("/api/auth/password/reset", authService.HandleResetComplete)
+
+	// Register refresh endpoint (raw handler, not via proto-defined route)
+	srv.HandleFunc("/api/auth/refresh", authService.HandleRefresh)
+
 	// Wrap with CORS middleware
 	if len(authCfg.CorsAllowedOrigins) > 0 {
 		corsOpts := CORSOptions{

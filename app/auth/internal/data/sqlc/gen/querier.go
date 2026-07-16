@@ -10,11 +10,16 @@ import (
 
 type Querier interface {
 	CreateSession(ctx context.Context, arg CreateSessionParams) (AuthSession, error)
+	CreateSocialConnection(ctx context.Context, arg CreateSocialConnectionParams) (AuthSocialConnection, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (AuthUser, error)
+	DeleteSocialConnection(ctx context.Context, arg DeleteSocialConnectionParams) error
 	GetSessionByHash(ctx context.Context, refreshTokenHash string) (AuthSession, error)
+	GetSocialConnection(ctx context.Context, arg GetSocialConnectionParams) (AuthSocialConnection, error)
 	GetUserByEmail(ctx context.Context, emailNormalized string) (AuthUser, error)
 	GetUserByID(ctx context.Context, id string) (AuthUser, error)
+	HasActiveSessionsInFamily(ctx context.Context, arg HasActiveSessionsInFamilyParams) (bool, error)
 	ListSessionsByUser(ctx context.Context, userID string) ([]AuthSession, error)
+	ListSocialConnectionsByUser(ctx context.Context, userID string) ([]AuthSocialConnection, error)
 	RevokeAllForUser(ctx context.Context, userID string) error
 	RevokeFamily(ctx context.Context, tokenFamily string) error
 	RevokeSession(ctx context.Context, id string) error
