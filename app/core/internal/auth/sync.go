@@ -7,8 +7,6 @@ import (
 
 	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/data/sqlc/gen"
-	"github.com/supertokens/supertokens-golang/recipe/emailpassword"
-	"github.com/supertokens/supertokens-golang/recipe/thirdparty"
 )
 
 // SyncUserRepo defines the repository operations needed by UserSyncer.
@@ -17,8 +15,8 @@ type SyncUserRepo interface {
 	CreateUserFromAuth(ctx context.Context, userID, email string) (*gen.CoreUser, error)
 }
 
-// UserSyncer handles lazy user creation from Supertokens auth.
-// After a session is verified, it ensures the corresponding user exists in the DB.
+// UserSyncer handles lazy user creation from auth.
+// After a JWT is verified, it ensures the corresponding user exists in the DB.
 type UserSyncer struct {
 	repo SyncUserRepo
 }
@@ -46,32 +44,20 @@ func NewUserSyncerFromUsecase(uc *biz.ProfileUsecase) *UserSyncer {
 	return &UserSyncer{repo: &profileUsecaseAdapter{uc: uc}}
 }
 
-// fetchEmailFromSupertokens retrieves the user's email from the Supertokens core
-// by trying all applicable recipe types (email/password and third party).
-func fetchEmailFromSupertokens(userID string) string {
-	if user, err := emailpassword.GetUserByID(userID); err == nil && user != nil {
-		return user.Email
-	}
-	if user, err := thirdparty.GetUserByID(userID); err == nil && user != nil {
-		return user.Email
-	}
-	return ""
-}
-
-// EnsureUserExists checks if user exists in DB; creates if not (lazy creation from Supertokens).
-func (s *UserSyncer) EnsureUserExists(ctx context.Context, userID string) error {
+// EnsureUserExists checks if user exists in DB; creates if not (lazy creation from auth).
+// The email parameter is optional — if empty, the user is created with a placeholder.
+func (s *UserSyncer) EnsureUserExists(ctx context.Context, userID string, email string) error {
 	_, err := s.repo.GetUser(ctx, userID)
 	if err == nil {
 		return nil // user already exists
 	}
 
-	slog.Debug("auth sync: user not found in DB, creating from Supertokens",
+	slog.Debug("auth sync: user not found in DB, creating from auth",
 		"user_id", userID,
 	)
 
-	email := fetchEmailFromSupertokens(userID)
 	if email == "" {
-		slog.Warn("auth sync: could not fetch email from Supertokens, using empty",
+		slog.Warn("auth sync: no email available for user, using empty",
 			"user_id", userID,
 		)
 	}
@@ -81,7 +67,7 @@ func (s *UserSyncer) EnsureUserExists(ctx context.Context, userID string) error 
 		return fmt.Errorf("lazy create user from auth: %w", err)
 	}
 
-	slog.Info("auth sync: user created from Supertokens",
+	slog.Info("auth sync: user created from auth",
 		"user_id", userID,
 		"email", email,
 	)

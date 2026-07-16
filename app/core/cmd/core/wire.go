@@ -8,6 +8,7 @@ package main
 import (
 	"log/slog"
 
+	"github.com/puchidemy/puchi-backend/app/core/internal/auth"
 	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/core/internal/data"
@@ -19,6 +20,6 @@ import (
 )
 
 // wireApp init kratos application.
-func wireApp(*conf.Server, *conf.Data, *conf.Auth, *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(*conf.Server, *conf.Data, *conf.Auth, *auth.JWTValidator, *slog.Logger) (*kratos.App, func(), error) {
 	panic(wire.Build(server.ProviderSet, data.ProviderSet, biz.ProviderSet, service.ProviderSet, newApp))
 }

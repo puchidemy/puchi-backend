@@ -7,15 +7,12 @@ import (
 	"strings"
 
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
-
-	"github.com/supertokens/supertokens-golang/recipe/session"
-	"github.com/supertokens/supertokens-golang/recipe/session/sessmodels"
 )
 
-// Middleware returns an HTTP middleware that verifies Supertokens sessions.
-// Requests matching public_paths skip verification.
-// If syncer is non-nil, it performs lazy user creation after session verification.
-func Middleware(cfg *conf.Auth, syncer *UserSyncer) func(http.Handler) http.Handler {
+// Middleware returns an HTTP middleware that verifies Zitadel JWTs from the
+// Authorization header. Requests matching public_paths skip verification.
+// If syncer is non-nil, it performs lazy user creation after JWT verification.
+func Middleware(cfg *conf.Auth, jwtValidator *JWTValidator, syncer *UserSyncer) func(http.Handler) http.Handler {
 	public := make([]string, len(cfg.PublicPaths))
 	copy(public, cfg.PublicPaths)
 
@@ -28,32 +25,40 @@ func Middleware(cfg *conf.Auth, syncer *UserSyncer) func(http.Handler) http.Hand
 				}
 			}
 
-			wrapper := newResponseWriter(w)
+			authHeader := r.Header.Get("Authorization")
+			if authHeader == "" {
+				writeUnauthorized(w, nil)
+				return
+			}
 
-			sessionRequired := true
-			sess, err := session.GetSession(r, wrapper, &sessmodels.VerifySessionOptions{
-				SessionRequired: &sessionRequired,
-			})
+			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+			if tokenStr == authHeader {
+				writeUnauthorized(w, nil)
+				return
+			}
 
+			claims, err := jwtValidator.ParseAndValidate(tokenStr)
 			if err != nil {
 				writeUnauthorized(w, err)
 				return
 			}
 
-			if sess == nil {
+			userID, ok := claims["sub"].(string)
+			if !ok || userID == "" {
 				writeUnauthorized(w, nil)
 				return
 			}
 
-			ctx := NewContextWithUserID(r.Context(), sess.GetUserID())
+			// Extract email from JWT claims if available
+			email, _ := claims["email"].(string)
 
-			// Lazy creation: ensure user exists in DB after session verification
+			ctx := NewContextWithUserID(r.Context(), userID)
+
+			// Lazy creation: ensure user exists in DB after JWT verification
 			if syncer != nil {
-				if err := syncer.EnsureUserExists(ctx, sess.GetUserID()); err != nil {
-					// Log but don't block — user has a valid session; transient DB errors
-					// should not reject the request.
+				if err := syncer.EnsureUserExists(ctx, userID, email); err != nil {
 					slog.Warn("auth sync: failed to ensure user exists",
-						"user_id", sess.GetUserID(),
+						"user_id", userID,
 						"error", err,
 					)
 				}
@@ -76,30 +81,4 @@ func writeUnauthorized(w http.ResponseWriter, err error) {
 		"message": "unauthorized",
 		"reason":  reason,
 	})
-}
-
-// responseWriter wraps http.ResponseWriter to capture status code.
-type responseWriter struct {
-	http.ResponseWriter
-	statusCode  int
-	wroteHeader bool
-}
-
-func newResponseWriter(w http.ResponseWriter) *responseWriter {
-	return &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
-}
-
-func (rw *responseWriter) WriteHeader(code int) {
-	if !rw.wroteHeader {
-		rw.statusCode = code
-		rw.wroteHeader = true
-		rw.ResponseWriter.WriteHeader(code)
-	}
-}
-
-func (rw *responseWriter) Write(b []byte) (int, error) {
-	if !rw.wroteHeader {
-		rw.WriteHeader(http.StatusOK)
-	}
-	return rw.ResponseWriter.Write(b)
 }

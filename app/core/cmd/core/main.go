@@ -79,11 +79,12 @@ func main() {
 		panic(err)
 	}
 
-	if err := auth.InitSupertokens(bc.Auth); err != nil {
+	jwtValidator, err := auth.InitZitadel(bc.Auth)
+	if err != nil {
 		panic(err)
 	}
 
-	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Auth, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Auth, jwtValidator, logger)
 	if err != nil {
 		panic(err)
 	}

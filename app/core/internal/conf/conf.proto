@@ -41,12 +41,10 @@ message Data {
 }
 
 message Auth {
-  message Supertokens {
-    string connection_uri = 1;
-    string api_key = 2;
-    string cookie_domain = 3;
-    bool cookie_secure = 4;
+  message Zitadel {
+    string issuer_url = 1;
+    string jwks_url = 2;
   }
-  Supertokens supertokens = 1;
+  Zitadel zitadel = 1;
   repeated string public_paths = 2;
 }

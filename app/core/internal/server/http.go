@@ -15,7 +15,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, profileService *service.ProfileService, profileUC *biz.ProfileUsecase) *http.Server {
+func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *auth.JWTValidator, profileService *service.ProfileService, profileUC *biz.ProfileUsecase) *http.Server {
 	syncer := auth.NewUserSyncerFromUsecase(profileUC)
 
 	var opts = []http.ServerOption{
@@ -31,7 +31,7 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, profileService *service.P
 			}),
 		),
 		http.Filter(corsFilter),
-		http.Filter(auth.Middleware(authCfg, syncer)),
+		http.Filter(auth.Middleware(authCfg, jwtValidator, syncer)),
 	}
 	if c.Http.Network != "" {
 		opts = append(opts, http.Network(c.Http.Network))

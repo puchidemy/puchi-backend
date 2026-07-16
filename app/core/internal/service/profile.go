@@ -2,15 +2,11 @@ package service
 
 import (
 	"context"
-	"log/slog"
-	"time"
 
 	pb "github.com/puchidemy/puchi-backend/app/core/api/profile/v1"
 	"github.com/puchidemy/puchi-backend/app/core/internal/auth"
 	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/data/sqlc/gen"
-	"github.com/supertokens/supertokens-golang/recipe/emailpassword"
-	"github.com/supertokens/supertokens-golang/recipe/thirdparty"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -147,43 +143,16 @@ func (s *ProfileService) CompleteOnboarding(ctx context.Context, req *pb.Complet
 }
 
 // GetLinkedAccounts returns linked third-party accounts.
+// TODO: Implement via Zitadel user info API when needed.
 func (s *ProfileService) GetLinkedAccounts(ctx context.Context, _ *emptypb.Empty) (*pb.LinkedAccountsResponse, error) {
-	userID, ok := auth.UserIDFromContext(ctx)
+	_, ok := auth.UserIDFromContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "not authenticated")
 	}
 
-	accounts := fetchLinkedAccountsFromSupertokens(userID)
-	return &pb.LinkedAccountsResponse{Accounts: accounts}, nil
-}
-
-// fetchLinkedAccountsFromSupertokens calls SuperTokens to get linked providers.
-func fetchLinkedAccountsFromSupertokens(userID string) []*pb.LinkedAccount {
-	var accounts []*pb.LinkedAccount
-
-	// Check email/password recipe
-	if epUser, err := emailpassword.GetUserByID(userID); err == nil && epUser != nil {
-		accounts = append(accounts, &pb.LinkedAccount{
-			Provider: "emailpassword",
-			Email:    epUser.Email,
-			LinkedAt: time.UnixMilli(int64(epUser.TimeJoined)).Format(time.RFC3339),
-		})
-	} else if err != nil {
-		slog.Warn("fetch emailpassword user", "error", err, "user_id", userID)
-	}
-
-	// Check third party recipe
-	if tpUser, err := thirdparty.GetUserByID(userID); err == nil && tpUser != nil {
-		accounts = append(accounts, &pb.LinkedAccount{
-			Provider: tpUser.ThirdParty.ID,
-			Email:    tpUser.Email,
-			LinkedAt: time.UnixMilli(int64(tpUser.TimeJoined)).Format(time.RFC3339),
-		})
-	} else if err != nil {
-		slog.Warn("fetch thirdparty user", "error", err, "user_id", userID)
-	}
-
-	return accounts
+	// Linked accounts are now managed by Zitadel.
+	// This endpoint returns an empty list until Zitadel user info API integration is added.
+	return &pb.LinkedAccountsResponse{Accounts: []*pb.LinkedAccount{}}, nil
 }
 
 // userToProto converts a gen.CoreUser to a proto User.
