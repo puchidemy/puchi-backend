@@ -11,7 +11,7 @@ SELECT * FROM core.users WHERE email = $1;
 
 -- name: UpdateUser :one
 UPDATE core.users
-SET first_name = $2, last_name = $3, username = $4, bio = $5, avatar_key = $6, updated_at = now()
+SET first_name = $2, last_name = $3, username = $4, bio = $5, avatar_key = $6, age_range = $7, updated_at = now()
 WHERE id = $1
 RETURNING *;
 

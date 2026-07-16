@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	pb "github.com/puchidemy/puchi-backend/app/core/api/profile/v1"
@@ -77,6 +78,7 @@ func (s *ProfileService) UpdateProfile(ctx context.Context, req *pb.UpdateProfil
 		LastName:  req.LastName,
 		Username:  req.Username,
 		Bio:       req.Bio,
+		AgeRange:  req.AgeRange,
 	})
 	if err != nil {
 		if err == biz.ErrUsernameTaken {
@@ -109,6 +111,24 @@ func (s *ProfileService) CompleteOnboarding(ctx context.Context, req *pb.Complet
 	userID, ok := auth.UserIDFromContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "not authenticated")
+	}
+
+	if req.FirstName == "" {
+		return nil, status.Error(codes.InvalidArgument, "first_name is required")
+	}
+	if req.LastName == "" {
+		return nil, status.Error(codes.InvalidArgument, "last_name is required")
+	}
+	validAgeRanges := map[string]bool{
+		"13-17":  true,
+		"18-24":  true,
+		"25-34":  true,
+		"35-44":  true,
+		"45-54":  true,
+		"55+":    true,
+	}
+	if !validAgeRanges[req.AgeRange] {
+		return nil, status.Error(codes.InvalidArgument, "invalid age_range value")
 	}
 
 	user, err := s.uc.CompleteOnboarding(ctx, userID, biz.OnboardingInput{
@@ -148,6 +168,8 @@ func fetchLinkedAccountsFromSupertokens(userID string) []*pb.LinkedAccount {
 			Email:    epUser.Email,
 			LinkedAt: time.UnixMilli(int64(epUser.TimeJoined)).Format(time.RFC3339),
 		})
+	} else if err != nil {
+		slog.Warn("fetch emailpassword user", "error", err, "user_id", userID)
 	}
 
 	// Check third party recipe
@@ -157,6 +179,8 @@ func fetchLinkedAccountsFromSupertokens(userID string) []*pb.LinkedAccount {
 			Email:    tpUser.Email,
 			LinkedAt: time.UnixMilli(int64(tpUser.TimeJoined)).Format(time.RFC3339),
 		})
+	} else if err != nil {
+		slog.Warn("fetch thirdparty user", "error", err, "user_id", userID)
 	}
 
 	return accounts

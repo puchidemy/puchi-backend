@@ -1,41 +1,11 @@
-# Task 2 — Data Layer with pgxpool and UserRepo
-
-## Summary
-
-Implemented PostgreSQL data layer using `pgxpool` connection pool and `UserRepo` wrapping sqlc-generated queries.
-
-## Files Changed
-
-| File | Action |
-|------|--------|
-| `internal/conf/conf.proto` | Updated — removed `driver` field from `Database` message, kept only `source` |
-| `internal/conf/conf.pb.go` | Regenerated via `protoc` to reflect proto change |
-| `internal/data/data.go` | Replaced stub — now uses `pgxpool.Pool`, provides `NewUserRepo` in `ProviderSet` |
-| `internal/data/user_repo.go` | **Created** — `UserRepo` wrapping `gen.Queries` with `CreateUser`, `GetUser`, `GetUserByEmail`, `UpdateUser`, `UsernameExists` |
-| `internal/data/todo.go` | **Deleted** — old in-memory `TodoRepo` stub |
-| `internal/server/http.go` | Removed `todo *service.TodoService` parameter and v1 registration |
-| `internal/server/grpc.go` | Removed `todo *service.TodoService` parameter and v1 registration |
-| `cmd/core/wire.go` | Updated — removed `biz`/`service` imports, only `data` + `server` ProviderSets |
-| `cmd/core/wire_gen.go` | Updated — removed all `todo`/`biz`/`service` wiring |
-
-## Data Layer Architecture
-
-```
-NewData(cfg.Data) → *Data { pool: *pgxpool.Pool }
-NewUserRepo(pool) → *UserRepo { q: *gen.Queries }
-                     ├── CreateUser(ctx, CreateUserParams) → *CoreUser
-                     ├── GetUser(ctx, id) → *CoreUser
-                     ├── GetUserByEmail(ctx, email) → *CoreUser
-                     ├── UpdateUser(ctx, UpdateUserParams) → *CoreUser
-                     └── UsernameExists(ctx, username) → bool
-```
-
-- `Data` struct holds a `*pgxpool.Pool` — cleanup closes the pool
-- `UserRepo` initializes `gen.Queries` with the pool via `gen.New(pool)`
-- `pgxpool.Pool` satisfies the `gen.DBTX` interface (has `Exec`, `Query`, `QueryRow`)
-- `ProviderSet` exposes `NewData` and `NewUserRepo` for Wire DI
-
-## Verification
-
-- `cd app/core && go build ./...` — **passes** without errors
-- All old Todo references removed from non-test production code
+Status: DONE_WITH_CONCERNS
+Commits: f55b894
+Tests: go build ./... — compiles successfully in app/core
+Self-review:
+- Step 1: Added 3 new RPCs (GetProfileByUsername, CompleteOnboarding, GetLinkedAccounts) + 5 new messages (GetProfileByUsernameRequest, CompleteOnboardingRequest, LinkedAccount, LinkedAccountsResponse, and added age_range to UpdateProfileRequest) to profile.proto. Regenerated via `buf generate`.
+- Step 2: Extended biz/profile.go — added OnboardingInput struct, added AgeRange to UpdateProfileInput, added GetUserByUsername/UpdateOnboardingInfo/UpsertUserOnboarding to UserRepoInterface, implemented GetProfileByUsername and CompleteOnboarding methods.
+- Step 3: Added 3 data layer methods (GetUserByUsername, UpdateOnboardingInfo, UpsertUserOnboarding) wrapping existing SQLC queries.
+- Step 4: Added 3 service handlers (GetProfileByUsername, CompleteOnboarding, GetLinkedAccounts) + fetchLinkedAccountsFromSupertokens helper. GetProfileByUsername hides email for non-own profiles.
+- Step 5: Proto regenerated with buf, go build passes.
+- Step 6: Committed 8 files.
+Concerns: The task brief's pseudo-code referenced `supertokens.GetUser(userID)` from `"github.com/supertokens/supertokens-golang/supertokens"` which does NOT exist in supertokens-golang v0.25.2. The actual API uses per-recipe functions `emailpassword.GetUserByID` and `thirdparty.GetUserByID`. The `fetchLinkedAccountsFromSupertokens` implementation was adapted to use these real APIs. This only captures single-account-per-recipe results; if a user has multiple third-party accounts linked (e.g. Google + Facebook), Supertokens would need a different API call to enumerate all recipe users.

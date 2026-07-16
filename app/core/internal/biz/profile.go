@@ -35,7 +35,7 @@ type UserRepoInterface interface {
 	GetUser(ctx context.Context, id string) (*gen.CoreUser, error)
 	GetUserByEmail(ctx context.Context, email string) (*gen.CoreUser, error)
 	GetUserByUsername(ctx context.Context, username string) (*gen.CoreUser, error)
-	UpdateUser(ctx context.Context, id, firstName, lastName, username string, bio, avatarKey *string) (*gen.CoreUser, error)
+	UpdateUser(ctx context.Context, id, firstName, lastName, username string, bio, avatarKey *string, ageRange string) (*gen.CoreUser, error)
 	UpdateOnboardingInfo(ctx context.Context, id, firstName, lastName, ageRange string) (*gen.CoreUser, error)
 	UpsertUserOnboarding(ctx context.Context, userID, howHeard, whyLearn, level string) error
 	UsernameExists(ctx context.Context, username string) (bool, error)
@@ -87,7 +87,7 @@ func (uc *ProfileUsecase) UpdateProfile(ctx context.Context, userID string, inpu
 		bioPtr = &input.Bio
 	}
 
-	user, err := uc.repo.UpdateUser(ctx, userID, input.FirstName, input.LastName, input.Username, bioPtr, nil)
+	user, err := uc.repo.UpdateUser(ctx, userID, input.FirstName, input.LastName, input.Username, bioPtr, nil, input.AgeRange)
 	if err != nil {
 		return nil, fmt.Errorf("update user: %w", err)
 	}

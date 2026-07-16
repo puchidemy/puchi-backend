@@ -51,7 +51,7 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*gen.CoreU
 }
 
 // UpdateUser updates a user and returns the updated row.
-func (r *UserRepo) UpdateUser(ctx context.Context, id, firstName, lastName, username string, bio, avatarKey *string) (*gen.CoreUser, error) {
+func (r *UserRepo) UpdateUser(ctx context.Context, id, firstName, lastName, username string, bio, avatarKey *string, ageRange string) (*gen.CoreUser, error) {
 	row, err := r.q.UpdateUser(ctx, gen.UpdateUserParams{
 		ID:        id,
 		FirstName: firstName,
@@ -59,6 +59,7 @@ func (r *UserRepo) UpdateUser(ctx context.Context, id, firstName, lastName, user
 		Username:  username,
 		Bio:       bio,
 		AvatarKey: avatarKey,
+		AgeRange:  ageRange,
 	})
 	if err != nil {
 		return nil, err
