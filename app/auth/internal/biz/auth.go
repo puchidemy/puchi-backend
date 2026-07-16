@@ -117,6 +117,7 @@ func (uc *AuthUsecase) Login(ctx context.Context, input LoginInput) (*TokenPair,
 	}
 
 	family := uuid.New()
+	deviceInfo := ParseDeviceInfo(input.UserAgent)
 	session := &Session{
 		UserID:      user.ID,
 		TokenFamily: family,
@@ -124,6 +125,9 @@ func (uc *AuthUsecase) Login(ctx context.Context, input LoginInput) (*TokenPair,
 		IPAddress:   input.IP,
 		UserAgent:   input.UserAgent,
 		ExpiresAt:   time.Now().Add(uc.tokenUC.RefreshTokenTTL()),
+		DeviceName:  deviceInfo.Name,
+		DeviceType:  deviceInfo.Type,
+		OS:          deviceInfo.OS,
 	}
 
 	raw, hash, err := uc.tokenUC.GenerateRefreshToken()
@@ -195,6 +199,43 @@ func (uc *AuthUsecase) LogoutAllDevices(ctx context.Context, userID uuid.UUID, c
 		}
 	}
 	uc.auditUC.Log(ctx, &userID, "auth.logout_all", "user", userID.String(), ip, ua, nil)
+	return nil
+}
+
+// ListSessions returns all sessions for a user.
+func (uc *AuthUsecase) ListSessions(ctx context.Context, userID uuid.UUID) ([]*Session, error) {
+	return uc.sessionRepo.ListByUser(ctx, userID)
+}
+
+// RevokeSession revokes a specific session after verifying it belongs to the user.
+func (uc *AuthUsecase) RevokeSession(ctx context.Context, userID uuid.UUID, targetSessionID uuid.UUID, ip string, ua string) error {
+	// Verify ownership: ensure the session belongs to this user
+	sessions, err := uc.sessionRepo.ListByUser(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("list sessions: %w", err)
+	}
+	found := false
+	for _, s := range sessions {
+		if s.ID == targetSessionID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return errors.New("session not found")
+	}
+
+	if err := uc.sessionRepo.Revoke(ctx, targetSessionID); err != nil {
+		return fmt.Errorf("revoke session: %w", err)
+	}
+
+	uc.auditUC.Log(ctx, &userID, "auth.session.revoke", "session", targetSessionID.String(), ip, ua, nil)
+
+	_ = uc.eventPublisher.Publish(ctx, "auth.session.revoked", map[string]any{
+		"session_id": targetSessionID.String(),
+		"user_id":    userID.String(),
+	})
+
 	return nil
 }
 

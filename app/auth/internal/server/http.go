@@ -32,6 +32,19 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, authService *service.Auth
 	srv.HandleFunc("/api/auth/password/reset/request", authService.HandleResetRequest)
 	srv.HandleFunc("/api/auth/password/reset", authService.HandleResetComplete)
 
+	// Register session management endpoints
+	srv.HandleFunc("/api/auth/sessions", func(w nethttp.ResponseWriter, r *nethttp.Request) {
+		switch r.Method {
+		case nethttp.MethodGet:
+			authService.HandleListSessions(w, r)
+		case nethttp.MethodDelete:
+			authService.HandleRevokeAllSessions(w, r)
+		default:
+			w.WriteHeader(nethttp.StatusMethodNotAllowed)
+		}
+	})
+	srv.HandleFunc("/api/auth/sessions/", authService.HandleRevokeSession)
+
 	// Register refresh endpoint (raw handler, not via proto-defined route)
 	srv.HandleFunc("/api/auth/refresh", authService.HandleRefresh)
 
