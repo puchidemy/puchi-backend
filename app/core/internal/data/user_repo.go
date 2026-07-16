@@ -74,3 +74,37 @@ func (r *UserRepo) UsernameExists(ctx context.Context, username string) (bool, e
 	}
 	return row, nil
 }
+
+// GetUserByUsername retrieves a user by username.
+func (r *UserRepo) GetUserByUsername(ctx context.Context, username string) (*gen.CoreUser, error) {
+	row, err := r.q.GetUserByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
+// UpdateOnboardingInfo updates user's first_name, last_name, age_range and sets onboarding_completed=true.
+func (r *UserRepo) UpdateOnboardingInfo(ctx context.Context, id, firstName, lastName, ageRange string) (*gen.CoreUser, error) {
+	row, err := r.q.UpdateOnboardingInfo(ctx, gen.UpdateOnboardingInfoParams{
+		ID:        id,
+		FirstName: firstName,
+		LastName:  lastName,
+		AgeRange:  ageRange,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
+// UpsertUserOnboarding inserts or updates onboarding answers.
+func (r *UserRepo) UpsertUserOnboarding(ctx context.Context, userID, howHeard, whyLearn, level string) error {
+	_, err := r.q.UpsertUserOnboarding(ctx, gen.UpsertUserOnboardingParams{
+		UserID:   userID,
+		HowHeard: howHeard,
+		WhyLearn: whyLearn,
+		Level:    level,
+	})
+	return err
+}

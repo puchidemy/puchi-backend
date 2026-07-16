@@ -6,6 +6,24 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /v1/onboarding/complete:
+        post:
+            tags:
+                - ProfileService
+            operationId: ProfileService_CompleteOnboarding
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.core.profile.v1.CompleteOnboardingRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.profile.v1.User'
     /v1/profile:
         get:
             tags:
@@ -47,6 +65,18 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/puchi.core.profile.v1.AchievementList'
+    /v1/profile/linked-accounts:
+        get:
+            tags:
+                - ProfileService
+            operationId: ProfileService_GetLinkedAccounts
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.profile.v1.LinkedAccountsResponse'
     /v1/profile/stats:
         get:
             tags:
@@ -59,6 +89,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/puchi.core.profile.v1.Stats'
+    /v1/profile/{username}:
+        get:
+            tags:
+                - ProfileService
+            operationId: ProfileService_GetProfileByUsername
+            parameters:
+                - name: username
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.profile.v1.User'
     /v1/todos/create:
         post:
             tags:
@@ -305,6 +353,37 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/puchi.core.profile.v1.Achievement'
+        puchi.core.profile.v1.CompleteOnboardingRequest:
+            type: object
+            properties:
+                firstName:
+                    type: string
+                lastName:
+                    type: string
+                ageRange:
+                    type: string
+                howHeard:
+                    type: string
+                whyLearn:
+                    type: string
+                level:
+                    type: string
+        puchi.core.profile.v1.LinkedAccount:
+            type: object
+            properties:
+                provider:
+                    type: string
+                email:
+                    type: string
+                linkedAt:
+                    type: string
+        puchi.core.profile.v1.LinkedAccountsResponse:
+            type: object
+            properties:
+                accounts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/puchi.core.profile.v1.LinkedAccount'
         puchi.core.profile.v1.Stats:
             type: object
             properties:
@@ -360,6 +439,8 @@ components:
                 username:
                     type: string
                 bio:
+                    type: string
+                ageRange:
                     type: string
         puchi.core.profile.v1.User:
             type: object

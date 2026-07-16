@@ -20,10 +20,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProfileService_GetProfile_FullMethodName       = "/puchi.core.profile.v1.ProfileService/GetProfile"
-	ProfileService_UpdateProfile_FullMethodName    = "/puchi.core.profile.v1.ProfileService/UpdateProfile"
-	ProfileService_GetStats_FullMethodName         = "/puchi.core.profile.v1.ProfileService/GetStats"
-	ProfileService_ListAchievements_FullMethodName = "/puchi.core.profile.v1.ProfileService/ListAchievements"
+	ProfileService_GetProfile_FullMethodName           = "/puchi.core.profile.v1.ProfileService/GetProfile"
+	ProfileService_UpdateProfile_FullMethodName        = "/puchi.core.profile.v1.ProfileService/UpdateProfile"
+	ProfileService_GetStats_FullMethodName             = "/puchi.core.profile.v1.ProfileService/GetStats"
+	ProfileService_ListAchievements_FullMethodName     = "/puchi.core.profile.v1.ProfileService/ListAchievements"
+	ProfileService_GetProfileByUsername_FullMethodName = "/puchi.core.profile.v1.ProfileService/GetProfileByUsername"
+	ProfileService_CompleteOnboarding_FullMethodName   = "/puchi.core.profile.v1.ProfileService/CompleteOnboarding"
+	ProfileService_GetLinkedAccounts_FullMethodName    = "/puchi.core.profile.v1.ProfileService/GetLinkedAccounts"
 )
 
 // ProfileServiceClient is the client API for ProfileService service.
@@ -34,6 +37,9 @@ type ProfileServiceClient interface {
 	UpdateProfile(ctx context.Context, in *UpdateProfileRequest, opts ...grpc.CallOption) (*User, error)
 	GetStats(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Stats, error)
 	ListAchievements(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*AchievementList, error)
+	GetProfileByUsername(ctx context.Context, in *GetProfileByUsernameRequest, opts ...grpc.CallOption) (*User, error)
+	CompleteOnboarding(ctx context.Context, in *CompleteOnboardingRequest, opts ...grpc.CallOption) (*User, error)
+	GetLinkedAccounts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*LinkedAccountsResponse, error)
 }
 
 type profileServiceClient struct {
@@ -84,6 +90,36 @@ func (c *profileServiceClient) ListAchievements(ctx context.Context, in *emptypb
 	return out, nil
 }
 
+func (c *profileServiceClient) GetProfileByUsername(ctx context.Context, in *GetProfileByUsernameRequest, opts ...grpc.CallOption) (*User, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(User)
+	err := c.cc.Invoke(ctx, ProfileService_GetProfileByUsername_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileServiceClient) CompleteOnboarding(ctx context.Context, in *CompleteOnboardingRequest, opts ...grpc.CallOption) (*User, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(User)
+	err := c.cc.Invoke(ctx, ProfileService_CompleteOnboarding_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileServiceClient) GetLinkedAccounts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*LinkedAccountsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LinkedAccountsResponse)
+	err := c.cc.Invoke(ctx, ProfileService_GetLinkedAccounts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProfileServiceServer is the server API for ProfileService service.
 // All implementations must embed UnimplementedProfileServiceServer
 // for forward compatibility.
@@ -92,6 +128,9 @@ type ProfileServiceServer interface {
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*User, error)
 	GetStats(context.Context, *emptypb.Empty) (*Stats, error)
 	ListAchievements(context.Context, *emptypb.Empty) (*AchievementList, error)
+	GetProfileByUsername(context.Context, *GetProfileByUsernameRequest) (*User, error)
+	CompleteOnboarding(context.Context, *CompleteOnboardingRequest) (*User, error)
+	GetLinkedAccounts(context.Context, *emptypb.Empty) (*LinkedAccountsResponse, error)
 	mustEmbedUnimplementedProfileServiceServer()
 }
 
@@ -113,6 +152,15 @@ func (UnimplementedProfileServiceServer) GetStats(context.Context, *emptypb.Empt
 }
 func (UnimplementedProfileServiceServer) ListAchievements(context.Context, *emptypb.Empty) (*AchievementList, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAchievements not implemented")
+}
+func (UnimplementedProfileServiceServer) GetProfileByUsername(context.Context, *GetProfileByUsernameRequest) (*User, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetProfileByUsername not implemented")
+}
+func (UnimplementedProfileServiceServer) CompleteOnboarding(context.Context, *CompleteOnboardingRequest) (*User, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteOnboarding not implemented")
+}
+func (UnimplementedProfileServiceServer) GetLinkedAccounts(context.Context, *emptypb.Empty) (*LinkedAccountsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetLinkedAccounts not implemented")
 }
 func (UnimplementedProfileServiceServer) mustEmbedUnimplementedProfileServiceServer() {}
 func (UnimplementedProfileServiceServer) testEmbeddedByValue()                        {}
@@ -207,6 +255,60 @@ func _ProfileService_ListAchievements_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProfileService_GetProfileByUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProfileByUsernameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).GetProfileByUsername(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfileService_GetProfileByUsername_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).GetProfileByUsername(ctx, req.(*GetProfileByUsernameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProfileService_CompleteOnboarding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteOnboardingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).CompleteOnboarding(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfileService_CompleteOnboarding_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).CompleteOnboarding(ctx, req.(*CompleteOnboardingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProfileService_GetLinkedAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).GetLinkedAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfileService_GetLinkedAccounts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).GetLinkedAccounts(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProfileService_ServiceDesc is the grpc.ServiceDesc for ProfileService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -229,6 +331,18 @@ var ProfileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAchievements",
 			Handler:    _ProfileService_ListAchievements_Handler,
+		},
+		{
+			MethodName: "GetProfileByUsername",
+			Handler:    _ProfileService_GetProfileByUsername_Handler,
+		},
+		{
+			MethodName: "CompleteOnboarding",
+			Handler:    _ProfileService_CompleteOnboarding_Handler,
+		},
+		{
+			MethodName: "GetLinkedAccounts",
+			Handler:    _ProfileService_GetLinkedAccounts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

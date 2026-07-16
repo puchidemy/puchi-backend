@@ -438,6 +438,7 @@ type UpdateProfileRequest struct {
 	LastName      string                 `protobuf:"bytes,2,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
 	Username      string                 `protobuf:"bytes,3,opt,name=username,proto3" json:"username,omitempty"`
 	Bio           string                 `protobuf:"bytes,4,opt,name=bio,proto3" json:"bio,omitempty"`
+	AgeRange      string                 `protobuf:"bytes,5,opt,name=age_range,json=ageRange,proto3" json:"age_range,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -500,6 +501,245 @@ func (x *UpdateProfileRequest) GetBio() string {
 	return ""
 }
 
+func (x *UpdateProfileRequest) GetAgeRange() string {
+	if x != nil {
+		return x.AgeRange
+	}
+	return ""
+}
+
+type GetProfileByUsernameRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProfileByUsernameRequest) Reset() {
+	*x = GetProfileByUsernameRequest{}
+	mi := &file_profile_v1_profile_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProfileByUsernameRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProfileByUsernameRequest) ProtoMessage() {}
+
+func (x *GetProfileByUsernameRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_profile_v1_profile_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProfileByUsernameRequest.ProtoReflect.Descriptor instead.
+func (*GetProfileByUsernameRequest) Descriptor() ([]byte, []int) {
+	return file_profile_v1_profile_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetProfileByUsernameRequest) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+type CompleteOnboardingRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FirstName     string                 `protobuf:"bytes,1,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	LastName      string                 `protobuf:"bytes,2,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
+	AgeRange      string                 `protobuf:"bytes,3,opt,name=age_range,json=ageRange,proto3" json:"age_range,omitempty"`
+	HowHeard      string                 `protobuf:"bytes,4,opt,name=how_heard,json=howHeard,proto3" json:"how_heard,omitempty"`
+	WhyLearn      string                 `protobuf:"bytes,5,opt,name=why_learn,json=whyLearn,proto3" json:"why_learn,omitempty"`
+	Level         string                 `protobuf:"bytes,6,opt,name=level,proto3" json:"level,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteOnboardingRequest) Reset() {
+	*x = CompleteOnboardingRequest{}
+	mi := &file_profile_v1_profile_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteOnboardingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteOnboardingRequest) ProtoMessage() {}
+
+func (x *CompleteOnboardingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_profile_v1_profile_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteOnboardingRequest.ProtoReflect.Descriptor instead.
+func (*CompleteOnboardingRequest) Descriptor() ([]byte, []int) {
+	return file_profile_v1_profile_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CompleteOnboardingRequest) GetFirstName() string {
+	if x != nil {
+		return x.FirstName
+	}
+	return ""
+}
+
+func (x *CompleteOnboardingRequest) GetLastName() string {
+	if x != nil {
+		return x.LastName
+	}
+	return ""
+}
+
+func (x *CompleteOnboardingRequest) GetAgeRange() string {
+	if x != nil {
+		return x.AgeRange
+	}
+	return ""
+}
+
+func (x *CompleteOnboardingRequest) GetHowHeard() string {
+	if x != nil {
+		return x.HowHeard
+	}
+	return ""
+}
+
+func (x *CompleteOnboardingRequest) GetWhyLearn() string {
+	if x != nil {
+		return x.WhyLearn
+	}
+	return ""
+}
+
+func (x *CompleteOnboardingRequest) GetLevel() string {
+	if x != nil {
+		return x.Level
+	}
+	return ""
+}
+
+type LinkedAccount struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Provider      string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	LinkedAt      string                 `protobuf:"bytes,3,opt,name=linked_at,json=linkedAt,proto3" json:"linked_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LinkedAccount) Reset() {
+	*x = LinkedAccount{}
+	mi := &file_profile_v1_profile_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LinkedAccount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LinkedAccount) ProtoMessage() {}
+
+func (x *LinkedAccount) ProtoReflect() protoreflect.Message {
+	mi := &file_profile_v1_profile_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LinkedAccount.ProtoReflect.Descriptor instead.
+func (*LinkedAccount) Descriptor() ([]byte, []int) {
+	return file_profile_v1_profile_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *LinkedAccount) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+func (x *LinkedAccount) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *LinkedAccount) GetLinkedAt() string {
+	if x != nil {
+		return x.LinkedAt
+	}
+	return ""
+}
+
+type LinkedAccountsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Accounts      []*LinkedAccount       `protobuf:"bytes,1,rep,name=accounts,proto3" json:"accounts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LinkedAccountsResponse) Reset() {
+	*x = LinkedAccountsResponse{}
+	mi := &file_profile_v1_profile_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LinkedAccountsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LinkedAccountsResponse) ProtoMessage() {}
+
+func (x *LinkedAccountsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_profile_v1_profile_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LinkedAccountsResponse.ProtoReflect.Descriptor instead.
+func (*LinkedAccountsResponse) Descriptor() ([]byte, []int) {
+	return file_profile_v1_profile_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *LinkedAccountsResponse) GetAccounts() []*LinkedAccount {
+	if x != nil {
+		return x.Accounts
+	}
+	return nil
+}
+
 var File_profile_v1_profile_proto protoreflect.FileDescriptor
 
 const file_profile_v1_profile_proto_rawDesc = "" +
@@ -548,19 +788,39 @@ const file_profile_v1_profile_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x80\x01\n" +
+	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x9d\x01\n" +
 	"\x14UpdateProfileRequest\x12\x1d\n" +
 	"\n" +
 	"first_name\x18\x01 \x01(\tR\tfirstName\x12\x1b\n" +
 	"\tlast_name\x18\x02 \x01(\tR\blastName\x12\x1a\n" +
 	"\busername\x18\x03 \x01(\tR\busername\x12\x10\n" +
-	"\x03bio\x18\x04 \x01(\tR\x03bio2\xae\x03\n" +
+	"\x03bio\x18\x04 \x01(\tR\x03bio\x12\x1b\n" +
+	"\tage_range\x18\x05 \x01(\tR\bageRange\"9\n" +
+	"\x1bGetProfileByUsernameRequest\x12\x1a\n" +
+	"\busername\x18\x01 \x01(\tR\busername\"\xc4\x01\n" +
+	"\x19CompleteOnboardingRequest\x12\x1d\n" +
+	"\n" +
+	"first_name\x18\x01 \x01(\tR\tfirstName\x12\x1b\n" +
+	"\tlast_name\x18\x02 \x01(\tR\blastName\x12\x1b\n" +
+	"\tage_range\x18\x03 \x01(\tR\bageRange\x12\x1b\n" +
+	"\thow_heard\x18\x04 \x01(\tR\bhowHeard\x12\x1b\n" +
+	"\twhy_learn\x18\x05 \x01(\tR\bwhyLearn\x12\x14\n" +
+	"\x05level\x18\x06 \x01(\tR\x05level\"^\n" +
+	"\rLinkedAccount\x12\x1a\n" +
+	"\bprovider\x18\x01 \x01(\tR\bprovider\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1b\n" +
+	"\tlinked_at\x18\x03 \x01(\tR\blinkedAt\"Z\n" +
+	"\x16LinkedAccountsResponse\x12@\n" +
+	"\baccounts\x18\x01 \x03(\v2$.puchi.core.profile.v1.LinkedAccountR\baccounts2\xc3\x06\n" +
 	"\x0eProfileService\x12V\n" +
 	"\n" +
 	"GetProfile\x12\x16.google.protobuf.Empty\x1a\x1b.puchi.core.profile.v1.User\"\x13\x82\xd3\xe4\x93\x02\r\x12\v/v1/profile\x12q\n" +
 	"\rUpdateProfile\x12+.puchi.core.profile.v1.UpdateProfileRequest\x1a\x1b.puchi.core.profile.v1.User\"\x16\x82\xd3\xe4\x93\x02\x10:\x01*\x1a\v/v1/profile\x12[\n" +
 	"\bGetStats\x12\x16.google.protobuf.Empty\x1a\x1c.puchi.core.profile.v1.Stats\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/profile/stats\x12t\n" +
-	"\x10ListAchievements\x12\x16.google.protobuf.Empty\x1a&.puchi.core.profile.v1.AchievementList\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/v1/profile/achievementsBl\n" +
+	"\x10ListAchievements\x12\x16.google.protobuf.Empty\x1a&.puchi.core.profile.v1.AchievementList\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/v1/profile/achievements\x12\x87\x01\n" +
+	"\x14GetProfileByUsername\x122.puchi.core.profile.v1.GetProfileByUsernameRequest\x1a\x1b.puchi.core.profile.v1.User\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/v1/profile/{username}\x12\x87\x01\n" +
+	"\x12CompleteOnboarding\x120.puchi.core.profile.v1.CompleteOnboardingRequest\x1a\x1b.puchi.core.profile.v1.User\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/v1/onboarding/complete\x12\x7f\n" +
+	"\x11GetLinkedAccounts\x12\x16.google.protobuf.Empty\x1a-.puchi.core.profile.v1.LinkedAccountsResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/v1/profile/linked-accountsBl\n" +
 	"\x1bio.grpc.examples.profile.v1B\fProfileProtoP\x01Z=github.com/puchidemy/puchi-backend/app/core/api/profile/v1;v1b\x06proto3"
 
 var (
@@ -575,34 +835,45 @@ func file_profile_v1_profile_proto_rawDescGZIP() []byte {
 	return file_profile_v1_profile_proto_rawDescData
 }
 
-var file_profile_v1_profile_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_profile_v1_profile_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_profile_v1_profile_proto_goTypes = []any{
-	(*Achievement)(nil),           // 0: puchi.core.profile.v1.Achievement
-	(*AchievementList)(nil),       // 1: puchi.core.profile.v1.AchievementList
-	(*Stats)(nil),                 // 2: puchi.core.profile.v1.Stats
-	(*User)(nil),                  // 3: puchi.core.profile.v1.User
-	(*UpdateProfileRequest)(nil),  // 4: puchi.core.profile.v1.UpdateProfileRequest
-	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),         // 6: google.protobuf.Empty
+	(*Achievement)(nil),                 // 0: puchi.core.profile.v1.Achievement
+	(*AchievementList)(nil),             // 1: puchi.core.profile.v1.AchievementList
+	(*Stats)(nil),                       // 2: puchi.core.profile.v1.Stats
+	(*User)(nil),                        // 3: puchi.core.profile.v1.User
+	(*UpdateProfileRequest)(nil),        // 4: puchi.core.profile.v1.UpdateProfileRequest
+	(*GetProfileByUsernameRequest)(nil), // 5: puchi.core.profile.v1.GetProfileByUsernameRequest
+	(*CompleteOnboardingRequest)(nil),   // 6: puchi.core.profile.v1.CompleteOnboardingRequest
+	(*LinkedAccount)(nil),               // 7: puchi.core.profile.v1.LinkedAccount
+	(*LinkedAccountsResponse)(nil),      // 8: puchi.core.profile.v1.LinkedAccountsResponse
+	(*timestamppb.Timestamp)(nil),       // 9: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),               // 10: google.protobuf.Empty
 }
 var file_profile_v1_profile_proto_depIdxs = []int32{
-	5, // 0: puchi.core.profile.v1.Achievement.unlocked_at:type_name -> google.protobuf.Timestamp
-	0, // 1: puchi.core.profile.v1.AchievementList.items:type_name -> puchi.core.profile.v1.Achievement
-	5, // 2: puchi.core.profile.v1.User.created_at:type_name -> google.protobuf.Timestamp
-	5, // 3: puchi.core.profile.v1.User.updated_at:type_name -> google.protobuf.Timestamp
-	6, // 4: puchi.core.profile.v1.ProfileService.GetProfile:input_type -> google.protobuf.Empty
-	4, // 5: puchi.core.profile.v1.ProfileService.UpdateProfile:input_type -> puchi.core.profile.v1.UpdateProfileRequest
-	6, // 6: puchi.core.profile.v1.ProfileService.GetStats:input_type -> google.protobuf.Empty
-	6, // 7: puchi.core.profile.v1.ProfileService.ListAchievements:input_type -> google.protobuf.Empty
-	3, // 8: puchi.core.profile.v1.ProfileService.GetProfile:output_type -> puchi.core.profile.v1.User
-	3, // 9: puchi.core.profile.v1.ProfileService.UpdateProfile:output_type -> puchi.core.profile.v1.User
-	2, // 10: puchi.core.profile.v1.ProfileService.GetStats:output_type -> puchi.core.profile.v1.Stats
-	1, // 11: puchi.core.profile.v1.ProfileService.ListAchievements:output_type -> puchi.core.profile.v1.AchievementList
-	8, // [8:12] is the sub-list for method output_type
-	4, // [4:8] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	9,  // 0: puchi.core.profile.v1.Achievement.unlocked_at:type_name -> google.protobuf.Timestamp
+	0,  // 1: puchi.core.profile.v1.AchievementList.items:type_name -> puchi.core.profile.v1.Achievement
+	9,  // 2: puchi.core.profile.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 3: puchi.core.profile.v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	7,  // 4: puchi.core.profile.v1.LinkedAccountsResponse.accounts:type_name -> puchi.core.profile.v1.LinkedAccount
+	10, // 5: puchi.core.profile.v1.ProfileService.GetProfile:input_type -> google.protobuf.Empty
+	4,  // 6: puchi.core.profile.v1.ProfileService.UpdateProfile:input_type -> puchi.core.profile.v1.UpdateProfileRequest
+	10, // 7: puchi.core.profile.v1.ProfileService.GetStats:input_type -> google.protobuf.Empty
+	10, // 8: puchi.core.profile.v1.ProfileService.ListAchievements:input_type -> google.protobuf.Empty
+	5,  // 9: puchi.core.profile.v1.ProfileService.GetProfileByUsername:input_type -> puchi.core.profile.v1.GetProfileByUsernameRequest
+	6,  // 10: puchi.core.profile.v1.ProfileService.CompleteOnboarding:input_type -> puchi.core.profile.v1.CompleteOnboardingRequest
+	10, // 11: puchi.core.profile.v1.ProfileService.GetLinkedAccounts:input_type -> google.protobuf.Empty
+	3,  // 12: puchi.core.profile.v1.ProfileService.GetProfile:output_type -> puchi.core.profile.v1.User
+	3,  // 13: puchi.core.profile.v1.ProfileService.UpdateProfile:output_type -> puchi.core.profile.v1.User
+	2,  // 14: puchi.core.profile.v1.ProfileService.GetStats:output_type -> puchi.core.profile.v1.Stats
+	1,  // 15: puchi.core.profile.v1.ProfileService.ListAchievements:output_type -> puchi.core.profile.v1.AchievementList
+	3,  // 16: puchi.core.profile.v1.ProfileService.GetProfileByUsername:output_type -> puchi.core.profile.v1.User
+	3,  // 17: puchi.core.profile.v1.ProfileService.CompleteOnboarding:output_type -> puchi.core.profile.v1.User
+	8,  // 18: puchi.core.profile.v1.ProfileService.GetLinkedAccounts:output_type -> puchi.core.profile.v1.LinkedAccountsResponse
+	12, // [12:19] is the sub-list for method output_type
+	5,  // [5:12] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_profile_v1_profile_proto_init() }
@@ -616,7 +887,7 @@ func file_profile_v1_profile_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_profile_v1_profile_proto_rawDesc), len(file_profile_v1_profile_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -2,11 +2,14 @@ package service
 
 import (
 	"context"
+	"time"
 
 	pb "github.com/puchidemy/puchi-backend/app/core/api/profile/v1"
 	"github.com/puchidemy/puchi-backend/app/core/internal/auth"
 	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/data/sqlc/gen"
+	"github.com/supertokens/supertokens-golang/recipe/emailpassword"
+	"github.com/supertokens/supertokens-golang/recipe/thirdparty"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -83,6 +86,80 @@ func (s *ProfileService) UpdateProfile(ctx context.Context, req *pb.UpdateProfil
 	}
 
 	return userToProto(user), nil
+}
+
+// GetProfileByUsername returns a user's public profile by username.
+func (s *ProfileService) GetProfileByUsername(ctx context.Context, req *pb.GetProfileByUsernameRequest) (*pb.User, error) {
+	user, err := s.uc.GetProfileByUsername(ctx, req.Username)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "user not found")
+	}
+
+	// If user is logged in and it's their own profile, show email
+	currentUserID, isLoggedIn := auth.UserIDFromContext(ctx)
+	userProto := userToProto(user)
+	if !isLoggedIn || currentUserID != user.ID {
+		userProto.Email = ""
+	}
+	return userProto, nil
+}
+
+// CompleteOnboarding completes onboarding and saves profile + answers.
+func (s *ProfileService) CompleteOnboarding(ctx context.Context, req *pb.CompleteOnboardingRequest) (*pb.User, error) {
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "not authenticated")
+	}
+
+	user, err := s.uc.CompleteOnboarding(ctx, userID, biz.OnboardingInput{
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		AgeRange:  req.AgeRange,
+		HowHeard:  req.HowHeard,
+		WhyLearn:  req.WhyLearn,
+		Level:     req.Level,
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return userToProto(user), nil
+}
+
+// GetLinkedAccounts returns linked third-party accounts.
+func (s *ProfileService) GetLinkedAccounts(ctx context.Context, _ *emptypb.Empty) (*pb.LinkedAccountsResponse, error) {
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "not authenticated")
+	}
+
+	accounts := fetchLinkedAccountsFromSupertokens(userID)
+	return &pb.LinkedAccountsResponse{Accounts: accounts}, nil
+}
+
+// fetchLinkedAccountsFromSupertokens calls SuperTokens to get linked providers.
+func fetchLinkedAccountsFromSupertokens(userID string) []*pb.LinkedAccount {
+	var accounts []*pb.LinkedAccount
+
+	// Check email/password recipe
+	if epUser, err := emailpassword.GetUserByID(userID); err == nil && epUser != nil {
+		accounts = append(accounts, &pb.LinkedAccount{
+			Provider: "emailpassword",
+			Email:    epUser.Email,
+			LinkedAt: time.UnixMilli(int64(epUser.TimeJoined)).Format(time.RFC3339),
+		})
+	}
+
+	// Check third party recipe
+	if tpUser, err := thirdparty.GetUserByID(userID); err == nil && tpUser != nil {
+		accounts = append(accounts, &pb.LinkedAccount{
+			Provider: tpUser.ThirdParty.ID,
+			Email:    tpUser.Email,
+			LinkedAt: time.UnixMilli(int64(tpUser.TimeJoined)).Format(time.RFC3339),
+		})
+	}
+
+	return accounts
 }
 
 // userToProto converts a gen.CoreUser to a proto User.

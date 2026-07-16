@@ -16,6 +16,17 @@ type UpdateProfileInput struct {
 	LastName  string
 	Username  string
 	Bio       string
+	AgeRange  string
+}
+
+// OnboardingInput — input for completing onboarding
+type OnboardingInput struct {
+	FirstName string
+	LastName  string
+	AgeRange  string
+	HowHeard  string
+	WhyLearn  string
+	Level     string
 }
 
 // UserRepoInterface — biz layer defines the repo contract (dependency inversion)
@@ -23,7 +34,10 @@ type UserRepoInterface interface {
 	CreateUser(ctx context.Context, id, username, email, firstName, lastName string) (*gen.CoreUser, error)
 	GetUser(ctx context.Context, id string) (*gen.CoreUser, error)
 	GetUserByEmail(ctx context.Context, email string) (*gen.CoreUser, error)
+	GetUserByUsername(ctx context.Context, username string) (*gen.CoreUser, error)
 	UpdateUser(ctx context.Context, id, firstName, lastName, username string, bio, avatarKey *string) (*gen.CoreUser, error)
+	UpdateOnboardingInfo(ctx context.Context, id, firstName, lastName, ageRange string) (*gen.CoreUser, error)
+	UpsertUserOnboarding(ctx context.Context, userID, howHeard, whyLearn, level string) error
 	UsernameExists(ctx context.Context, username string) (bool, error)
 }
 
@@ -98,6 +112,31 @@ func (uc *ProfileUsecase) CreateUserFromAuth(ctx context.Context, userID, email 
 	if err != nil {
 		return nil, fmt.Errorf("create user from auth: %w", err)
 	}
+	return user, nil
+}
+
+// GetProfileByUsername returns a user's public profile by username.
+func (uc *ProfileUsecase) GetProfileByUsername(ctx context.Context, username string) (*gen.CoreUser, error) {
+	user, err := uc.repo.GetUserByUsername(ctx, username)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrUserNotFound, err)
+	}
+	return user, nil
+}
+
+// CompleteOnboarding updates user's profile and saves onboarding answers.
+func (uc *ProfileUsecase) CompleteOnboarding(ctx context.Context, userID string, input OnboardingInput) (*gen.CoreUser, error) {
+	user, err := uc.repo.UpdateOnboardingInfo(ctx, userID, input.FirstName, input.LastName, input.AgeRange)
+	if err != nil {
+		return nil, fmt.Errorf("complete onboarding: %w", err)
+	}
+
+	if input.HowHeard != "" || input.WhyLearn != "" || input.Level != "" {
+		if err := uc.repo.UpsertUserOnboarding(ctx, userID, input.HowHeard, input.WhyLearn, input.Level); err != nil {
+			return nil, fmt.Errorf("save onboarding answers: %w", err)
+		}
+	}
+
 	return user, nil
 }
 
