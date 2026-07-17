@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -110,6 +111,10 @@ func (s *SocialService) HandleOAuthCallback(w http.ResponseWriter, r *http.Reque
 	// Exchange authorization code for user info
 	providerUser, err := provider.Exchange(r.Context(), code, oauthData.CodeVerifier)
 	if err != nil {
+		slog.Error("token exchange failed",
+			"provider", oauthData.Provider,
+			"error", err,
+		)
 		writeJSONError(w, http.StatusInternalServerError, "token exchange failed")
 		return
 	}

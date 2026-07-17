@@ -39,18 +39,17 @@ func NewTikTokProvider(clientKey, clientSecret, redirectURL string) *TikTokProvi
 // Name returns "tiktok".
 func (p *TikTokProvider) Name() string { return "tiktok" }
 
-// AuthURL builds the TikTok OAuth2 authorization URL with PKCE.
-// Note: TikTok v2 OAuth requires client_key parameter, NOT client_id
-// (which Go's oauth2.AuthCodeURL would produce).
-func (p *TikTokProvider) AuthURL(state string, codeChallenge string) string {
+// AuthURL builds the TikTok OAuth2 authorization URL.
+// Note: TikTok does NOT support PKCE for web login flow (only for mobile/desktop).
+// CSRF protection is achieved via the state parameter.
+// TikTok v2 OAuth requires client_key parameter, NOT client_id.
+func (p *TikTokProvider) AuthURL(state string, _ string) string {
 	vals := url.Values{}
 	vals.Add("client_key", p.clientID)
 	vals.Add("response_type", "code")
 	vals.Add("redirect_uri", p.redirectURL)
 	vals.Add("scope", strings.Join(p.scopes, ","))
 	vals.Add("state", state)
-	vals.Add("code_challenge", codeChallenge)
-	vals.Add("code_challenge_method", "S256")
 	return p.authURL + "?" + vals.Encode()
 }
 
@@ -85,7 +84,8 @@ type tiktokTokenResponse struct {
 // Exchange exchanges the authorization code for an access token, then fetches user info.
 // Uses a direct HTTP POST instead of Go's oauth2.Config.Exchange because TikTok
 // requires client_key/client_secret in the POST body (not client_id).
-func (p *TikTokProvider) Exchange(ctx context.Context, code string, codeVerifier string) (*ProviderUser, error) {
+// Note: TikTok web flow does NOT send code_verifier in the token exchange.
+func (p *TikTokProvider) Exchange(ctx context.Context, code string, _ string) (*ProviderUser, error) {
 	// Build token exchange request body
 	vals := url.Values{}
 	vals.Set("client_key", p.clientID)
@@ -93,7 +93,6 @@ func (p *TikTokProvider) Exchange(ctx context.Context, code string, codeVerifier
 	vals.Set("code", code)
 	vals.Set("grant_type", "authorization_code")
 	vals.Set("redirect_uri", p.redirectURL)
-	vals.Set("code_verifier", codeVerifier)
 
 	body := vals.Encode()
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, p.tokenURL, strings.NewReader(body))
