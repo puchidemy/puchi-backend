@@ -31,6 +31,7 @@ jobs:
           - media
           - notification
           - auth
+          - email
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -55,6 +56,7 @@ jobs:
           - media
           - notification
           - auth
+          - email
     steps:
       - uses: actions/checkout@v4
 
@@ -105,7 +107,7 @@ jobs:
       - name: Update all backend deployment images
         run: |
           SHA_TAG="git-${GITHUB_SHA::7}"
-          for service in core content grading game user media notification auth; do
+          for service in core content grading game user media notification auth email; do
             DEPLOY="puchi-infra/infra/backend/$service/deployment.yaml"
             OLD_IMAGE="ghcr.io/puchidemy/puchi-$service:latest"
             NEW_IMAGE="ghcr.io/puchidemy/puchi-$service:$SHA_TAG"
@@ -127,7 +129,8 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "chore: update backend image tags to ${{ github.sha }}
-            
+
             Automated by CI/CD for commit ${{ github.sha }}"
+            git pull --rebase
             git push
           fi
