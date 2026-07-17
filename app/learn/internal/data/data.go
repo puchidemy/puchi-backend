@@ -12,12 +12,14 @@ import (
 // ProviderSet is data providers.
 var ProviderSet = wire.NewSet(
 	NewData,
+	NewNATSLessonEventPublisher,
 	NewGuestRepo,
 	NewProgressRepo,
 	NewCurriculumRepo,
 	NewAttemptRepo,
 	NewTransactionManager,
 	wire.FieldsOf(new(*Data), "Pool"),
+	wire.Bind(new(biz.LessonEventPublisher), new(*NATSLessonEventPublisher)),
 	wire.Bind(new(biz.GuestRepoInterface), new(*GuestRepo)),
 	wire.Bind(new(biz.ProgressRepoInterface), new(*ProgressRepo)),
 	wire.Bind(new(biz.CurriculumRepoInterface), new(*CurriculumRepo)),

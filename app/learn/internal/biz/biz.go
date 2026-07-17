@@ -7,8 +7,6 @@ import (
 // ProviderSet is biz providers.
 var ProviderSet = wire.NewSet(
 	NewLearnUsecase,
-	NewNoOpLessonEventPublisher,
-	wire.Bind(new(LessonEventPublisher), new(*NoOpLessonEventPublisher)),
 )
 
 // LearnUsecase handles learn business logic.

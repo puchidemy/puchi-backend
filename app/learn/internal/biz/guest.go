@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -74,6 +75,8 @@ func (uc *LearnUsecase) CreateGuestSession(ctx context.Context) (uuid.UUID, erro
 func (uc *LearnUsecase) ClaimGuest(ctx context.Context, userID string, guestID uuid.UUID) (int32, error) {
 	guestIDStr := guestID.String()
 	var lessonsMerged int32
+	var pendingLessons []LessonCompletedEvent
+	var pendingUnits []UnitCompletedEvent
 
 	err := uc.tx.InTx(ctx, func(guestRepo GuestRepoInterface, progressRepo ProgressRepoInterface) error {
 		guest, err := guestRepo.GetGuestByIDForUpdate(ctx, guestIDStr)
@@ -97,12 +100,24 @@ func (uc *LearnUsecase) ClaimGuest(ctx context.Context, userID string, guestID u
 				if !errors.Is(err, pgx.ErrNoRows) {
 					return err
 				}
+				if gp.Status == "completed" {
+					pendingLessons = append(pendingLessons, LessonCompletedEvent{
+						LessonID: gp.LessonID,
+						XP:       gp.XpEarned,
+					})
+				}
 				continue
 			}
 			mergedStatus := higherStatus(gp.Status, userLesson.Status)
 			mergedXP := maxInt32(gp.XpEarned, userLesson.XpEarned)
 			if err := progressRepo.UpsertLessonProgress(ctx, "user", userID, gp.LessonID, mergedStatus, mergedXP); err != nil {
 				return err
+			}
+			if gp.Status == "completed" && userLesson.Status != "completed" {
+				pendingLessons = append(pendingLessons, LessonCompletedEvent{
+					LessonID: gp.LessonID,
+					XP:       mergedXP,
+				})
 			}
 			if err := progressRepo.DeleteGuestLessonProgress(ctx, guestIDStr, gp.LessonID); err != nil {
 				return err
@@ -120,11 +135,17 @@ func (uc *LearnUsecase) ClaimGuest(ctx context.Context, userID string, guestID u
 				if !errors.Is(err, pgx.ErrNoRows) {
 					return err
 				}
+				if gp.Status == "completed" {
+					pendingUnits = append(pendingUnits, UnitCompletedEvent{UnitID: gp.UnitID})
+				}
 				continue
 			}
 			mergedStatus := higherStatus(gp.Status, userUnit.Status)
 			if err := progressRepo.UpsertUnitProgress(ctx, "user", userID, gp.UnitID, mergedStatus); err != nil {
 				return err
+			}
+			if gp.Status == "completed" && userUnit.Status != "completed" {
+				pendingUnits = append(pendingUnits, UnitCompletedEvent{UnitID: gp.UnitID})
 			}
 			if err := progressRepo.DeleteGuestUnitProgress(ctx, guestIDStr, gp.UnitID); err != nil {
 				return err
@@ -145,5 +166,33 @@ func (uc *LearnUsecase) ClaimGuest(ctx context.Context, userID string, guestID u
 	if err != nil {
 		return 0, err
 	}
+
+	completedAt := time.Now().UTC()
+	for i := range pendingLessons {
+		ev := &pendingLessons[i]
+		ev.UserID = userID
+		ev.CompletedAt = completedAt
+		lesson, err := uc.curriculumRepo.GetLessonByID(ctx, ev.LessonID)
+		if err != nil {
+			return lessonsMerged, err
+		}
+		skill, err := uc.curriculumRepo.GetSkillByID(ctx, lesson.SkillID)
+		if err != nil {
+			return lessonsMerged, err
+		}
+		ev.UnitID = skill.UnitID
+		if err := uc.publisher.PublishLessonCompleted(ctx, *ev); err != nil {
+			return lessonsMerged, err
+		}
+	}
+	for i := range pendingUnits {
+		ev := pendingUnits[i]
+		ev.UserID = userID
+		ev.CompletedAt = completedAt
+		if err := uc.publisher.PublishUnitCompleted(ctx, ev); err != nil {
+			return lessonsMerged, err
+		}
+	}
+
 	return lessonsMerged, nil
 }

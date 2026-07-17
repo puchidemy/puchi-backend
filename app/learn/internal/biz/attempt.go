@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -164,19 +165,22 @@ func (uc *LearnUsecase) CompleteLesson(ctx context.Context, ownerType, ownerID, 
 	}
 
 	if ownerType == "user" {
+		completedAt := time.Now().UTC()
 		if err := uc.publisher.PublishLessonCompleted(ctx, LessonCompletedEvent{
-			UserID:   ownerID,
-			LessonID: lessonID,
-			UnitID:   skill.UnitID,
-			XP:       sessionXP,
+			UserID:      ownerID,
+			LessonID:    lessonID,
+			UnitID:      skill.UnitID,
+			XP:          sessionXP,
+			CompletedAt: completedAt,
 		}); err != nil {
 			return 0, false, err
 		}
 		if unitCompleted {
 			if err := uc.publisher.PublishUnitCompleted(ctx, UnitCompletedEvent{
-				UserID: ownerID,
-				UnitID: skill.UnitID,
-				XP:     sessionXP,
+				UserID:      ownerID,
+				UnitID:      skill.UnitID,
+				XP:          sessionXP,
+				CompletedAt: completedAt,
 			}); err != nil {
 				return 0, false, err
 			}

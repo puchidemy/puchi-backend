@@ -45,8 +45,11 @@ func (m *mockTxManager) InTx(_ context.Context, fn func(GuestRepoInterface, Prog
 	return fn(m.guest, m.progress)
 }
 
-func newTestUsecase(guest GuestRepoInterface, progress ProgressRepoInterface) *LearnUsecase {
-	return NewLearnUsecase(guest, progress, &mockCurriculumRepo{}, &mockAttemptRepo{}, NoOpLessonEventPublisher{}, &mockTxManager{guest: guest, progress: progress})
+func newTestUsecase(guest GuestRepoInterface, progress ProgressRepoInterface, curriculum CurriculumRepoInterface) *LearnUsecase {
+	if curriculum == nil {
+		curriculum = &mockCurriculumRepo{}
+	}
+	return NewLearnUsecase(guest, progress, curriculum, &mockAttemptRepo{}, NoOpLessonEventPublisher{}, &mockTxManager{guest: guest, progress: progress})
 }
 
 type mockProgressRepo struct {
@@ -114,7 +117,7 @@ func TestCreateGuestSession_InsertsGuest(t *testing.T) {
 			insertedID = id
 			return nil
 		},
-	}, &mockProgressRepo{})
+	}, &mockProgressRepo{}, nil)
 
 	guestID, err := uc.CreateGuestSession(context.Background())
 	if err != nil {
@@ -132,10 +135,20 @@ func TestClaimGuest_MergesProgressAndMarksClaimed(t *testing.T) {
 	guestID := uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
 	userID := "user-123"
 	lessonID := "33333333-3333-3333-3333-333333333331"
+	skillID := "22222222-2222-2222-2222-222222222222"
 
 	var upsertedStatus string
 	var upsertedXP int32
 	claimed := false
+
+	curriculum := &mockCurriculumRepo{
+		getLesson: func(_ context.Context, id string) (*gen.LearnLesson, error) {
+			return &gen.LearnLesson{ID: id, SkillID: skillID}, nil
+		},
+		getSkill: func(_ context.Context, id string) (*gen.LearnSkill, error) {
+			return &gen.LearnSkill{ID: id, UnitID: testTrialUnitID}, nil
+		},
+	}
 
 	uc := newTestUsecase(&mockGuestRepo{
 		getGuest: func(_ context.Context, id string) (*gen.LearnGuest, error) {
@@ -211,7 +224,7 @@ func TestClaimGuest_MergesProgressAndMarksClaimed(t *testing.T) {
 			}
 			return nil
 		},
-	})
+	}, curriculum)
 
 	merged, err := uc.ClaimGuest(context.Background(), userID, guestID)
 	if err != nil {
@@ -240,7 +253,7 @@ func TestClaimGuest_RejectsAlreadyClaimed(t *testing.T) {
 				ClaimedAt: pgtype.Timestamptz{Valid: true},
 			}, nil
 		},
-	}, &mockProgressRepo{})
+	}, &mockProgressRepo{}, nil)
 
 	_, err := uc.ClaimGuest(context.Background(), "user-123", guestID)
 	if !errors.Is(err, ErrGuestAlreadyClaimed) {
