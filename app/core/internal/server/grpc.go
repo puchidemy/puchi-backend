@@ -1,7 +1,8 @@
 package server
 
 import (
-	pb "github.com/puchidemy/puchi-backend/app/core/api/profile/v1"
+	profilepb "github.com/puchidemy/puchi-backend/app/core/api/profile/v1"
+	socialpb "github.com/puchidemy/puchi-backend/app/core/api/social/v1"
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/core/internal/service"
 	"github.com/go-kratos/kratos/v3/middleware/recovery"
@@ -9,7 +10,7 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, _ *conf.Auth, profileService *service.ProfileService) *grpc.Server {
+func NewGRPCServer(c *conf.Server, _ *conf.Auth, profileService *service.ProfileService, socialService *service.SocialService) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
@@ -25,6 +26,7 @@ func NewGRPCServer(c *conf.Server, _ *conf.Auth, profileService *service.Profile
 		opts = append(opts, grpc.Timeout(c.Grpc.Timeout.AsDuration()))
 	}
 	srv := grpc.NewServer(opts...)
-	pb.RegisterProfileServiceServer(srv, profileService)
+	profilepb.RegisterProfileServiceServer(srv, profileService)
+	socialpb.RegisterSocialServiceServer(srv, socialService)
 	return srv
 }

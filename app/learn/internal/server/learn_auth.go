@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/puchidemy/puchi-backend/pkg/apierr"
 	authpkg "github.com/puchidemy/puchi-backend/pkg/auth"
 )
 
@@ -46,7 +47,5 @@ func isLearnGuestOrUserPath(path string) bool {
 }
 
 func writeLearnUnauthorized(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusUnauthorized)
-	_, _ = w.Write([]byte(`{"code":401,"message":"unauthorized","reason":"NO_SESSION"}`))
+	apierr.Unauthorized(w, "NO_SESSION")
 }

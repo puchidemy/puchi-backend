@@ -1,10 +1,11 @@
 package auth
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
+
+	"github.com/puchidemy/puchi-backend/pkg/apierr"
 )
 
 // MiddlewareConfig holds configuration for the auth middleware.
@@ -51,15 +52,9 @@ func Middleware(cfg MiddlewareConfig) func(http.Handler) http.Handler {
 }
 
 func writeUnauthorized(w http.ResponseWriter, err error) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusUnauthorized)
 	reason := "NO_SESSION"
 	if errors.Is(err, ErrSessionExpired) {
 		reason = "SESSION_EXPIRED"
 	}
-	_ = json.NewEncoder(w).Encode(map[string]interface{}{
-		"code":    401,
-		"message": "unauthorized",
-		"reason":  reason,
-	})
+	apierr.Unauthorized(w, reason)
 }

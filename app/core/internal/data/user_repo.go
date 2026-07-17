@@ -85,13 +85,14 @@ func (r *UserRepo) GetUserByUsername(ctx context.Context, username string) (*gen
 	return &row, nil
 }
 
-// UpdateOnboardingInfo updates user's first_name, last_name, age_range and sets onboarding_completed=true.
-func (r *UserRepo) UpdateOnboardingInfo(ctx context.Context, id, firstName, lastName, ageRange string) (*gen.CoreUser, error) {
+// UpdateOnboardingInfo updates user's first_name, last_name, age_range, username and sets onboarding_completed=true.
+func (r *UserRepo) UpdateOnboardingInfo(ctx context.Context, id, firstName, lastName, ageRange, username string) (*gen.CoreUser, error) {
 	row, err := r.q.UpdateOnboardingInfo(ctx, gen.UpdateOnboardingInfoParams{
 		ID:        id,
 		FirstName: firstName,
 		LastName:  lastName,
 		AgeRange:  ageRange,
+		Username:  username,
 	})
 	if err != nil {
 		return nil, err

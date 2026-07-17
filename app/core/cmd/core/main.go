@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
+	"github.com/puchidemy/puchi-backend/app/core/internal/events"
 	authpkg "github.com/puchidemy/puchi-backend/pkg/auth"
 
 	"github.com/go-kratos/kratos/contrib/otel/v3/tracing"
@@ -35,7 +36,7 @@ func init() {
 	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
 }
 
-func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
+func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server, _ *events.LearnConsumer) *kratos.App {
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),

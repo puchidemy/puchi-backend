@@ -25,8 +25,8 @@ DELETE FROM core.users WHERE id = $1;
 SELECT * FROM core.users WHERE username = $1;
 
 -- name: UpdateOnboardingInfo :one
-UPDATE core.users 
-SET first_name = $2, last_name = $3, age_range = $4, 
+UPDATE core.users
+SET first_name = $2, last_name = $3, age_range = $4, username = $5,
     onboarding_completed = true, updated_at = now()
 WHERE id = $1
 RETURNING *;

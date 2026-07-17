@@ -25,11 +25,9 @@ jobs:
         service:
           - core
           - learn
-          - user
           - media
           - notification
           - auth
-          - email
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -48,11 +46,9 @@ jobs:
         service:
           - core
           - learn
-          - user
           - media
           - notification
           - auth
-          - email
     steps:
       - uses: actions/checkout@v4
 
@@ -103,7 +99,7 @@ jobs:
       - name: Update all backend deployment images
         run: |
           SHA_TAG="git-${GITHUB_SHA::7}"
-          for service in core learn user media notification auth email; do
+          for service in core learn media notification auth; do
             DEPLOY="puchi-infra/infra/backend/$service/deployment.yaml"
             OLD_IMAGE="ghcr.io/puchidemy/puchi-$service:latest"
             NEW_IMAGE="ghcr.io/puchidemy/puchi-$service:$SHA_TAG"

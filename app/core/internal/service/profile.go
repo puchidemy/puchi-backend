@@ -6,9 +6,10 @@ import (
 	"net/http"
 
 	pb "github.com/puchidemy/puchi-backend/app/core/api/profile/v1"
-	auth "github.com/puchidemy/puchi-backend/pkg/auth"
 	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/data/sqlc/gen"
+	"github.com/puchidemy/puchi-backend/pkg/apierr"
+	auth "github.com/puchidemy/puchi-backend/pkg/auth"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -142,11 +143,15 @@ func (s *ProfileService) CompleteOnboarding(ctx context.Context, req *pb.Complet
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		AgeRange:  req.AgeRange,
+		Username:  req.Username,
 		HowHeard:  req.HowHeard,
 		WhyLearn:  req.WhyLearn,
 		Level:     req.Level,
 	})
 	if err != nil {
+		if err == biz.ErrUsernameTaken {
+			return nil, status.Error(codes.AlreadyExists, "username already taken")
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -170,9 +175,7 @@ func (s *ProfileService) GetLinkedAccounts(ctx context.Context, _ *emptypb.Empty
 func (s *ProfileService) HandleMergeGuest(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
 	if !ok {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
+		apierr.Unauthorized(w, "UNAUTHORIZED")
 		return
 	}
 
@@ -208,15 +211,17 @@ func (s *ProfileService) HandleMergeGuest(w http.ResponseWriter, r *http.Request
 // userToProto converts a gen.CoreUser to a proto User.
 func userToProto(u *gen.CoreUser) *pb.User {
 	return &pb.User{
-		Id:        u.ID,
-		Username:  u.Username,
-		FirstName: u.FirstName,
-		LastName:  u.LastName,
-		Email:     u.Email,
-		AvatarUrl: safePtr(u.AvatarKey),
-		Bio:       safePtr(u.Bio),
-		CreatedAt: timestamppb.New(u.CreatedAt),
-		UpdatedAt: timestamppb.New(u.UpdatedAt),
+		Id:                  u.ID,
+		Username:            u.Username,
+		FirstName:           u.FirstName,
+		LastName:            u.LastName,
+		Email:               u.Email,
+		AvatarUrl:           safePtr(u.AvatarKey),
+		Bio:                 safePtr(u.Bio),
+		CreatedAt:           timestamppb.New(u.CreatedAt),
+		UpdatedAt:           timestamppb.New(u.UpdatedAt),
+		OnboardingCompleted: u.OnboardingCompleted,
+		AgeRange:            u.AgeRange,
 	}
 }
 

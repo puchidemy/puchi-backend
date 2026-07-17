@@ -15,7 +15,7 @@ data:
     write_timeout: 0.2s
 media:
   storage:
-    endpoint: "https://<ACCOUNT_ID>.r2.cloudflarestorage.com"
+    endpoint: "https://8daf04d9f3a2a26d996661b3a67d8710.r2.cloudflarestorage.com"
     access_key_id: "" # set via R2_ACCESS_KEY_ID env
     secret_access_key: "" # set via R2_SECRET_ACCESS_KEY env
     bucket: "puchi-media"

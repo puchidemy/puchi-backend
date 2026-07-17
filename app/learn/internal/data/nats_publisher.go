@@ -10,11 +10,7 @@ import (
 	"github.com/nats-io/nats.go"
 	"github.com/puchidemy/puchi-backend/app/learn/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/learn/internal/conf"
-)
-
-const (
-	subjectLessonCompleted = "learn.lesson.completed"
-	subjectUnitCompleted   = "learn.unit.completed"
+	pnats "github.com/puchidemy/puchi-backend/pkg/nats"
 )
 
 type lessonCompletedPayload struct {
@@ -41,34 +37,22 @@ type NATSLessonEventPublisher struct {
 // NewNATSLessonEventPublisher connects to NATS when url is set; otherwise no-op.
 func NewNATSLessonEventPublisher(cfg *conf.Data, log *slog.Logger) (*NATSLessonEventPublisher, func(), error) {
 	p := &NATSLessonEventPublisher{log: log}
-	cleanup := func() {}
 
 	url := ""
 	if cfg != nil && cfg.GetNats() != nil {
 		url = cfg.GetNats().GetUrl()
 	}
-	if url == "" {
-		log.Info("nats disabled (empty url)")
-		return p, cleanup, nil
-	}
 
-	nc, err := nats.Connect(url,
-		nats.MaxReconnects(-1),
-		nats.ReconnectWait(2*time.Second),
-	)
+	nc, cleanup, err := pnats.ConnectOptional(url, log)
 	if err != nil {
 		return nil, nil, err
 	}
 	p.nc = nc
-	cleanup = func() {
-		nc.Close()
-	}
-	log.Info("nats connected", "url", url)
 	return p, cleanup, nil
 }
 
 func (p *NATSLessonEventPublisher) PublishLessonCompleted(_ context.Context, ev biz.LessonCompletedEvent) error {
-	return p.publish(subjectLessonCompleted, lessonCompletedPayload{
+	return p.publish(pnats.SubjectLessonCompleted, lessonCompletedPayload{
 		UserID:      ev.UserID,
 		LessonID:    ev.LessonID,
 		UnitID:      ev.UnitID,
@@ -78,7 +62,7 @@ func (p *NATSLessonEventPublisher) PublishLessonCompleted(_ context.Context, ev 
 }
 
 func (p *NATSLessonEventPublisher) PublishUnitCompleted(_ context.Context, ev biz.UnitCompletedEvent) error {
-	return p.publish(subjectUnitCompleted, unitCompletedPayload{
+	return p.publish(pnats.SubjectUnitCompleted, unitCompletedPayload{
 		UserID:      ev.UserID,
 		UnitID:      ev.UnitID,
 		XP:          ev.XP,

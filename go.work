@@ -2,14 +2,9 @@ go 1.26.3
 
 use (
 	./app/auth
-	./app/content
 	./app/core
-	./app/email
-	./app/game
-	./app/grading
 	./app/learn
 	./app/media
 	./app/notification
-	./app/user
 	./pkg
 )

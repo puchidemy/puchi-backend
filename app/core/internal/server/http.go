@@ -1,7 +1,8 @@
 package server
 
 import (
-	pb "github.com/puchidemy/puchi-backend/app/core/api/profile/v1"
+	profilepb "github.com/puchidemy/puchi-backend/app/core/api/profile/v1"
+	socialpb "github.com/puchidemy/puchi-backend/app/core/api/social/v1"
 	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/core/internal/service"
@@ -15,7 +16,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWTValidator, profileService *service.ProfileService, _ *biz.ProfileUsecase) *http.Server {
+func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWTValidator, profileService *service.ProfileService, socialService *service.SocialService, _ *biz.ProfileUsecase) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -44,7 +45,8 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWT
 		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
 	}
 	srv := http.NewServer(opts...)
-	pb.RegisterProfileServiceHTTPServer(srv, profileService)
+	profilepb.RegisterProfileServiceHTTPServer(srv, profileService)
+	socialpb.RegisterSocialServiceHTTPServer(srv, socialService)
 	srv.HandleFunc("/v1/profile/merge-guest", profileService.HandleMergeGuest)
 	return srv
 }

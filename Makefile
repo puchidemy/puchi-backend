@@ -6,29 +6,23 @@ build-%:
 
 # Build all services
 build-all:
+	cd app/auth && go build -o ../../bin/auth ./cmd/*/
 	cd app/core && go build -o ../../bin/core ./cmd/*/
-	cd app/content && go build -o ../../bin/content ./cmd/*/
-	cd app/grading && go build -o ../../bin/grading ./cmd/*/
-	cd app/user && go build -o ../../bin/user ./cmd/*/
-	cd app/game && go build -o ../../bin/game ./cmd/*/
+	cd app/learn && go build -o ../../bin/learn ./cmd/*/
 	cd app/media && go build -o ../../bin/media ./cmd/*/
 	cd app/notification && go build -o ../../bin/notification ./cmd/*/
 
 tidy:
+	cd app/auth && go mod tidy
 	cd app/core && go mod tidy
-	cd app/content && go mod tidy
-	cd app/grading && go mod tidy
-	cd app/user && go mod tidy
-	cd app/game && go mod tidy
+	cd app/learn && go mod tidy
 	cd app/media && go mod tidy
 	cd app/notification && go mod tidy
 
 test:
+	cd app/auth && go test ./...
 	cd app/core && go test ./...
-	cd app/content && go test ./...
-	cd app/grading && go test ./...
-	cd app/user && go test ./...
-	cd app/game && go test ./...
+	cd app/learn && go test ./...
 	cd app/media && go test ./...
 	cd app/notification && go test ./...
 

@@ -10,7 +10,20 @@ import (
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewUserRepo, NewStatsRepo, NewStatsTxManager, NewAchievementRepo, wire.FieldsOf(new(*Data), "Pool"), wire.Bind(new(biz.UserRepoInterface), new(*UserRepo)), wire.Bind(new(biz.StatsRepoInterface), new(*StatsRepo)), wire.Bind(new(biz.StatsTxManagerInterface), new(*StatsTxManager)), wire.Bind(new(biz.AchievementRepoInterface), new(*AchievementRepo)))
+var ProviderSet = wire.NewSet(
+	NewData,
+	NewUserRepo,
+	NewStatsRepo,
+	NewStatsTxManager,
+	NewAchievementRepo,
+	NewSocialRepo,
+	wire.FieldsOf(new(*Data), "Pool"),
+	wire.Bind(new(biz.UserRepoInterface), new(*UserRepo)),
+	wire.Bind(new(biz.StatsRepoInterface), new(*StatsRepo)),
+	wire.Bind(new(biz.StatsTxManagerInterface), new(*StatsTxManager)),
+	wire.Bind(new(biz.AchievementRepoInterface), new(*AchievementRepo)),
+	wire.Bind(new(biz.SocialRepoInterface), new(*SocialRepo)),
+)
 
 // Data .
 type Data struct {

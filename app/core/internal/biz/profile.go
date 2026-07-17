@@ -24,6 +24,7 @@ type OnboardingInput struct {
 	FirstName string
 	LastName  string
 	AgeRange  string
+	Username  string // optional; empty keeps current auto-gen username
 	HowHeard  string
 	WhyLearn  string
 	Level     string
@@ -44,7 +45,7 @@ type UserRepoInterface interface {
 	GetUserByEmail(ctx context.Context, email string) (*gen.CoreUser, error)
 	GetUserByUsername(ctx context.Context, username string) (*gen.CoreUser, error)
 	UpdateUser(ctx context.Context, id, firstName, lastName, username string, bio, avatarKey *string, ageRange string) (*gen.CoreUser, error)
-	UpdateOnboardingInfo(ctx context.Context, id, firstName, lastName, ageRange string) (*gen.CoreUser, error)
+	UpdateOnboardingInfo(ctx context.Context, id, firstName, lastName, ageRange, username string) (*gen.CoreUser, error)
 	UpsertUserOnboarding(ctx context.Context, userID, howHeard, whyLearn, level string) error
 	UsernameExists(ctx context.Context, username string) (bool, error)
 }
@@ -142,7 +143,25 @@ func (uc *ProfileUsecase) GetProfileByUsername(ctx context.Context, username str
 
 // CompleteOnboarding updates user's profile and saves onboarding answers.
 func (uc *ProfileUsecase) CompleteOnboarding(ctx context.Context, userID string, input OnboardingInput) (*gen.CoreUser, error) {
-	user, err := uc.repo.UpdateOnboardingInfo(ctx, userID, input.FirstName, input.LastName, input.AgeRange)
+	current, err := uc.repo.GetUser(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrUserNotFound, err)
+	}
+
+	username := strings.TrimSpace(input.Username)
+	if username == "" {
+		username = current.Username
+	} else if username != current.Username {
+		exists, err := uc.repo.UsernameExists(ctx, username)
+		if err != nil {
+			return nil, fmt.Errorf("check username: %w", err)
+		}
+		if exists {
+			return nil, ErrUsernameTaken
+		}
+	}
+
+	user, err := uc.repo.UpdateOnboardingInfo(ctx, userID, input.FirstName, input.LastName, input.AgeRange, username)
 	if err != nil {
 		return nil, fmt.Errorf("complete onboarding: %w", err)
 	}

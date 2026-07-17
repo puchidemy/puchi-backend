@@ -9,14 +9,9 @@ import (
 	"github.com/nats-io/nats.go"
 	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
+	pnats "github.com/puchidemy/puchi-backend/pkg/nats"
 
 	"github.com/google/wire"
-)
-
-const (
-	subjectLessonCompleted = "learn.lesson.completed"
-	subjectUnitCompleted   = "learn.unit.completed"
-	queueGroup             = "core-learn"
 )
 
 // ProviderSet is events providers.
@@ -47,40 +42,36 @@ type LearnConsumer struct {
 // NewLearnConsumer connects and subscribes when NATS URL is set.
 func NewLearnConsumer(cfg *conf.Data, uc *biz.StatsUsecase, log *slog.Logger) (*LearnConsumer, func(), error) {
 	c := &LearnConsumer{log: log}
-	cleanup := func() {}
 
 	url := ""
 	if cfg != nil && cfg.GetNats() != nil {
 		url = cfg.GetNats().GetUrl()
 	}
-	if url == "" {
-		log.Info("nats learn consumer disabled (empty url)")
-		return c, cleanup, nil
-	}
 
-	nc, err := nats.Connect(url,
-		nats.MaxReconnects(-1),
-		nats.ReconnectWait(2*time.Second),
-	)
+	nc, baseCleanup, err := pnats.ConnectOptional(url, log)
 	if err != nil {
 		return nil, nil, err
 	}
+	if nc == nil {
+		return c, baseCleanup, nil
+	}
 	c.nc = nc
-	cleanup = func() {
+
+	cleanup := func() {
 		for _, sub := range c.subs {
 			_ = sub.Unsubscribe()
 		}
-		nc.Close()
+		baseCleanup()
 	}
 
-	lessonSub, err := nc.QueueSubscribe(subjectLessonCompleted, queueGroup, func(msg *nats.Msg) {
+	lessonSub, err := nc.QueueSubscribe(pnats.SubjectLessonCompleted, pnats.QueueCoreLearn, func(msg *nats.Msg) {
 		c.handleLessonCompleted(uc, msg)
 	})
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	unitSub, err := nc.QueueSubscribe(subjectUnitCompleted, queueGroup, func(msg *nats.Msg) {
+	unitSub, err := nc.QueueSubscribe(pnats.SubjectUnitCompleted, pnats.QueueCoreLearn, func(msg *nats.Msg) {
 		c.handleUnitCompleted(uc, msg)
 	})
 	if err != nil {
@@ -88,7 +79,7 @@ func NewLearnConsumer(cfg *conf.Data, uc *biz.StatsUsecase, log *slog.Logger) (*
 		return nil, nil, err
 	}
 	c.subs = []*nats.Subscription{lessonSub, unitSub}
-	log.Info("nats learn consumer subscribed", "subjects", []string{subjectLessonCompleted, subjectUnitCompleted})
+	log.Info("nats learn consumer subscribed", "subjects", []string{pnats.SubjectLessonCompleted, pnats.SubjectUnitCompleted})
 	return c, cleanup, nil
 }
 

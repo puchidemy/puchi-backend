@@ -325,18 +325,20 @@ func (x *Stats) GetGems() int32 {
 }
 
 type User struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	FirstName     string                 `protobuf:"bytes,3,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
-	LastName      string                 `protobuf:"bytes,4,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
-	Email         string                 `protobuf:"bytes,5,opt,name=email,proto3" json:"email,omitempty"`
-	AvatarUrl     string                 `protobuf:"bytes,6,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
-	Bio           string                 `protobuf:"bytes,7,opt,name=bio,proto3" json:"bio,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username            string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	FirstName           string                 `protobuf:"bytes,3,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	LastName            string                 `protobuf:"bytes,4,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
+	Email               string                 `protobuf:"bytes,5,opt,name=email,proto3" json:"email,omitempty"`
+	AvatarUrl           string                 `protobuf:"bytes,6,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	Bio                 string                 `protobuf:"bytes,7,opt,name=bio,proto3" json:"bio,omitempty"`
+	CreatedAt           *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt           *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	OnboardingCompleted bool                   `protobuf:"varint,10,opt,name=onboarding_completed,json=onboardingCompleted,proto3" json:"onboarding_completed,omitempty"`
+	AgeRange            string                 `protobuf:"bytes,11,opt,name=age_range,json=ageRange,proto3" json:"age_range,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *User) Reset() {
@@ -430,6 +432,20 @@ func (x *User) GetUpdatedAt() *timestamppb.Timestamp {
 		return x.UpdatedAt
 	}
 	return nil
+}
+
+func (x *User) GetOnboardingCompleted() bool {
+	if x != nil {
+		return x.OnboardingCompleted
+	}
+	return false
+}
+
+func (x *User) GetAgeRange() string {
+	if x != nil {
+		return x.AgeRange
+	}
+	return ""
 }
 
 type UpdateProfileRequest struct {
@@ -560,6 +576,7 @@ type CompleteOnboardingRequest struct {
 	HowHeard      string                 `protobuf:"bytes,4,opt,name=how_heard,json=howHeard,proto3" json:"how_heard,omitempty"`
 	WhyLearn      string                 `protobuf:"bytes,5,opt,name=why_learn,json=whyLearn,proto3" json:"why_learn,omitempty"`
 	Level         string                 `protobuf:"bytes,6,opt,name=level,proto3" json:"level,omitempty"`
+	Username      string                 `protobuf:"bytes,7,opt,name=username,proto3" json:"username,omitempty"` // optional; FE may send editable prefilled username
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -632,6 +649,13 @@ func (x *CompleteOnboardingRequest) GetWhyLearn() string {
 func (x *CompleteOnboardingRequest) GetLevel() string {
 	if x != nil {
 		return x.Level
+	}
+	return ""
+}
+
+func (x *CompleteOnboardingRequest) GetUsername() string {
+	if x != nil {
+		return x.Username
 	}
 	return ""
 }
@@ -774,7 +798,7 @@ const file_profile_v1_profile_proto_rawDesc = "" +
 	"\x0elongest_streak\x18\v \x01(\x05R\rlongestStreak\x12%\n" +
 	"\x0estreak_freezes\x18\f \x01(\x05R\rstreakFreezes\x12\x16\n" +
 	"\x06crowns\x18\r \x01(\x05R\x06crowns\x12\x12\n" +
-	"\x04gems\x18\x0e \x01(\x05R\x04gems\"\xab\x02\n" +
+	"\x04gems\x18\x0e \x01(\x05R\x04gems\"\xfb\x02\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1d\n" +
@@ -788,7 +812,10 @@ const file_profile_v1_profile_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x9d\x01\n" +
+	"updated_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x121\n" +
+	"\x14onboarding_completed\x18\n" +
+	" \x01(\bR\x13onboardingCompleted\x12\x1b\n" +
+	"\tage_range\x18\v \x01(\tR\bageRange\"\x9d\x01\n" +
 	"\x14UpdateProfileRequest\x12\x1d\n" +
 	"\n" +
 	"first_name\x18\x01 \x01(\tR\tfirstName\x12\x1b\n" +
@@ -797,7 +824,7 @@ const file_profile_v1_profile_proto_rawDesc = "" +
 	"\x03bio\x18\x04 \x01(\tR\x03bio\x12\x1b\n" +
 	"\tage_range\x18\x05 \x01(\tR\bageRange\"9\n" +
 	"\x1bGetProfileByUsernameRequest\x12\x1a\n" +
-	"\busername\x18\x01 \x01(\tR\busername\"\xc4\x01\n" +
+	"\busername\x18\x01 \x01(\tR\busername\"\xe0\x01\n" +
 	"\x19CompleteOnboardingRequest\x12\x1d\n" +
 	"\n" +
 	"first_name\x18\x01 \x01(\tR\tfirstName\x12\x1b\n" +
@@ -805,7 +832,8 @@ const file_profile_v1_profile_proto_rawDesc = "" +
 	"\tage_range\x18\x03 \x01(\tR\bageRange\x12\x1b\n" +
 	"\thow_heard\x18\x04 \x01(\tR\bhowHeard\x12\x1b\n" +
 	"\twhy_learn\x18\x05 \x01(\tR\bwhyLearn\x12\x14\n" +
-	"\x05level\x18\x06 \x01(\tR\x05level\"^\n" +
+	"\x05level\x18\x06 \x01(\tR\x05level\x12\x1a\n" +
+	"\busername\x18\a \x01(\tR\busername\"^\n" +
 	"\rLinkedAccount\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1b\n" +

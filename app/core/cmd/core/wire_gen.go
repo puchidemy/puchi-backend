@@ -25,7 +25,7 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, jwtValidator *auth.JWTValidator, logger *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, sessionValidator *auth.SessionValidator, logger *slog.Logger) (*kratos.App, func(), error) {
 	dataData, cleanup, err := data.NewData(confData)
 	if err != nil {
 		return nil, nil, err
@@ -38,17 +38,19 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	statsRepo := data.NewStatsRepo(pool)
 	statsTxManager := data.NewStatsTxManager(pool)
 	statsUsecase := biz.NewStatsUsecase(statsRepo, statsTxManager)
+	statsService := service.NewStatsService(statsUsecase)
+	profileService := service.NewProfileService(profileUsecase, achievementUsecase, statsService)
+	socialRepo := data.NewSocialRepo(pool)
+	socialUsecase := biz.NewSocialUsecase(socialRepo)
+	socialService := service.NewSocialService(socialUsecase)
+	grpcServer := server.NewGRPCServer(confServer, confAuth, profileService, socialService)
+	httpServer := server.NewHTTPServer(confServer, confAuth, sessionValidator, profileService, socialService, profileUsecase)
 	learnConsumer, cleanup2, err := events.NewLearnConsumer(confData, statsUsecase, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	statsService := service.NewStatsService(statsUsecase)
-	profileService := service.NewProfileService(profileUsecase, achievementUsecase, statsService)
-	grpcServer := server.NewGRPCServer(confServer, confAuth, profileService)
-	httpServer := server.NewHTTPServer(confServer, confAuth, jwtValidator, profileService, profileUsecase)
-	app := newApp(logger, grpcServer, httpServer)
-	_ = learnConsumer
+	app := newApp(logger, grpcServer, httpServer, learnConsumer)
 	return app, func() {
 		cleanup2()
 		cleanup()

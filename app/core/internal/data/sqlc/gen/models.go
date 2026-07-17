@@ -98,3 +98,17 @@ type CoreXpHistory struct {
 	WeekStart pgtype.Date `db:"week_start"`
 	XpEarned  int32       `db:"xp_earned"`
 }
+
+type UserSocialFollow struct {
+	FollowerID  string    `db:"follower_id"`
+	FollowingID string    `db:"following_id"`
+	CreatedAt   time.Time `db:"created_at"`
+}
+
+type UserSocialWeeklyLeaderboard struct {
+	ID        string      `db:"id"`
+	UserID    string      `db:"user_id"`
+	WeekStart pgtype.Date `db:"week_start"`
+	WeeklyXp  int32       `db:"weekly_xp"`
+	Rank      *int32      `db:"rank"`
+}

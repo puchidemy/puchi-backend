@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Puchi Backend
 
-Monorepo Go microservices với **Kratos v3**. 8 service modules trong `app/`, workspace qua `go.work`.
+Monorepo Go microservices với **Kratos v3**. Service modules trong `app/`, workspace qua `go.work`.
 
 ## Tech Stack
 
@@ -19,7 +19,8 @@ Monorepo Go microservices với **Kratos v3**. 8 service modules trong `app/`, w
 | Database | PostgreSQL 18 (CloudNativePG), schema `auth.*` + `core.*` |
 | Cache | Valkey/Redis |
 | Message Queue | NATS (event-driven, outbox pattern) |
-| Object Storage | Garage (S3 API) |
+| Object Storage | Cloudflare R2 (S3 API) + CDN `cdn.puchi.io.vn` |
+| Email | Tino SMTP via notification (`email.send`) |
 | Migration | goose |
 
 ## Cấu trúc monorepo
@@ -28,16 +29,14 @@ Monorepo Go microservices với **Kratos v3**. 8 service modules trong `app/`, w
 puchi-backend/
 ├── app/                           # Go service modules
 │   ├── auth/                      # Limen auth-service — identity, OAuth, sessions
-│   ├── core/                      # User profile, game, stats (core domain)
-│   ├── content/                   # Courses, units, lessons
-│   ├── grading/                   # Dictation, listening grading
-│   ├── user/                      # Profile, settings, social features
-│   ├── game/                      # XP, leaderboard, achievements
-│   ├── media/                     # Upload, resize (Garage S3)
-│   ├── email/                     # Email sender (NATS subscriber → SMTP)
-│   └── notification/              # Push, email (SMTP + NATS)
+│   ├── core/                      # Profile, onboarding, social, game, stats
+│   ├── learn/                     # Learning content & progress
+│   ├── media/                     # Upload (R2)
+│   └── notification/              # Prefs, Gotify push, email.send → Tino SMTP
 ├── pkg/                           # Shared Kit library
-│   └── auth/                      # Bearer session introspect middleware
+│   ├── auth/                      # Bearer session introspect middleware
+│   ├── nats/                      # Subject constants + ConnectOptional
+│   └── apierr/                    # HTTP JSON error envelope + gRPC helpers
 ├── go.work                        # Go workspace (dev only)
 └── Makefile                       # Build helper
 ```
@@ -102,7 +101,7 @@ CI matrix (`.github/workflows/backend.yml`): `context: .`, `file: app/{service}/
 
 ## CI/CD
 
-- **CI**: GitHub Actions (`backend.yml`) — Matrix build 8 services, Go 1.26
+- **CI**: GitHub Actions (`backend.yml`) — Matrix build 5 services (auth, core, learn, media, notification), Go 1.26
 - **Paths trigger**: `app/**`, `pkg/**`
 - **Registry**: `ghcr.io/puchidemy/puchi-{service}`
 - **Ports**: Auth HTTP **8000**; other services HTTP 8000 + gRPC 9000
@@ -115,7 +114,7 @@ CI matrix (`.github/workflows/backend.yml`): `context: .`, `file: app/{service}/
 | Auth introspect | `http://auth-service.puchi-backend:8000/internal/session` |
 | PostgreSQL (Puchi) | `pg-puchi-rw.puchi-db.svc.cluster.local:5432` |
 | NATS | `nats.platform.svc.cluster.local:4222` |
-| Garage (S3) | `http://garage.platform.svc.cluster.local:3900` |
+| R2 (media) | `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` (bucket `puchi-media`, CDN `cdn.puchi.io.vn`) |
 | Valkey/Redis | `valkey.platform.svc.cluster.local:6379` |
 
 ## Dev Local

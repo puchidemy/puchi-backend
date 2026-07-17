@@ -5,14 +5,9 @@ import (
 	"encoding/json"
 	"log/slog"
 	"sync"
-	"time"
 
 	"github.com/nats-io/nats.go"
-)
-
-const (
-	SubjectUserCreated = "auth.user.created"
-	SubjectEmailSend   = "email.send"
+	pnats "github.com/puchidemy/puchi-backend/pkg/nats"
 )
 
 // Publisher publishes auth domain events. No-op when NATS URL is empty.
@@ -24,24 +19,18 @@ type Publisher struct {
 
 func New(url string, log *slog.Logger) (*Publisher, error) {
 	p := &Publisher{log: log}
-	if url == "" {
-		log.Info("nats disabled (empty url)")
-		return p, nil
-	}
-	nc, err := nats.Connect(url,
-		nats.MaxReconnects(-1),
-		nats.ReconnectWait(2*time.Second),
-	)
+	nc, cleanup, err := pnats.ConnectOptional(url, log)
 	if err != nil {
 		return nil, err
 	}
+	_ = cleanup // Close() owns lifecycle
 	p.nc = nc
-	log.Info("nats connected", "url", url)
 	return p, nil
 }
 
 func (p *Publisher) Close() {
 	if p.nc != nil {
+		_ = p.nc.Drain()
 		p.nc.Close()
 	}
 }
@@ -62,7 +51,7 @@ func (p *Publisher) Publish(ctx context.Context, subject string, payload any) {
 }
 
 func (p *Publisher) UserCreated(userID, email, username string) {
-	go p.Publish(context.Background(), SubjectUserCreated, map[string]any{
+	go p.Publish(context.Background(), pnats.SubjectUserCreated, map[string]any{
 		"user_id":  userID,
 		"email":    email,
 		"username": username,
@@ -70,7 +59,7 @@ func (p *Publisher) UserCreated(userID, email, username string) {
 }
 
 func (p *Publisher) SendEmail(to, template string, data map[string]any) {
-	go p.Publish(context.Background(), SubjectEmailSend, map[string]any{
+	go p.Publish(context.Background(), pnats.SubjectEmailSend, map[string]any{
 		"to":       to,
 		"template": template,
 		"data":     data,

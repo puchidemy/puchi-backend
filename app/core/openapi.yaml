@@ -107,6 +107,114 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/puchi.core.profile.v1.User'
+    /v1/social/follow:
+        post:
+            tags:
+                - SocialService
+            operationId: SocialService_Follow
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.core.social.v1.FollowRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /v1/social/follow/{followingId}:
+        delete:
+            tags:
+                - SocialService
+            operationId: SocialService_Unfollow
+            parameters:
+                - name: followingId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /v1/social/followers:
+        get:
+            tags:
+                - SocialService
+            operationId: SocialService_ListFollowers
+            parameters:
+                - name: pageToken
+                  in: query
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.social.v1.SocialUserList'
+    /v1/social/following:
+        get:
+            tags:
+                - SocialService
+            operationId: SocialService_ListFollowing
+            parameters:
+                - name: pageToken
+                  in: query
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.social.v1.SocialUserList'
+    /v1/social/leaderboard:
+        get:
+            tags:
+                - SocialService
+            operationId: SocialService_GetWeeklyLeaderboard
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.social.v1.LeaderboardList'
+    /v1/social/search:
+        get:
+            tags:
+                - SocialService
+            operationId: SocialService_SearchUsers
+            parameters:
+                - name: query
+                  in: query
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.social.v1.SocialUserList'
     /v1/todos/create:
         post:
             tags:
@@ -368,6 +476,8 @@ components:
                     type: string
                 level:
                     type: string
+                username:
+                    type: string
         puchi.core.profile.v1.LinkedAccount:
             type: object
             properties:
@@ -465,6 +575,70 @@ components:
                 updatedAt:
                     type: string
                     format: date-time
+                onboardingCompleted:
+                    type: boolean
+                ageRange:
+                    type: string
+        puchi.core.social.v1.FollowRequest:
+            type: object
+            properties:
+                followingId:
+                    type: string
+        puchi.core.social.v1.LeaderboardEntry:
+            type: object
+            properties:
+                rank:
+                    type: integer
+                    format: int32
+                userId:
+                    type: string
+                username:
+                    type: string
+                avatarUrl:
+                    type: string
+                level:
+                    type: integer
+                    format: int32
+                weeklyXp:
+                    type: integer
+                    format: int32
+                isCurrentUser:
+                    type: boolean
+        puchi.core.social.v1.LeaderboardList:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/puchi.core.social.v1.LeaderboardEntry'
+        puchi.core.social.v1.SocialUser:
+            type: object
+            properties:
+                id:
+                    type: string
+                username:
+                    type: string
+                firstName:
+                    type: string
+                lastName:
+                    type: string
+                avatarUrl:
+                    type: string
+                level:
+                    type: integer
+                    format: int32
+                streak:
+                    type: integer
+                    format: int32
+                isFollowing:
+                    type: boolean
+        puchi.core.social.v1.SocialUserList:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/puchi.core.social.v1.SocialUser'
         todo.v1.SyncTodoRequest:
             type: object
             properties:
@@ -546,6 +720,7 @@ components:
             description: TodoSet is a paginated collection of todo items returned by ListTodos.
 tags:
     - name: ProfileService
+    - name: SocialService
     - name: TodoService
       description: |-
         TodoService provides a simple CRUD example for managing todo items.

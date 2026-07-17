@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/puchidemy/puchi-backend/app/notification/internal/conf"
+	"github.com/puchidemy/puchi-backend/app/notification/internal/email"
 	authpkg "github.com/puchidemy/puchi-backend/pkg/auth"
 
 	"github.com/go-kratos/kratos/contrib/otel/v3/tracing"
@@ -86,6 +87,13 @@ func main() {
 		panic(err)
 	}
 	defer cleanup()
+
+	// Transactional email via NATS email.send → Tino SMTP
+	emailStop, err := email.StartConsumer(logger)
+	if err != nil {
+		panic(err)
+	}
+	defer emailStop()
 
 	// start and wait for stop signal
 	if err := app.Run(); err != nil {

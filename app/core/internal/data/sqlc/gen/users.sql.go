@@ -127,8 +127,8 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (CoreU
 }
 
 const updateOnboardingInfo = `-- name: UpdateOnboardingInfo :one
-UPDATE core.users 
-SET first_name = $2, last_name = $3, age_range = $4, 
+UPDATE core.users
+SET first_name = $2, last_name = $3, age_range = $4, username = $5,
     onboarding_completed = true, updated_at = now()
 WHERE id = $1
 RETURNING id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, age_range, onboarding_completed
@@ -139,6 +139,7 @@ type UpdateOnboardingInfoParams struct {
 	FirstName string `db:"first_name"`
 	LastName  string `db:"last_name"`
 	AgeRange  string `db:"age_range"`
+	Username  string `db:"username"`
 }
 
 func (q *Queries) UpdateOnboardingInfo(ctx context.Context, arg UpdateOnboardingInfoParams) (CoreUser, error) {
@@ -147,6 +148,7 @@ func (q *Queries) UpdateOnboardingInfo(ctx context.Context, arg UpdateOnboarding
 		arg.FirstName,
 		arg.LastName,
 		arg.AgeRange,
+		arg.Username,
 	)
 	var i CoreUser
 	err := row.Scan(

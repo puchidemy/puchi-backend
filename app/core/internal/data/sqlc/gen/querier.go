@@ -14,7 +14,9 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (CoreUser, error)
 	CreateUserStats(ctx context.Context, userID string) error
 	DeleteUser(ctx context.Context, id string) error
+	Follow(ctx context.Context, arg FollowParams) error
 	GetDailyActivity(ctx context.Context, arg GetDailyActivityParams) (CoreDailyActivity, error)
+	GetFollowCounts(ctx context.Context, followerID string) (GetFollowCountsRow, error)
 	GetLatestActivityDateBefore(ctx context.Context, arg GetLatestActivityDateBeforeParams) (pgtype.Date, error)
 	GetLevelThreshold(ctx context.Context, level int32) (int32, error)
 	GetNextLevelThreshold(ctx context.Context, level int32) (int32, error)
@@ -23,13 +25,21 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (CoreUser, error)
 	GetUserByUsername(ctx context.Context, username string) (CoreUser, error)
 	GetUserStats(ctx context.Context, userID string) (CoreUserStat, error)
+	GetUserWeeklyXP(ctx context.Context, arg GetUserWeeklyXPParams) (int32, error)
+	GetWeeklyLeaderboard(ctx context.Context, limit int32) ([]GetWeeklyLeaderboardRow, error)
 	InsertProcessedLearnEvent(ctx context.Context, arg InsertProcessedLearnEventParams) (int64, error)
+	IsFollowing(ctx context.Context, arg IsFollowingParams) (bool, error)
 	ListAchievementDefs(ctx context.Context) ([]CoreAchievementsDef, error)
+	ListFollowers(ctx context.Context, arg ListFollowersParams) ([]ListFollowersRow, error)
+	ListFollowing(ctx context.Context, followerID string) ([]ListFollowingRow, error)
 	ListUserAchievements(ctx context.Context, userID string) ([]CoreUserAchievement, error)
+	SearchUsers(ctx context.Context, arg SearchUsersParams) ([]SearchUsersRow, error)
+	Unfollow(ctx context.Context, arg UnfollowParams) error
 	UpdateOnboardingInfo(ctx context.Context, arg UpdateOnboardingInfoParams) (CoreUser, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (CoreUser, error)
 	UpdateUserStats(ctx context.Context, arg UpdateUserStatsParams) (CoreUserStat, error)
 	UpsertDailyActivity(ctx context.Context, arg UpsertDailyActivityParams) (CoreDailyActivity, error)
+	UpsertSocialWeeklyXP(ctx context.Context, arg UpsertSocialWeeklyXPParams) error
 	UpsertUserAchievement(ctx context.Context, arg UpsertUserAchievementParams) (CoreUserAchievement, error)
 	UpsertUserOnboarding(ctx context.Context, arg UpsertUserOnboardingParams) (CoreUserOnboarding, error)
 	UpsertWeeklyXP(ctx context.Context, arg UpsertWeeklyXPParams) error

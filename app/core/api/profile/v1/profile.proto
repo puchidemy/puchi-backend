@@ -98,6 +98,8 @@ message User {
   string bio = 7;
   google.protobuf.Timestamp created_at = 8;
   google.protobuf.Timestamp updated_at = 9;
+  bool onboarding_completed = 10;
+  string age_range = 11;
 }
 
 message UpdateProfileRequest {
@@ -119,6 +121,7 @@ message CompleteOnboardingRequest {
   string how_heard = 4;
   string why_learn = 5;
   string level = 6;
+  string username = 7; // optional; FE may send editable prefilled username
 }
 
 message LinkedAccount {
