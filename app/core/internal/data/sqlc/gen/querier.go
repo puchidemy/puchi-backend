@@ -6,12 +6,16 @@ package gen
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (CoreUser, error)
 	CreateUserStats(ctx context.Context, userID string) error
 	DeleteUser(ctx context.Context, id string) error
+	GetDailyActivity(ctx context.Context, arg GetDailyActivityParams) (CoreDailyActivity, error)
+	GetLatestActivityDateBefore(ctx context.Context, arg GetLatestActivityDateBeforeParams) (pgtype.Date, error)
 	GetLevelThreshold(ctx context.Context, level int32) (int32, error)
 	GetNextLevelThreshold(ctx context.Context, level int32) (int32, error)
 	GetUser(ctx context.Context, id string) (CoreUser, error)
@@ -19,13 +23,16 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (CoreUser, error)
 	GetUserByUsername(ctx context.Context, username string) (CoreUser, error)
 	GetUserStats(ctx context.Context, userID string) (CoreUserStat, error)
+	InsertProcessedLearnEvent(ctx context.Context, arg InsertProcessedLearnEventParams) (int64, error)
 	ListAchievementDefs(ctx context.Context) ([]CoreAchievementsDef, error)
 	ListUserAchievements(ctx context.Context, userID string) ([]CoreUserAchievement, error)
 	UpdateOnboardingInfo(ctx context.Context, arg UpdateOnboardingInfoParams) (CoreUser, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (CoreUser, error)
 	UpdateUserStats(ctx context.Context, arg UpdateUserStatsParams) (CoreUserStat, error)
+	UpsertDailyActivity(ctx context.Context, arg UpsertDailyActivityParams) (CoreDailyActivity, error)
 	UpsertUserAchievement(ctx context.Context, arg UpsertUserAchievementParams) (CoreUserAchievement, error)
 	UpsertUserOnboarding(ctx context.Context, arg UpsertUserOnboardingParams) (CoreUserOnboarding, error)
+	UpsertWeeklyXP(ctx context.Context, arg UpsertWeeklyXPParams) error
 	UsernameExists(ctx context.Context, username string) (bool, error)
 }
 

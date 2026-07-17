@@ -11,6 +11,7 @@ import (
 	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/core/internal/conf"
 	"github.com/puchidemy/puchi-backend/app/core/internal/data"
+	"github.com/puchidemy/puchi-backend/app/core/internal/events"
 	"github.com/puchidemy/puchi-backend/app/core/internal/server"
 	"github.com/puchidemy/puchi-backend/app/core/internal/service"
 	"github.com/puchidemy/puchi-backend/pkg/auth"
@@ -36,12 +37,19 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	achievementUsecase := biz.NewAchievementUsecase(achievementRepo)
 	statsRepo := data.NewStatsRepo(pool)
 	statsUsecase := biz.NewStatsUsecase(statsRepo)
+	learnConsumer, cleanup2, err := events.NewLearnConsumer(confData, statsUsecase, logger)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	statsService := service.NewStatsService(statsUsecase)
 	profileService := service.NewProfileService(profileUsecase, achievementUsecase, statsService)
 	grpcServer := server.NewGRPCServer(confServer, confAuth, profileService)
 	httpServer := server.NewHTTPServer(confServer, confAuth, jwtValidator, profileService, profileUsecase)
 	app := newApp(logger, grpcServer, httpServer)
+	_ = learnConsumer
 	return app, func() {
+		cleanup2()
 		cleanup()
 	}, nil
 }

@@ -5,15 +5,22 @@ import (
 	"errors"
 	"math"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/puchidemy/puchi-backend/app/core/internal/data/sqlc/gen"
 )
 
 // StatsRepoInterface defines the repo contract for stats (dependency inversion).
 type StatsRepoInterface interface {
 	GetUserStats(ctx context.Context, userID string) (*gen.CoreUserStat, error)
+	UpsertStats(ctx context.Context, userID string) error
 	UpdateStats(ctx context.Context, arg gen.UpdateUserStatsParams) (*gen.CoreUserStat, error)
 	GetLevelThreshold(ctx context.Context, level int32) (int32, error)
 	GetNextLevelThreshold(ctx context.Context, level int32) (int32, error)
+	ClaimLearnEvent(ctx context.Context, eventType, userID, sourceID string, xp int32) (bool, error)
+	GetDailyActivity(ctx context.Context, userID string, activityDate pgtype.Date) (*gen.CoreDailyActivity, error)
+	GetLatestActivityDateBefore(ctx context.Context, userID string, before pgtype.Date) (pgtype.Date, error)
+	UpsertDailyActivity(ctx context.Context, userID string, activityDate pgtype.Date, xp int32) error
+	UpsertWeeklyXP(ctx context.Context, userID string, weekStart pgtype.Date, xp int32) error
 }
 
 // StatsUsecase handles gamification stats operations.
