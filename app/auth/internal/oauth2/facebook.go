@@ -47,9 +47,11 @@ func (p *FacebookProvider) AuthURL(state string, codeChallenge string) string {
 }
 
 // Exchange exchanges the authorization code for an id_token and extracts user info.
+// Facebook requires redirect_uri to be passed again during token exchange (byte-for-byte match).
 func (p *FacebookProvider) Exchange(ctx context.Context, code string, codeVerifier string) (*ProviderUser, error) {
 	token, err := p.config.Exchange(ctx, code,
 		oauth2.SetAuthURLParam("code_verifier", codeVerifier),
+		oauth2.SetAuthURLParam("redirect_uri", p.config.RedirectURL),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("facebook token exchange: %w", err)
