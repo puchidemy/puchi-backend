@@ -2,7 +2,7 @@ package data
 
 import (
 	"context"
-	"log/slog"
+	"fmt"
 
 	"github.com/google/wire"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -38,8 +38,7 @@ func NewStorageProvider(media *conf.Media) (biz.StorageProvider, error) {
 
 	accessKey, secretKey := storageCredentials(media.GetStorage())
 	if accessKey == "" || secretKey == "" {
-		slog.Warn("media storage endpoint configured but credentials missing; using mock storage")
-		return &MockStorage{}, nil
+		return nil, fmt.Errorf("storage credentials are required when endpoint is configured")
 	}
 
 	storage, err := NewS3StorageFromConfig(media.GetStorage(), media.GetUpload())
