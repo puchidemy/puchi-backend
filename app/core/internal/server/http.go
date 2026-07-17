@@ -28,11 +28,11 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWT
 				return nil
 			}),
 		),
-		http.Filter(corsFilter),
 		http.Filter(authpkg.Middleware(authpkg.MiddlewareConfig{
 			PublicPaths: authCfg.PublicPaths,
 			Validator:   jwtValidator,
 		})),
+		http.Filter(corsFilter),
 	}
 	if c.Http.Network != "" {
 		opts = append(opts, http.Network(c.Http.Network))
