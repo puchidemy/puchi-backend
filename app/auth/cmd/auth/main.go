@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -76,8 +77,13 @@ func main() {
 	}
 	if cfg.Limen.CookieDomain != "" {
 		httpOpts = append(httpOpts, limen.WithHTTPCookieCrossSubdomainEnabled(cfg.Limen.CookieDomain))
-	} else {
+	} else if !isLocalHTTPBaseURL(cfg.Limen.BaseURL) {
+		// SameSite=None; Secure — only safe on HTTPS (prod).
 		httpOpts = append(httpOpts, limen.WithHTTPCookieCrossDomainEnabled())
+	}
+	if isLocalHTTPBaseURL(cfg.Limen.BaseURL) {
+		// Limen defaults Secure=true; browsers drop those cookies on http://localhost.
+		httpOpts = append(httpOpts, limen.WithHTTPCookieSecure(false))
 	}
 
 	auth, err := limen.New(&limen.Config{
@@ -93,7 +99,7 @@ func main() {
 						raw = map[string]any{}
 					}
 					out := map[string]any{
-						"id":    fmt.Sprint(u.ID),
+						"id":    formatLimenUserID(u.ID),
 						"email": u.Email,
 					}
 					if u.EmailVerifiedAt != nil {
@@ -197,7 +203,7 @@ func main() {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]any{
-			"user_id":  fmt.Sprint(session.User.ID),
+			"user_id":  formatLimenUserID(session.User.ID),
 			"email":    session.User.Email,
 			"username": username,
 		})
@@ -248,6 +254,38 @@ func (g *uuidGenerator) GetColumnType() limen.ColumnType { return limen.ColumnTy
 
 func (g *uuidGenerator) Generate(context.Context) (any, error) {
 	return uuid.New().String(), nil
+}
+
+func isLocalHTTPBaseURL(baseURL string) bool {
+	u := strings.ToLower(strings.TrimSpace(baseURL))
+	return strings.HasPrefix(u, "http://localhost") || strings.HasPrefix(u, "http://127.0.0.1")
+}
+
+// formatLimenUserID normalizes Limen user IDs. PG/UUID adapters often return
+// []byte; fmt.Sprint([]byte) yields "[48 52 ...]" which breaks core auth context.
+func formatLimenUserID(id any) string {
+	switch v := id.(type) {
+	case string:
+		return v
+	case []byte:
+		if len(v) == 16 {
+			if u, err := uuid.FromBytes(v); err == nil {
+				return u.String()
+			}
+		}
+		return string(v)
+	case fmt.Stringer:
+		return v.String()
+	default:
+		s := fmt.Sprint(v)
+		// Defensive: never return the Go []byte dump form.
+		if strings.HasPrefix(s, "[") && strings.Contains(s, " ") {
+			if b, ok := id.([]byte); ok {
+				return string(b)
+			}
+		}
+		return s
+	}
 }
 
 func withCORS(next http.Handler, origins []string) http.Handler {

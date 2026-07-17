@@ -21,13 +21,15 @@ func learnOptionalAuthFilter(validator *authpkg.SessionValidator) func(http.Hand
 
 			tokenStr := authpkg.SessionTokenFromRequest(r)
 			if tokenStr == "" {
+				// Anonymous / guest cookie path
 				next.ServeHTTP(w, r)
 				return
 			}
 
 			info, err := validator.ParseAndValidate(r.Context(), tokenStr)
 			if err != nil {
-				writeLearnUnauthorized(w)
+				// Stale Bearer must not block guest trial reads — fall through as guest.
+				next.ServeHTTP(w, r)
 				return
 			}
 

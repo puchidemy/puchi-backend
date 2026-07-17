@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net"
 	"net/http"
+	"strings"
 
 	pb "github.com/puchidemy/puchi-backend/app/learn/api/learn/v1"
 	"github.com/puchidemy/puchi-backend/app/learn/internal/biz"
@@ -297,14 +299,15 @@ func (w defaultGuestCookieWriter) setGuestCookie(ctx context.Context, guestID st
 	if !ok {
 		return status.Error(codes.Internal, "missing response writer")
 	}
+	domain, secure := guestCookieScope(ctx)
 	http.SetCookie(rw, &http.Cookie{
 		Name:     w.cookieName(),
 		Value:    guestID,
 		Path:     "/",
-		Domain:   ".puchi.io.vn",
+		Domain:   domain,
 		MaxAge:   w.maxAgeSeconds(),
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   secure,
 		SameSite: http.SameSiteLaxMode,
 	})
 	return nil
@@ -315,17 +318,37 @@ func (w defaultGuestCookieWriter) clearGuestCookie(ctx context.Context) error {
 	if !ok {
 		return status.Error(codes.Internal, "missing response writer")
 	}
+	domain, secure := guestCookieScope(ctx)
 	http.SetCookie(rw, &http.Cookie{
 		Name:     w.cookieName(),
 		Value:    "",
 		Path:     "/",
-		Domain:   ".puchi.io.vn",
+		Domain:   domain,
 		MaxAge:   -1,
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   secure,
 		SameSite: http.SameSiteLaxMode,
 	})
 	return nil
+}
+
+// guestCookieScope: localhost/dev → host-only + non-Secure (HTTP).
+// Prod (api.puchi.io.vn) → .puchi.io.vn + Secure.
+func guestCookieScope(ctx context.Context) (domain string, secure bool) {
+	req, ok := kratoshttp.RequestFromServerContext(ctx)
+	if !ok {
+		return ".puchi.io.vn", true
+	}
+	host := req.Host
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+	switch strings.ToLower(host) {
+	case "localhost", "127.0.0.1", "::1":
+		return "", false
+	default:
+		return ".puchi.io.vn", true
+	}
 }
 
 func (w defaultGuestCookieWriter) guestIDFromRequest(ctx context.Context) (string, error) {

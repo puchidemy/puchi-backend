@@ -61,15 +61,41 @@ OAuth callbacks: `https://api.puchi.io.vn/auth/oauth/{google|facebook|tiktok}/ca
 
 ## Dev Local
 
+Chạy cả 5 service — mỗi con một tab terminal (`kratos run` trong `app/<svc>`):
+
+```powershell
+# Windows (Windows Terminal) — powershell 5.1 hoặc pwsh đều được
+.\scripts\dev\run-all.ps1
+# Dừng: Ctrl+C từng tab — hoặc: .\scripts\dev\stop-all.ps1 -KillPorts
+# hoặc: make dev-up
+```
+
 ```bash
-# Auth (cần LIMEN_SECRET đúng 32 bytes + migration 001_limen_schema)
-export LIMEN_SECRET="$(openssl rand -base64 24 | head -c 32)"
-cd app/auth && go run ./cmd/auth/ -conf ../../configs
+# Linux: gnome-terminal / kitty / tmux
+chmod +x scripts/dev/*.sh
+./scripts/dev/run-all.sh
+```
 
-# Core
-cd app/core && go run ./cmd/core/
+| Service | HTTP | gRPC |
+|---------|------|------|
+| auth | **8080** | — |
+| core | 8001 | 9001 |
+| learn | 8002 | 9002 |
+| media | 8003 | 9003 |
+| notification | 8004 | 9004 |
 
-# auth.auth_service_url = http://localhost:8000
+Auth cần:
+- `LIMEN_SECRET` đúng 32 bytes (script set default local nếu thiếu)
+- migration Limen schema
+- OAuth local: copy `scripts/dev/oauth.env.example` → `.dev/oauth.env` (gitignored) rồi điền `GOOGLE_*` / `FACEBOOK_*` / `TIKTOK_*`. `run-all` inject vào tab auth.
+- Google Console redirect URI local (Next gateway): `http://localhost:3000/auth/oauth/google/callback`
+
+Chạy từng service:
+
+```bash
+cd app/auth && go run ./cmd/auth/ -conf ./configs
+cd app/core && go run ./cmd/core/ -conf ./configs
+# auth.auth_service_url = http://localhost:8080
 ```
 
 ## Deployment

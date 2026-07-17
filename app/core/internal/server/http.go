@@ -50,6 +50,11 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWT
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
+			authpkg.KratosMiddleware(authpkg.MiddlewareConfig{
+				PublicPaths: authCfg.PublicPaths,
+				IsPublic:    isPublicProfilePath,
+				Validator:   jwtValidator,
+			}),
 			validate.Validator(func(req any) error {
 				if msg, ok := req.(proto.Message); ok {
 					if err := fieldbehavior.ValidateRequiredFields(msg); err != nil {
@@ -59,11 +64,6 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWT
 				return nil
 			}),
 		),
-		http.Filter(authpkg.Middleware(authpkg.MiddlewareConfig{
-			PublicPaths: authCfg.PublicPaths,
-			IsPublic:    isPublicProfilePath,
-			Validator:   jwtValidator,
-		})),
 		http.Filter(corsFilter),
 	}
 	if c.Http.Network != "" {

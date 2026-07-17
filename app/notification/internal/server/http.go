@@ -15,11 +15,11 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWT
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
+			authpkg.KratosMiddleware(authpkg.MiddlewareConfig{
+				PublicPaths: authCfg.PublicPaths,
+				Validator:   jwtValidator,
+			}),
 		),
-		http.Filter(authpkg.Middleware(authpkg.MiddlewareConfig{
-			PublicPaths: authCfg.PublicPaths,
-			Validator:   jwtValidator,
-		})),
 	}
 	if c.Http.Network != "" {
 		opts = append(opts, http.Network(c.Http.Network))
