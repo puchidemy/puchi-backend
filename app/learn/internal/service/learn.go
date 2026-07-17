@@ -61,6 +61,8 @@ func (s *LearnService) CreateGuestSession(ctx context.Context, _ *emptypb.Empty)
 }
 
 // ClaimGuest merges guest progress into the authenticated user.
+// No guest cookie / invalid cookie → idempotent success (0 merged). Callers
+// often hit claim after every login even when the user never started a trial.
 func (s *LearnService) ClaimGuest(ctx context.Context, _ *pb.ClaimGuestRequest) (*pb.ClaimGuestResponse, error) {
 	userID, ok := authpkg.UserIDFromContext(ctx)
 	if !ok {
@@ -68,11 +70,11 @@ func (s *LearnService) ClaimGuest(ctx context.Context, _ *pb.ClaimGuestRequest) 
 	}
 	guestIDStr, err := s.cookie.guestIDFromRequest(ctx)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+		return &pb.ClaimGuestResponse{LessonsMerged: 0}, nil
 	}
 	guestID, err := uuid.Parse(guestIDStr)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid guest cookie")
+		return &pb.ClaimGuestResponse{LessonsMerged: 0}, nil
 	}
 
 	merged, err := s.uc.ClaimGuest(ctx, userID, guestID)
