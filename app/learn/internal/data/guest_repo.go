@@ -5,6 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/puchidemy/puchi-backend/app/learn/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/learn/internal/data/sqlc/gen"
 )
 
@@ -32,12 +33,28 @@ func (r *GuestRepo) GetGuestByID(ctx context.Context, id string) (*gen.LearnGues
 	return &row, nil
 }
 
+// GetGuestByIDForUpdate returns a guest row locked for update within a transaction.
+func (r *GuestRepo) GetGuestByIDForUpdate(ctx context.Context, id string) (*gen.LearnGuest, error) {
+	row, err := r.q.GetGuestByIDForUpdate(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
 // ClaimGuest marks a guest as claimed for the given user.
 func (r *GuestRepo) ClaimGuest(ctx context.Context, guestID, userID string) error {
-	return r.q.ClaimGuest(ctx, gen.ClaimGuestParams{
+	rows, err := r.q.ClaimGuest(ctx, gen.ClaimGuestParams{
 		ID:            guestID,
 		ClaimedUserID: &userID,
 	})
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return biz.ErrGuestAlreadyClaimed
+	}
+	return nil
 }
 
 // mapNoRows converts pgx.ErrNoRows for callers that expect pointer returns.

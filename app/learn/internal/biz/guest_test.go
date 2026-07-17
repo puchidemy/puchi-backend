@@ -11,9 +11,10 @@ import (
 )
 
 type mockGuestRepo struct {
-	createGuest func(ctx context.Context, id string) error
-	getGuest    func(ctx context.Context, id string) (*gen.LearnGuest, error)
-	claimGuest  func(ctx context.Context, guestID, userID string) error
+	createGuest       func(ctx context.Context, id string) error
+	getGuest          func(ctx context.Context, id string) (*gen.LearnGuest, error)
+	getGuestForUpdate func(ctx context.Context, id string) (*gen.LearnGuest, error)
+	claimGuest        func(ctx context.Context, guestID, userID string) error
 }
 
 func (m *mockGuestRepo) CreateGuest(ctx context.Context, id string) error {
@@ -24,8 +25,28 @@ func (m *mockGuestRepo) GetGuestByID(ctx context.Context, id string) (*gen.Learn
 	return m.getGuest(ctx, id)
 }
 
+func (m *mockGuestRepo) GetGuestByIDForUpdate(ctx context.Context, id string) (*gen.LearnGuest, error) {
+	if m.getGuestForUpdate != nil {
+		return m.getGuestForUpdate(ctx, id)
+	}
+	return m.getGuest(ctx, id)
+}
+
 func (m *mockGuestRepo) ClaimGuest(ctx context.Context, guestID, userID string) error {
 	return m.claimGuest(ctx, guestID, userID)
+}
+
+type mockTxManager struct {
+	guest    GuestRepoInterface
+	progress ProgressRepoInterface
+}
+
+func (m *mockTxManager) InTx(_ context.Context, fn func(GuestRepoInterface, ProgressRepoInterface) error) error {
+	return fn(m.guest, m.progress)
+}
+
+func newTestUsecase(guest GuestRepoInterface, progress ProgressRepoInterface) *LearnUsecase {
+	return NewLearnUsecase(guest, progress, &mockTxManager{guest: guest, progress: progress})
 }
 
 type mockProgressRepo struct {
@@ -88,7 +109,7 @@ func (m *mockProgressRepo) ReassignGuestAttempts(ctx context.Context, guestID, u
 
 func TestCreateGuestSession_InsertsGuest(t *testing.T) {
 	var insertedID string
-	uc := NewLearnUsecase(&mockGuestRepo{
+	uc := newTestUsecase(&mockGuestRepo{
 		createGuest: func(_ context.Context, id string) error {
 			insertedID = id
 			return nil
@@ -116,7 +137,7 @@ func TestClaimGuest_MergesProgressAndMarksClaimed(t *testing.T) {
 	var upsertedXP int32
 	claimed := false
 
-	uc := NewLearnUsecase(&mockGuestRepo{
+	uc := newTestUsecase(&mockGuestRepo{
 		getGuest: func(_ context.Context, id string) (*gen.LearnGuest, error) {
 			if id != guestID.String() {
 				t.Fatalf("unexpected guest id %q", id)
@@ -212,7 +233,7 @@ func TestClaimGuest_MergesProgressAndMarksClaimed(t *testing.T) {
 
 func TestClaimGuest_RejectsAlreadyClaimed(t *testing.T) {
 	guestID := uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
-	uc := NewLearnUsecase(&mockGuestRepo{
+	uc := newTestUsecase(&mockGuestRepo{
 		getGuest: func(_ context.Context, id string) (*gen.LearnGuest, error) {
 			return &gen.LearnGuest{
 				ID:        id,

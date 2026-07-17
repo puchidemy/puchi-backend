@@ -19,6 +19,7 @@ var (
 type GuestRepoInterface interface {
 	CreateGuest(ctx context.Context, id string) error
 	GetGuestByID(ctx context.Context, id string) (*gen.LearnGuest, error)
+	GetGuestByIDForUpdate(ctx context.Context, id string) (*gen.LearnGuest, error)
 	ClaimGuest(ctx context.Context, guestID, userID string) error
 }
 
@@ -71,74 +72,77 @@ func (uc *LearnUsecase) CreateGuestSession(ctx context.Context) (uuid.UUID, erro
 
 // ClaimGuest merges guest progress into the authenticated user and marks the guest claimed.
 func (uc *LearnUsecase) ClaimGuest(ctx context.Context, userID string, guestID uuid.UUID) (int32, error) {
-	guest, err := uc.guestRepo.GetGuestByID(ctx, guestID.String())
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, ErrGuestNotFound
-		}
-		return 0, err
-	}
-	if guest.ClaimedAt.Valid {
-		return 0, ErrGuestAlreadyClaimed
-	}
-
 	guestIDStr := guestID.String()
-	lessonsMerged := int32(0)
+	var lessonsMerged int32
 
-	guestLessons, err := uc.progressRepo.ListLessonProgressByOwner(ctx, "guest", guestIDStr)
-	if err != nil {
-		return 0, err
-	}
-	for _, gp := range guestLessons {
-		userLesson, err := uc.progressRepo.GetLessonProgress(ctx, "user", userID, gp.LessonID)
+	err := uc.tx.InTx(ctx, func(guestRepo GuestRepoInterface, progressRepo ProgressRepoInterface) error {
+		guest, err := guestRepo.GetGuestByIDForUpdate(ctx, guestIDStr)
 		if err != nil {
-			if !errors.Is(err, pgx.ErrNoRows) {
-				return 0, err
+			if errors.Is(err, pgx.ErrNoRows) {
+				return ErrGuestNotFound
 			}
-			continue
+			return err
 		}
-		mergedStatus := higherStatus(gp.Status, userLesson.Status)
-		mergedXP := maxInt32(gp.XpEarned, userLesson.XpEarned)
-		if err := uc.progressRepo.UpsertLessonProgress(ctx, "user", userID, gp.LessonID, mergedStatus, mergedXP); err != nil {
-			return 0, err
+		if guest.ClaimedAt.Valid {
+			return ErrGuestAlreadyClaimed
 		}
-		if err := uc.progressRepo.DeleteGuestLessonProgress(ctx, guestIDStr, gp.LessonID); err != nil {
-			return 0, err
-		}
-		lessonsMerged++
-	}
 
-	guestUnits, err := uc.progressRepo.ListUnitProgressByOwner(ctx, "guest", guestIDStr)
-	if err != nil {
-		return 0, err
-	}
-	for _, gp := range guestUnits {
-		userUnit, err := uc.progressRepo.GetUnitProgress(ctx, "user", userID, gp.UnitID)
+		guestLessons, err := progressRepo.ListLessonProgressByOwner(ctx, "guest", guestIDStr)
 		if err != nil {
-			if !errors.Is(err, pgx.ErrNoRows) {
-				return 0, err
+			return err
+		}
+		for _, gp := range guestLessons {
+			userLesson, err := progressRepo.GetLessonProgress(ctx, "user", userID, gp.LessonID)
+			if err != nil {
+				if !errors.Is(err, pgx.ErrNoRows) {
+					return err
+				}
+				continue
 			}
-			continue
+			mergedStatus := higherStatus(gp.Status, userLesson.Status)
+			mergedXP := maxInt32(gp.XpEarned, userLesson.XpEarned)
+			if err := progressRepo.UpsertLessonProgress(ctx, "user", userID, gp.LessonID, mergedStatus, mergedXP); err != nil {
+				return err
+			}
+			if err := progressRepo.DeleteGuestLessonProgress(ctx, guestIDStr, gp.LessonID); err != nil {
+				return err
+			}
+			lessonsMerged++
 		}
-		mergedStatus := higherStatus(gp.Status, userUnit.Status)
-		if err := uc.progressRepo.UpsertUnitProgress(ctx, "user", userID, gp.UnitID, mergedStatus); err != nil {
-			return 0, err
-		}
-		if err := uc.progressRepo.DeleteGuestUnitProgress(ctx, guestIDStr, gp.UnitID); err != nil {
-			return 0, err
-		}
-	}
 
-	if err := uc.progressRepo.ReassignGuestLessonProgress(ctx, guestIDStr, userID); err != nil {
-		return 0, err
-	}
-	if err := uc.progressRepo.ReassignGuestUnitProgress(ctx, guestIDStr, userID); err != nil {
-		return 0, err
-	}
-	if err := uc.progressRepo.ReassignGuestAttempts(ctx, guestIDStr, userID); err != nil {
-		return 0, err
-	}
-	if err := uc.guestRepo.ClaimGuest(ctx, guestIDStr, userID); err != nil {
+		guestUnits, err := progressRepo.ListUnitProgressByOwner(ctx, "guest", guestIDStr)
+		if err != nil {
+			return err
+		}
+		for _, gp := range guestUnits {
+			userUnit, err := progressRepo.GetUnitProgress(ctx, "user", userID, gp.UnitID)
+			if err != nil {
+				if !errors.Is(err, pgx.ErrNoRows) {
+					return err
+				}
+				continue
+			}
+			mergedStatus := higherStatus(gp.Status, userUnit.Status)
+			if err := progressRepo.UpsertUnitProgress(ctx, "user", userID, gp.UnitID, mergedStatus); err != nil {
+				return err
+			}
+			if err := progressRepo.DeleteGuestUnitProgress(ctx, guestIDStr, gp.UnitID); err != nil {
+				return err
+			}
+		}
+
+		if err := progressRepo.ReassignGuestLessonProgress(ctx, guestIDStr, userID); err != nil {
+			return err
+		}
+		if err := progressRepo.ReassignGuestUnitProgress(ctx, guestIDStr, userID); err != nil {
+			return err
+		}
+		if err := progressRepo.ReassignGuestAttempts(ctx, guestIDStr, userID); err != nil {
+			return err
+		}
+		return guestRepo.ClaimGuest(ctx, guestIDStr, userID)
+	})
+	if err != nil {
 		return 0, err
 	}
 	return lessonsMerged, nil

@@ -9,7 +9,7 @@ import (
 )
 
 type Querier interface {
-	ClaimGuest(ctx context.Context, arg ClaimGuestParams) error
+	ClaimGuest(ctx context.Context, arg ClaimGuestParams) (int64, error)
 	CompleteAttempt(ctx context.Context, arg CompleteAttemptParams) error
 	CreateAttempt(ctx context.Context, arg CreateAttemptParams) (LearnAttempt, error)
 	CreateGuest(ctx context.Context, id string) error
@@ -17,6 +17,7 @@ type Querier interface {
 	DeleteGuestUnitProgress(ctx context.Context, arg DeleteGuestUnitProgressParams) error
 	GetAttemptByID(ctx context.Context, id string) (LearnAttempt, error)
 	GetGuestByID(ctx context.Context, id string) (LearnGuest, error)
+	GetGuestByIDForUpdate(ctx context.Context, id string) (LearnGuest, error)
 	GetLessonByID(ctx context.Context, id string) (LearnLesson, error)
 	GetLessonProgress(ctx context.Context, arg GetLessonProgressParams) (LearnUserLessonProgress, error)
 	GetUnitByID(ctx context.Context, id string) (LearnUnit, error)

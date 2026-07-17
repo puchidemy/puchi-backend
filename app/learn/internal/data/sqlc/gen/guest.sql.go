@@ -9,7 +9,7 @@ import (
 	"context"
 )
 
-const claimGuest = `-- name: ClaimGuest :exec
+const claimGuest = `-- name: ClaimGuest :execrows
 UPDATE learn.guests
 SET claimed_at = now(), claimed_user_id = $2
 WHERE id = $1 AND claimed_at IS NULL
@@ -20,9 +20,12 @@ type ClaimGuestParams struct {
 	ClaimedUserID *string `db:"claimed_user_id"`
 }
 
-func (q *Queries) ClaimGuest(ctx context.Context, arg ClaimGuestParams) error {
-	_, err := q.db.Exec(ctx, claimGuest, arg.ID, arg.ClaimedUserID)
-	return err
+func (q *Queries) ClaimGuest(ctx context.Context, arg ClaimGuestParams) (int64, error) {
+	result, err := q.db.Exec(ctx, claimGuest, arg.ID, arg.ClaimedUserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const createGuest = `-- name: CreateGuest :exec
@@ -40,6 +43,23 @@ SELECT id, created_at, last_seen_at, claimed_at, claimed_user_id FROM learn.gues
 
 func (q *Queries) GetGuestByID(ctx context.Context, id string) (LearnGuest, error) {
 	row := q.db.QueryRow(ctx, getGuestByID, id)
+	var i LearnGuest
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.LastSeenAt,
+		&i.ClaimedAt,
+		&i.ClaimedUserID,
+	)
+	return i, err
+}
+
+const getGuestByIDForUpdate = `-- name: GetGuestByIDForUpdate :one
+SELECT id, created_at, last_seen_at, claimed_at, claimed_user_id FROM learn.guests WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) GetGuestByIDForUpdate(ctx context.Context, id string) (LearnGuest, error) {
+	row := q.db.QueryRow(ctx, getGuestByIDForUpdate, id)
 	var i LearnGuest
 	err := row.Scan(
 		&i.ID,

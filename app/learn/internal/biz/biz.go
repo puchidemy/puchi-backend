@@ -11,12 +11,14 @@ var ProviderSet = wire.NewSet(NewLearnUsecase)
 type LearnUsecase struct {
 	guestRepo    GuestRepoInterface
 	progressRepo ProgressRepoInterface
+	tx           TransactionManager
 }
 
 // NewLearnUsecase creates a new LearnUsecase.
-func NewLearnUsecase(guestRepo GuestRepoInterface, progressRepo ProgressRepoInterface) *LearnUsecase {
+func NewLearnUsecase(guestRepo GuestRepoInterface, progressRepo ProgressRepoInterface, tx TransactionManager) *LearnUsecase {
 	return &LearnUsecase{
 		guestRepo:    guestRepo,
 		progressRepo: progressRepo,
+		tx:           tx,
 	}
 }

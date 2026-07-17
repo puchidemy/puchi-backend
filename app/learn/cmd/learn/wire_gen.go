@@ -32,7 +32,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	pool := dataData.Pool
 	guestRepo := data.NewGuestRepo(pool)
 	progressRepo := data.NewProgressRepo(pool)
-	learnUsecase := biz.NewLearnUsecase(guestRepo, progressRepo)
+	transactionManager := data.NewTransactionManager(pool)
+	learnUsecase := biz.NewLearnUsecase(guestRepo, progressRepo, transactionManager)
 	learnService := service.NewLearnService(learnUsecase, confLearn)
 	grpcServer := server.NewGRPCServer(confServer, learnService)
 	httpServer := server.NewHTTPServer(confServer, confAuth, confLearn, sessionValidator, learnService)
