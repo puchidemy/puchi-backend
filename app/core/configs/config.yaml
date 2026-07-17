@@ -12,6 +12,8 @@ data:
     addr: 127.0.0.1:6379
     read_timeout: 0.2s
     write_timeout: 0.2s
+  nats:
+    url: ""
 auth:
   auth_service_url: "http://localhost:8080"
   public_paths:

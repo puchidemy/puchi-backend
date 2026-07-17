@@ -546,6 +546,7 @@ type Media_Storage struct {
 	Bucket          string                 `protobuf:"bytes,4,opt,name=bucket,proto3" json:"bucket,omitempty"`
 	UseSsl          bool                   `protobuf:"varint,5,opt,name=use_ssl,json=useSsl,proto3" json:"use_ssl,omitempty"`
 	Region          string                 `protobuf:"bytes,6,opt,name=region,proto3" json:"region,omitempty"`
+	CdnBaseUrl      string                 `protobuf:"bytes,7,opt,name=cdn_base_url,json=cdnBaseUrl,proto3" json:"cdn_base_url,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -618,6 +619,13 @@ func (x *Media_Storage) GetUseSsl() bool {
 func (x *Media_Storage) GetRegion() string {
 	if x != nil {
 		return x.Region
+	}
+	return ""
+}
+
+func (x *Media_Storage) GetCdnBaseUrl() string {
+	if x != nil {
+		return x.CdnBaseUrl
 	}
 	return ""
 }
@@ -709,17 +717,19 @@ const file_conf_conf_proto_rawDesc = "" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x12<\n" +
 	"\fread_timeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\vreadTimeout\x12>\n" +
-	"\rwrite_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\x8b\x03\n" +
+	"\rwrite_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\xad\x03\n" +
 	"\x05Media\x123\n" +
 	"\astorage\x18\x01 \x01(\v2\x19.kratos.api.Media.StorageR\astorage\x120\n" +
-	"\x06upload\x18\x02 \x01(\v2\x18.kratos.api.Media.UploadR\x06upload\x1a\xbe\x01\n" +
+	"\x06upload\x18\x02 \x01(\v2\x18.kratos.api.Media.UploadR\x06upload\x1a\xe0\x01\n" +
 	"\aStorage\x12\x1a\n" +
 	"\bendpoint\x18\x01 \x01(\tR\bendpoint\x12\"\n" +
 	"\raccess_key_id\x18\x02 \x01(\tR\vaccessKeyId\x12*\n" +
 	"\x11secret_access_key\x18\x03 \x01(\tR\x0fsecretAccessKey\x12\x16\n" +
 	"\x06bucket\x18\x04 \x01(\tR\x06bucket\x12\x17\n" +
 	"\ause_ssl\x18\x05 \x01(\bR\x06useSsl\x12\x16\n" +
-	"\x06region\x18\x06 \x01(\tR\x06region\x1aZ\n" +
+	"\x06region\x18\x06 \x01(\tR\x06region\x12 \n" +
+	"\fcdn_base_url\x18\a \x01(\tR\n" +
+	"cdnBaseUrl\x1aZ\n" +
 	"\x06Upload\x12$\n" +
 	"\x0emax_size_bytes\x18\x01 \x01(\x03R\fmaxSizeBytes\x12*\n" +
 	"\x11presigned_url_ttl\x18\x02 \x01(\x03R\x0fpresignedUrlTtlB\x1eZ\x1ctmp_media/internal/conf;confb\x06proto3"

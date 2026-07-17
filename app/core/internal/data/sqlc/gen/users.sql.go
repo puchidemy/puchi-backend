@@ -12,7 +12,7 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO core.users (id, username, email, first_name, last_name)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id, age_range, onboarding_completed
+RETURNING id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, age_range, onboarding_completed
 `
 
 type CreateUserParams struct {
@@ -42,9 +42,6 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CoreUse
 		&i.Bio,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.StSignUpAt,
-		&i.StThirdPartyProvider,
-		&i.StThirdPartyUserID,
 		&i.AgeRange,
 		&i.OnboardingCompleted,
 	)
@@ -61,7 +58,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id string) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id, age_range, onboarding_completed FROM core.users WHERE id = $1
+SELECT id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, age_range, onboarding_completed FROM core.users WHERE id = $1
 `
 
 func (q *Queries) GetUser(ctx context.Context, id string) (CoreUser, error) {
@@ -77,9 +74,6 @@ func (q *Queries) GetUser(ctx context.Context, id string) (CoreUser, error) {
 		&i.Bio,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.StSignUpAt,
-		&i.StThirdPartyProvider,
-		&i.StThirdPartyUserID,
 		&i.AgeRange,
 		&i.OnboardingCompleted,
 	)
@@ -87,7 +81,7 @@ func (q *Queries) GetUser(ctx context.Context, id string) (CoreUser, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id, age_range, onboarding_completed FROM core.users WHERE email = $1
+SELECT id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, age_range, onboarding_completed FROM core.users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (CoreUser, error) {
@@ -103,9 +97,6 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (CoreUser, e
 		&i.Bio,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.StSignUpAt,
-		&i.StThirdPartyProvider,
-		&i.StThirdPartyUserID,
 		&i.AgeRange,
 		&i.OnboardingCompleted,
 	)
@@ -113,7 +104,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (CoreUser, e
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id, age_range, onboarding_completed FROM core.users WHERE username = $1
+SELECT id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, age_range, onboarding_completed FROM core.users WHERE username = $1
 `
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (CoreUser, error) {
@@ -129,9 +120,6 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (CoreU
 		&i.Bio,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.StSignUpAt,
-		&i.StThirdPartyProvider,
-		&i.StThirdPartyUserID,
 		&i.AgeRange,
 		&i.OnboardingCompleted,
 	)
@@ -143,7 +131,7 @@ UPDATE core.users
 SET first_name = $2, last_name = $3, age_range = $4, 
     onboarding_completed = true, updated_at = now()
 WHERE id = $1
-RETURNING id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id, age_range, onboarding_completed
+RETURNING id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, age_range, onboarding_completed
 `
 
 type UpdateOnboardingInfoParams struct {
@@ -171,9 +159,6 @@ func (q *Queries) UpdateOnboardingInfo(ctx context.Context, arg UpdateOnboarding
 		&i.Bio,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.StSignUpAt,
-		&i.StThirdPartyProvider,
-		&i.StThirdPartyUserID,
 		&i.AgeRange,
 		&i.OnboardingCompleted,
 	)
@@ -184,7 +169,7 @@ const updateUser = `-- name: UpdateUser :one
 UPDATE core.users
 SET first_name = $2, last_name = $3, username = $4, bio = $5, avatar_key = $6, age_range = $7, updated_at = now()
 WHERE id = $1
-RETURNING id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, st_sign_up_at, st_third_party_provider, st_third_party_user_id, age_range, onboarding_completed
+RETURNING id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, age_range, onboarding_completed
 `
 
 type UpdateUserParams struct {
@@ -218,9 +203,6 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (CoreUse
 		&i.Bio,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.StSignUpAt,
-		&i.StThirdPartyProvider,
-		&i.StThirdPartyUserID,
 		&i.AgeRange,
 		&i.OnboardingCompleted,
 	)

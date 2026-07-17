@@ -1,0 +1,27 @@
+server:
+  http:
+    addr: 0.0.0.0:8000
+    timeout: 1s
+  grpc:
+    addr: 0.0.0.0:9000
+    timeout: 1s
+data:
+  database:
+    driver: postgresql
+    source: "postgresql://puchi:puchi-db-prod@192.168.100.201:30433/puchi?sslmode=disable"
+  redis:
+    addr: 127.0.0.1:6379
+    read_timeout: 0.2s
+    write_timeout: 0.2s
+  nats:
+    url: ""
+auth:
+  auth_service_url: "http://localhost:8080"
+  public_paths:
+    - /v1/health
+    - /v1/healthz
+    - /v1/learn/guest/session
+learn:
+  trial_unit_id: "11111111-1111-1111-1111-111111111111"
+  guest_cookie_name: "puchi_guest_id"
+  guest_ttl_days: 30

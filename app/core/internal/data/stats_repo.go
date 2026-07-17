@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/puchidemy/puchi-backend/app/core/internal/data/sqlc/gen"
 )
@@ -48,4 +49,57 @@ func (r *StatsRepo) GetLevelThreshold(ctx context.Context, level int32) (int32, 
 // GetNextLevelThreshold returns the XP required for the next level.
 func (r *StatsRepo) GetNextLevelThreshold(ctx context.Context, level int32) (int32, error) {
 	return r.q.GetNextLevelThreshold(ctx, level)
+}
+
+// ClaimLearnEvent inserts an idempotency row; false when already processed.
+func (r *StatsRepo) ClaimLearnEvent(ctx context.Context, eventType, userID, sourceID string, xp int32) (bool, error) {
+	n, err := r.q.InsertProcessedLearnEvent(ctx, gen.InsertProcessedLearnEventParams{
+		EventType: eventType,
+		UserID:    userID,
+		SourceID:  sourceID,
+		XpApplied: xp,
+	})
+	if err != nil {
+		return false, err
+	}
+	return n > 0, nil
+}
+
+// GetDailyActivity returns daily activity for a user on a date.
+func (r *StatsRepo) GetDailyActivity(ctx context.Context, userID string, activityDate pgtype.Date) (*gen.CoreDailyActivity, error) {
+	row, err := r.q.GetDailyActivity(ctx, gen.GetDailyActivityParams{
+		UserID:       userID,
+		ActivityDate: activityDate,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
+// GetLatestActivityDateBefore returns the most recent activity date before the given date.
+func (r *StatsRepo) GetLatestActivityDateBefore(ctx context.Context, userID string, before pgtype.Date) (pgtype.Date, error) {
+	return r.q.GetLatestActivityDateBefore(ctx, gen.GetLatestActivityDateBeforeParams{
+		UserID:       userID,
+		ActivityDate: before,
+	})
+}
+
+// UpsertDailyActivity increments lessons/xp for the activity date.
+func (r *StatsRepo) UpsertDailyActivity(ctx context.Context, userID string, activityDate pgtype.Date, xp int32) error {
+	_, err := r.q.UpsertDailyActivity(ctx, gen.UpsertDailyActivityParams{
+		UserID:       userID,
+		ActivityDate: activityDate,
+		XpEarned:     xp,
+	})
+	return err
+}
+
+// UpsertWeeklyXP adds XP to the user's weekly history bucket.
+func (r *StatsRepo) UpsertWeeklyXP(ctx context.Context, userID string, weekStart pgtype.Date, xp int32) error {
+	return r.q.UpsertWeeklyXP(ctx, gen.UpsertWeeklyXPParams{
+		UserID:    userID,
+		WeekStart: weekStart,
+		XpEarned:  xp,
+	})
 }

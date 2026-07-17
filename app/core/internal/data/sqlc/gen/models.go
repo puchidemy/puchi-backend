@@ -35,21 +35,26 @@ type CoreLevelThreshold struct {
 	XpRequired int32 `db:"xp_required"`
 }
 
+type CoreProcessedLearnEvent struct {
+	EventType   string    `db:"event_type"`
+	UserID      string    `db:"user_id"`
+	SourceID    string    `db:"source_id"`
+	XpApplied   int32     `db:"xp_applied"`
+	ProcessedAt time.Time `db:"processed_at"`
+}
+
 type CoreUser struct {
-	ID                   string             `db:"id"`
-	Username             string             `db:"username"`
-	FirstName            string             `db:"first_name"`
-	LastName             string             `db:"last_name"`
-	Email                string             `db:"email"`
-	AvatarKey            *string            `db:"avatar_key"`
-	Bio                  *string            `db:"bio"`
-	CreatedAt            time.Time          `db:"created_at"`
-	UpdatedAt            time.Time          `db:"updated_at"`
-	StSignUpAt           pgtype.Timestamptz `db:"st_sign_up_at"`
-	StThirdPartyProvider *string            `db:"st_third_party_provider"`
-	StThirdPartyUserID   *string            `db:"st_third_party_user_id"`
-	AgeRange             string             `db:"age_range"`
-	OnboardingCompleted  bool               `db:"onboarding_completed"`
+	ID                  string    `db:"id"`
+	Username            string    `db:"username"`
+	FirstName           string    `db:"first_name"`
+	LastName            string    `db:"last_name"`
+	Email               string    `db:"email"`
+	AvatarKey           *string   `db:"avatar_key"`
+	Bio                 *string   `db:"bio"`
+	CreatedAt           time.Time `db:"created_at"`
+	UpdatedAt           time.Time `db:"updated_at"`
+	AgeRange            string    `db:"age_range"`
+	OnboardingCompleted bool      `db:"onboarding_completed"`
 }
 
 type CoreUserAchievement struct {

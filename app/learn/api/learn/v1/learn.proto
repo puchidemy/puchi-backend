@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+package puchi.learn.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/puchidemy/puchi-backend/app/learn/api/learn/v1;v1";
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.learn.v1";
+option java_outer_classname = "LearnProto";
+
+service LearnService {
+  rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option (google.api.http) = { get: "/v1/learn/ping" };
+  }
+  rpc CreateGuestSession(google.protobuf.Empty) returns (GuestSession) {
+    option (google.api.http) = { post: "/v1/learn/guest/session" body: "*" };
+  }
+  rpc ClaimGuest(ClaimGuestRequest) returns (ClaimGuestResponse) {
+    option (google.api.http) = { post: "/v1/learn/guest/claim" body: "*" };
+  }
+  rpc GetUnit(GetUnitRequest) returns (GetUnitResponse) {
+    option (google.api.http) = { get: "/v1/learn/units/{id}" };
+  }
+  rpc GetLesson(GetLessonRequest) returns (GetLessonResponse) {
+    option (google.api.http) = { get: "/v1/learn/lessons/{id}" };
+  }
+  rpc StartLesson(StartLessonRequest) returns (StartLessonResponse) {
+    option (google.api.http) = { post: "/v1/learn/lessons/{id}/start" body: "*" };
+  }
+  rpc SubmitAnswer(SubmitAnswerRequest) returns (SubmitAnswerResponse) {
+    option (google.api.http) = { post: "/v1/learn/attempts/{attempt_id}/answer" body: "*" };
+  }
+  rpc CompleteLesson(CompleteLessonRequest) returns (CompleteLessonResponse) {
+    option (google.api.http) = { post: "/v1/learn/lessons/{id}/complete" body: "*" };
+  }
+}
+
+message GuestSession {
+  string guest_id = 1;
+}
+
+message ClaimGuestRequest {}
+
+message ClaimGuestResponse {
+  int32 lessons_merged = 1;
+}
+
+message GetUnitRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetLessonRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message Unit {
+  string id = 1;
+  string course_id = 2;
+  int32 position = 3;
+  string title = 4;
+}
+
+message Skill {
+  string id = 1;
+  string unit_id = 2;
+  int32 position = 3;
+  string title = 4;
+  repeated Lesson lessons = 5;
+}
+
+message Lesson {
+  string id = 1;
+  string skill_id = 2;
+  int32 position = 3;
+  string title = 4;
+  int32 xp_reward = 5;
+  bool required = 6;
+  string status = 7;
+}
+
+message Exercise {
+  string id = 1;
+  string lesson_id = 2;
+  int32 position = 3;
+  string type = 4;
+  string prompt_json = 5;
+  string answer_json = 6;
+}
+
+message GetUnitResponse {
+  Unit unit = 1;
+  repeated Skill skills = 2;
+  string unit_status = 3;
+}
+
+message GetLessonResponse {
+  Lesson lesson = 1;
+  repeated Exercise exercises = 2;
+}
+
+message StartLessonRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message StartLessonResponse {
+  string attempt_id = 1;
+}
+
+message SubmitAnswerRequest {
+  string attempt_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string exercise_id = 2 [(google.api.field_behavior) = REQUIRED];
+  string payload_json = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message SubmitAnswerResponse {
+  bool correct = 1;
+}
+
+message CompleteLessonRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message CompleteLessonResponse {
+  int32 xp = 1;
+  bool unit_completed = 2;
+}
