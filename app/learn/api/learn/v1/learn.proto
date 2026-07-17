@@ -78,6 +78,7 @@ message Lesson {
   string title = 4;
   int32 xp_reward = 5;
   bool required = 6;
+  string status = 7;
 }
 
 message Exercise {
@@ -92,6 +93,7 @@ message Exercise {
 message GetUnitResponse {
   Unit unit = 1;
   repeated Skill skills = 2;
+  string unit_status = 3;
 }
 
 message GetLessonResponse {

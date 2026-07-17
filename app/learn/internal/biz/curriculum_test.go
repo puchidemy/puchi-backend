@@ -52,10 +52,25 @@ func (m *mockCurriculumRepo) GetExerciseByID(ctx context.Context, id string) (*g
 	return nil, pgx.ErrNoRows
 }
 
-func newCurriculumTestUsecase(curriculum CurriculumRepoInterface) *LearnUsecase {
-	return NewLearnUsecase(&mockGuestRepo{}, &mockProgressRepo{}, curriculum, &mockAttemptRepo{}, NoOpLessonEventPublisher{}, &mockTxManager{
+func defaultEmptyProgressRepo() *mockProgressRepo {
+	return &mockProgressRepo{
+		listLessons: func(_ context.Context, _, _ string) ([]gen.LearnUserLessonProgress, error) {
+			return nil, nil
+		},
+		getUnit: func(_ context.Context, _, _, _ string) (*gen.LearnUserUnitProgress, error) {
+			return nil, pgx.ErrNoRows
+		},
+	}
+}
+
+func newCurriculumTestUsecase(curriculum CurriculumRepoInterface, progress ...ProgressRepoInterface) *LearnUsecase {
+	prog := ProgressRepoInterface(defaultEmptyProgressRepo())
+	if len(progress) > 0 && progress[0] != nil {
+		prog = progress[0]
+	}
+	return NewLearnUsecase(&mockGuestRepo{}, prog, curriculum, &mockAttemptRepo{}, NoOpLessonEventPublisher{}, &mockTxManager{
 		guest:    &mockGuestRepo{},
-		progress: &mockProgressRepo{},
+		progress: prog,
 	})
 }
 
@@ -119,8 +134,14 @@ func TestGetUnit_GuestTrial_ReturnsUnitWithLessons(t *testing.T) {
 	if len(unit.Skills) != 1 || len(unit.Skills[0].Lessons) != 1 {
 		t.Fatalf("expected 1 skill with 1 lesson, got %+v", unit.Skills)
 	}
-	if unit.Skills[0].Lessons[0].ID != lessonID {
-		t.Fatalf("lesson id = %q, want %q", unit.Skills[0].Lessons[0].ID, lessonID)
+	if unit.Skills[0].Lessons[0].Lesson.ID != lessonID {
+		t.Fatalf("lesson id = %q, want %q", unit.Skills[0].Lessons[0].Lesson.ID, lessonID)
+	}
+	if unit.Skills[0].Lessons[0].Status != "not_started" {
+		t.Fatalf("lesson status = %q, want not_started", unit.Skills[0].Lessons[0].Status)
+	}
+	if unit.UnitStatus != "not_started" {
+		t.Fatalf("unit status = %q, want not_started", unit.UnitStatus)
 	}
 }
 
@@ -202,6 +223,62 @@ func TestGetLesson_GuestTrial_ReturnsLessonWithExercises(t *testing.T) {
 	}
 	if len(lesson.Exercises) != 1 {
 		t.Fatalf("expected 1 exercise, got %d", len(lesson.Exercises))
+	}
+}
+
+func TestGetUnit_ReturnsProgressStatusWhenRowsExist(t *testing.T) {
+	skillID := "22222222-2222-2222-2222-222222222222"
+	lessonID := "33333333-3333-3333-3333-333333333331"
+
+	progress := &mockProgressRepo{
+		listLessons: func(_ context.Context, ownerType, ownerID string) ([]gen.LearnUserLessonProgress, error) {
+			if ownerType != "user" || ownerID != "user-1" {
+				t.Fatalf("unexpected owner %s/%s", ownerType, ownerID)
+			}
+			return []gen.LearnUserLessonProgress{{
+				OwnerType: ownerType,
+				OwnerID:   ownerID,
+				LessonID:  lessonID,
+				Status:    "completed",
+			}}, nil
+		},
+		getUnit: func(_ context.Context, ownerType, ownerID, unitID string) (*gen.LearnUserUnitProgress, error) {
+			if ownerType != "user" || ownerID != "user-1" || unitID != testTrialUnitID {
+				t.Fatalf("unexpected unit progress lookup %s/%s/%s", ownerType, ownerID, unitID)
+			}
+			return &gen.LearnUserUnitProgress{
+				OwnerType: ownerType,
+				OwnerID:   ownerID,
+				UnitID:    unitID,
+				Status:    "completed",
+			}, nil
+		},
+	}
+
+	uc := newCurriculumTestUsecase(&mockCurriculumRepo{
+		getUnit: func(_ context.Context, id string) (*gen.LearnUnit, error) {
+			return &gen.LearnUnit{ID: id, Title: "Trial Unit"}, nil
+		},
+		listSkills: func(_ context.Context, _ string) ([]gen.LearnSkill, error) {
+			return []gen.LearnSkill{{ID: skillID, UnitID: testTrialUnitID, Title: "Greetings"}}, nil
+		},
+		listLessons: func(_ context.Context, sid string) ([]gen.LearnLesson, error) {
+			return []gen.LearnLesson{{ID: lessonID, SkillID: sid, Title: "Say Hello"}}, nil
+		},
+	}, progress)
+
+	unit, err := uc.GetUnit(context.Background(), "user", "user-1", testTrialUnitID, testTrialUnitID)
+	if err != nil {
+		t.Fatalf("GetUnit: %v", err)
+	}
+	if unit.UnitStatus != "completed" {
+		t.Fatalf("unit status = %q, want completed", unit.UnitStatus)
+	}
+	if len(unit.Skills) != 1 || len(unit.Skills[0].Lessons) != 1 {
+		t.Fatalf("expected 1 skill with 1 lesson, got %+v", unit.Skills)
+	}
+	if unit.Skills[0].Lessons[0].Status != "completed" {
+		t.Fatalf("lesson status = %q, want completed", unit.Skills[0].Lessons[0].Status)
 	}
 }
 

@@ -212,6 +212,7 @@ func unitDetailToProto(unit *biz.UnitDetail) *pb.GetUnitResponse {
 			Position: unit.Unit.Position,
 			Title:    unit.Unit.Title,
 		},
+		UnitStatus: unit.UnitStatus,
 	}
 	for _, skill := range unit.Skills {
 		pbSkill := &pb.Skill{
@@ -221,7 +222,7 @@ func unitDetailToProto(unit *biz.UnitDetail) *pb.GetUnitResponse {
 			Title:    skill.Skill.Title,
 		}
 		for _, lesson := range skill.Lessons {
-			pbSkill.Lessons = append(pbSkill.Lessons, lessonToProto(lesson))
+			pbSkill.Lessons = append(pbSkill.Lessons, lessonToProto(lesson.Lesson, lesson.Status))
 		}
 		resp.Skills = append(resp.Skills, pbSkill)
 	}
@@ -230,7 +231,7 @@ func unitDetailToProto(unit *biz.UnitDetail) *pb.GetUnitResponse {
 
 func lessonDetailToProto(lesson *biz.LessonDetail) *pb.GetLessonResponse {
 	resp := &pb.GetLessonResponse{
-		Lesson: lessonToProto(lesson.Lesson),
+		Lesson: lessonToProto(lesson.Lesson, ""),
 	}
 	for _, exercise := range lesson.Exercises {
 		resp.Exercises = append(resp.Exercises, exerciseToProto(exercise))
@@ -238,7 +239,7 @@ func lessonDetailToProto(lesson *biz.LessonDetail) *pb.GetLessonResponse {
 	return resp
 }
 
-func lessonToProto(lesson gen.LearnLesson) *pb.Lesson {
+func lessonToProto(lesson gen.LearnLesson, status string) *pb.Lesson {
 	return &pb.Lesson{
 		Id:       lesson.ID,
 		SkillId:  lesson.SkillID,
@@ -246,6 +247,7 @@ func lessonToProto(lesson gen.LearnLesson) *pb.Lesson {
 		Title:    lesson.Title,
 		XpReward: lesson.XpReward,
 		Required: lesson.Required,
+		Status:   status,
 	}
 }
 

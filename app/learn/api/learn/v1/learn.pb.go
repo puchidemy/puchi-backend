@@ -387,6 +387,7 @@ type Lesson struct {
 	Title         string                 `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
 	XpReward      int32                  `protobuf:"varint,5,opt,name=xp_reward,json=xpReward,proto3" json:"xp_reward,omitempty"`
 	Required      bool                   `protobuf:"varint,6,opt,name=required,proto3" json:"required,omitempty"`
+	Status        string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -461,6 +462,13 @@ func (x *Lesson) GetRequired() bool {
 		return x.Required
 	}
 	return false
+}
+
+func (x *Lesson) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
 }
 
 type Exercise struct {
@@ -551,6 +559,7 @@ type GetUnitResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Unit          *Unit                  `protobuf:"bytes,1,opt,name=unit,proto3" json:"unit,omitempty"`
 	Skills        []*Skill               `protobuf:"bytes,2,rep,name=skills,proto3" json:"skills,omitempty"`
+	UnitStatus    string                 `protobuf:"bytes,3,opt,name=unit_status,json=unitStatus,proto3" json:"unit_status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -597,6 +606,13 @@ func (x *GetUnitResponse) GetSkills() []*Skill {
 		return x.Skills
 	}
 	return nil
+}
+
+func (x *GetUnitResponse) GetUnitStatus() string {
+	if x != nil {
+		return x.UnitStatus
+	}
+	return ""
 }
 
 type GetLessonResponse struct {
@@ -963,14 +979,15 @@ const file_learn_v1_learn_proto_rawDesc = "" +
 	"\aunit_id\x18\x02 \x01(\tR\x06unitId\x12\x1a\n" +
 	"\bposition\x18\x03 \x01(\x05R\bposition\x12\x14\n" +
 	"\x05title\x18\x04 \x01(\tR\x05title\x120\n" +
-	"\alessons\x18\x05 \x03(\v2\x16.puchi.learn.v1.LessonR\alessons\"\x9e\x01\n" +
+	"\alessons\x18\x05 \x03(\v2\x16.puchi.learn.v1.LessonR\alessons\"\xb6\x01\n" +
 	"\x06Lesson\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bskill_id\x18\x02 \x01(\tR\askillId\x12\x1a\n" +
 	"\bposition\x18\x03 \x01(\x05R\bposition\x12\x14\n" +
 	"\x05title\x18\x04 \x01(\tR\x05title\x12\x1b\n" +
 	"\txp_reward\x18\x05 \x01(\x05R\bxpReward\x12\x1a\n" +
-	"\brequired\x18\x06 \x01(\bR\brequired\"\xa9\x01\n" +
+	"\brequired\x18\x06 \x01(\bR\brequired\x12\x16\n" +
+	"\x06status\x18\a \x01(\tR\x06status\"\xa9\x01\n" +
 	"\bExercise\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tlesson_id\x18\x02 \x01(\tR\blessonId\x12\x1a\n" +
@@ -979,10 +996,12 @@ const file_learn_v1_learn_proto_rawDesc = "" +
 	"\vprompt_json\x18\x05 \x01(\tR\n" +
 	"promptJson\x12\x1f\n" +
 	"\vanswer_json\x18\x06 \x01(\tR\n" +
-	"answerJson\"j\n" +
+	"answerJson\"\x8b\x01\n" +
 	"\x0fGetUnitResponse\x12(\n" +
 	"\x04unit\x18\x01 \x01(\v2\x14.puchi.learn.v1.UnitR\x04unit\x12-\n" +
-	"\x06skills\x18\x02 \x03(\v2\x15.puchi.learn.v1.SkillR\x06skills\"{\n" +
+	"\x06skills\x18\x02 \x03(\v2\x15.puchi.learn.v1.SkillR\x06skills\x12\x1f\n" +
+	"\vunit_status\x18\x03 \x01(\tR\n" +
+	"unitStatus\"{\n" +
 	"\x11GetLessonResponse\x12.\n" +
 	"\x06lesson\x18\x01 \x01(\v2\x16.puchi.learn.v1.LessonR\x06lesson\x126\n" +
 	"\texercises\x18\x02 \x03(\v2\x18.puchi.learn.v1.ExerciseR\texercises\")\n" +
