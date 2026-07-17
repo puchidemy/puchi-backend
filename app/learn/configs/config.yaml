@@ -18,3 +18,7 @@ auth:
   public_paths:
     - /v1/health
     - /v1/healthz
+learn:
+  trial_unit_id: "11111111-1111-1111-1111-111111111111"
+  guest_cookie_name: "puchi_guest_id"
+  guest_ttl_days: 30
