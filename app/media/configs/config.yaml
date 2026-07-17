@@ -25,7 +25,7 @@ media:
     max_size_bytes: 10485760
     presigned_url_ttl: 900
 auth:
-  auth_service_url: "http://auth-service.puchi-backend.svc.cluster.local:8080"
+  auth_service_url: "http://localhost:8080"
   public_paths:
     - /v1/health
     - /v1/healthz

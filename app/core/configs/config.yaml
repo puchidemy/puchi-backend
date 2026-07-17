@@ -13,7 +13,7 @@ data:
     read_timeout: 0.2s
     write_timeout: 0.2s
 auth:
-  auth_service_url: "http://auth-service.puchi-backend.svc.cluster.local:8080"
+  auth_service_url: "http://localhost:8080"
   public_paths:
     - /v1/health
     - /v1/healthz

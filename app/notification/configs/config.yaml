@@ -16,7 +16,7 @@ gotify:
   url: "http://gotify.platform.svc.cluster.local"
   token: "change-me-in-production"
 auth:
-  auth_service_url: "http://auth-service.puchi-backend.svc.cluster.local:8080"
+  auth_service_url: "http://localhost:8080"
   public_paths:
     - /v1/health
     - /v1/healthz
