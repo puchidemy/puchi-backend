@@ -27,6 +27,22 @@ func (q *Queries) GetLessonByID(ctx context.Context, id string) (LearnLesson, er
 	return i, err
 }
 
+const getSkillByID = `-- name: GetSkillByID :one
+SELECT id, unit_id, position, title FROM learn.skills WHERE id = $1
+`
+
+func (q *Queries) GetSkillByID(ctx context.Context, id string) (LearnSkill, error) {
+	row := q.db.QueryRow(ctx, getSkillByID, id)
+	var i LearnSkill
+	err := row.Scan(
+		&i.ID,
+		&i.UnitID,
+		&i.Position,
+		&i.Title,
+	)
+	return i, err
+}
+
 const getUnitByID = `-- name: GetUnitByID :one
 SELECT id, course_id, position, title FROM learn.units WHERE id = $1
 `

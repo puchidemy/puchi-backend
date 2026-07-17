@@ -20,6 +20,7 @@ type Querier interface {
 	GetGuestByIDForUpdate(ctx context.Context, id string) (LearnGuest, error)
 	GetLessonByID(ctx context.Context, id string) (LearnLesson, error)
 	GetLessonProgress(ctx context.Context, arg GetLessonProgressParams) (LearnUserLessonProgress, error)
+	GetSkillByID(ctx context.Context, id string) (LearnSkill, error)
 	GetUnitByID(ctx context.Context, id string) (LearnUnit, error)
 	GetUnitProgress(ctx context.Context, arg GetUnitProgressParams) (LearnUserUnitProgress, error)
 	InsertAttemptAnswer(ctx context.Context, arg InsertAttemptAnswerParams) (LearnAttemptAnswer, error)

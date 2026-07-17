@@ -23,6 +23,8 @@ const (
 	LearnService_Ping_FullMethodName               = "/puchi.learn.v1.LearnService/Ping"
 	LearnService_CreateGuestSession_FullMethodName = "/puchi.learn.v1.LearnService/CreateGuestSession"
 	LearnService_ClaimGuest_FullMethodName         = "/puchi.learn.v1.LearnService/ClaimGuest"
+	LearnService_GetUnit_FullMethodName            = "/puchi.learn.v1.LearnService/GetUnit"
+	LearnService_GetLesson_FullMethodName          = "/puchi.learn.v1.LearnService/GetLesson"
 )
 
 // LearnServiceClient is the client API for LearnService service.
@@ -32,6 +34,8 @@ type LearnServiceClient interface {
 	Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CreateGuestSession(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GuestSession, error)
 	ClaimGuest(ctx context.Context, in *ClaimGuestRequest, opts ...grpc.CallOption) (*ClaimGuestResponse, error)
+	GetUnit(ctx context.Context, in *GetUnitRequest, opts ...grpc.CallOption) (*GetUnitResponse, error)
+	GetLesson(ctx context.Context, in *GetLessonRequest, opts ...grpc.CallOption) (*GetLessonResponse, error)
 }
 
 type learnServiceClient struct {
@@ -72,6 +76,26 @@ func (c *learnServiceClient) ClaimGuest(ctx context.Context, in *ClaimGuestReque
 	return out, nil
 }
 
+func (c *learnServiceClient) GetUnit(ctx context.Context, in *GetUnitRequest, opts ...grpc.CallOption) (*GetUnitResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUnitResponse)
+	err := c.cc.Invoke(ctx, LearnService_GetUnit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learnServiceClient) GetLesson(ctx context.Context, in *GetLessonRequest, opts ...grpc.CallOption) (*GetLessonResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetLessonResponse)
+	err := c.cc.Invoke(ctx, LearnService_GetLesson_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LearnServiceServer is the server API for LearnService service.
 // All implementations must embed UnimplementedLearnServiceServer
 // for forward compatibility.
@@ -79,6 +103,8 @@ type LearnServiceServer interface {
 	Ping(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	CreateGuestSession(context.Context, *emptypb.Empty) (*GuestSession, error)
 	ClaimGuest(context.Context, *ClaimGuestRequest) (*ClaimGuestResponse, error)
+	GetUnit(context.Context, *GetUnitRequest) (*GetUnitResponse, error)
+	GetLesson(context.Context, *GetLessonRequest) (*GetLessonResponse, error)
 	mustEmbedUnimplementedLearnServiceServer()
 }
 
@@ -97,6 +123,12 @@ func (UnimplementedLearnServiceServer) CreateGuestSession(context.Context, *empt
 }
 func (UnimplementedLearnServiceServer) ClaimGuest(context.Context, *ClaimGuestRequest) (*ClaimGuestResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ClaimGuest not implemented")
+}
+func (UnimplementedLearnServiceServer) GetUnit(context.Context, *GetUnitRequest) (*GetUnitResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUnit not implemented")
+}
+func (UnimplementedLearnServiceServer) GetLesson(context.Context, *GetLessonRequest) (*GetLessonResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetLesson not implemented")
 }
 func (UnimplementedLearnServiceServer) mustEmbedUnimplementedLearnServiceServer() {}
 func (UnimplementedLearnServiceServer) testEmbeddedByValue()                      {}
@@ -173,6 +205,42 @@ func _LearnService_ClaimGuest_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LearnService_GetUnit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUnitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearnServiceServer).GetUnit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearnService_GetUnit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearnServiceServer).GetUnit(ctx, req.(*GetUnitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearnService_GetLesson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLessonRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearnServiceServer).GetLesson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearnService_GetLesson_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearnServiceServer).GetLesson(ctx, req.(*GetLessonRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LearnService_ServiceDesc is the grpc.ServiceDesc for LearnService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -191,6 +259,14 @@ var LearnService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClaimGuest",
 			Handler:    _LearnService_ClaimGuest_Handler,
+		},
+		{
+			MethodName: "GetUnit",
+			Handler:    _LearnService_GetUnit_Handler,
+		},
+		{
+			MethodName: "GetLesson",
+			Handler:    _LearnService_GetLesson_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

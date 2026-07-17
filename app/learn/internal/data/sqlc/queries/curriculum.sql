@@ -1,6 +1,9 @@
 -- name: GetUnitByID :one
 SELECT * FROM learn.units WHERE id = $1;
 
+-- name: GetSkillByID :one
+SELECT * FROM learn.skills WHERE id = $1;
+
 -- name: ListSkillsByUnitID :many
 SELECT * FROM learn.skills WHERE unit_id = $1 ORDER BY position;
 

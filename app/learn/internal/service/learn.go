@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	pb "github.com/puchidemy/puchi-backend/app/learn/api/learn/v1"
 	"github.com/puchidemy/puchi-backend/app/learn/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/learn/internal/conf"
+	"github.com/puchidemy/puchi-backend/app/learn/internal/data/sqlc/gen"
 	authpkg "github.com/puchidemy/puchi-backend/pkg/auth"
 
 	kratoshttp "github.com/go-kratos/kratos/v3/transport/http"
@@ -80,6 +82,119 @@ func (s *LearnService) ClaimGuest(ctx context.Context, _ *pb.ClaimGuestRequest) 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &pb.ClaimGuestResponse{LessonsMerged: merged}, nil
+}
+
+// GetUnit returns a unit with nested skills and lessons.
+func (s *LearnService) GetUnit(ctx context.Context, req *pb.GetUnitRequest) (*pb.GetUnitResponse, error) {
+	ownerType, ownerID, err := s.resolveOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	unit, err := s.uc.GetUnit(ctx, ownerType, ownerID, req.GetId(), s.trialUnitID())
+	if err != nil {
+		return nil, mapCurriculumError(err)
+	}
+	return unitDetailToProto(unit), nil
+}
+
+// GetLesson returns a lesson with exercises (prompts only; answers withheld).
+func (s *LearnService) GetLesson(ctx context.Context, req *pb.GetLessonRequest) (*pb.GetLessonResponse, error) {
+	ownerType, ownerID, err := s.resolveOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	lesson, err := s.uc.GetLesson(ctx, ownerType, ownerID, req.GetId(), s.trialUnitID())
+	if err != nil {
+		return nil, mapCurriculumError(err)
+	}
+	return lessonDetailToProto(lesson), nil
+}
+
+// resolveOwner prefers an authenticated user from context, else guest cookie.
+func (s *LearnService) resolveOwner(ctx context.Context) (ownerType, ownerID string, err error) {
+	if userID, ok := authpkg.UserIDFromContext(ctx); ok {
+		return "user", userID, nil
+	}
+	guestID, err := s.cookie.guestIDFromRequest(ctx)
+	if err != nil {
+		return "", "", status.Error(codes.Unauthenticated, "authentication required")
+	}
+	return "guest", guestID, nil
+}
+
+func (s *LearnService) trialUnitID() string {
+	if s.learn != nil && s.learn.TrialUnitId != "" {
+		return s.learn.TrialUnitId
+	}
+	return "11111111-1111-1111-1111-111111111111"
+}
+
+func mapCurriculumError(err error) error {
+	switch {
+	case errors.Is(err, biz.ErrTrialLimit):
+		return status.Error(codes.PermissionDenied, "TRIAL_LIMIT")
+	case errors.Is(err, biz.ErrCurriculumNotFound):
+		return status.Error(codes.NotFound, err.Error())
+	default:
+		return status.Error(codes.Internal, err.Error())
+	}
+}
+
+func unitDetailToProto(unit *biz.UnitDetail) *pb.GetUnitResponse {
+	resp := &pb.GetUnitResponse{
+		Unit: &pb.Unit{
+			Id:       unit.Unit.ID,
+			CourseId: unit.Unit.CourseID,
+			Position: unit.Unit.Position,
+			Title:    unit.Unit.Title,
+		},
+	}
+	for _, skill := range unit.Skills {
+		pbSkill := &pb.Skill{
+			Id:       skill.Skill.ID,
+			UnitId:   skill.Skill.UnitID,
+			Position: skill.Skill.Position,
+			Title:    skill.Skill.Title,
+		}
+		for _, lesson := range skill.Lessons {
+			pbSkill.Lessons = append(pbSkill.Lessons, lessonToProto(lesson))
+		}
+		resp.Skills = append(resp.Skills, pbSkill)
+	}
+	return resp
+}
+
+func lessonDetailToProto(lesson *biz.LessonDetail) *pb.GetLessonResponse {
+	resp := &pb.GetLessonResponse{
+		Lesson: lessonToProto(lesson.Lesson),
+	}
+	for _, exercise := range lesson.Exercises {
+		resp.Exercises = append(resp.Exercises, exerciseToProto(exercise))
+	}
+	return resp
+}
+
+func lessonToProto(lesson gen.LearnLesson) *pb.Lesson {
+	return &pb.Lesson{
+		Id:       lesson.ID,
+		SkillId:  lesson.SkillID,
+		Position: lesson.Position,
+		Title:    lesson.Title,
+		XpReward: lesson.XpReward,
+		Required: lesson.Required,
+	}
+}
+
+func exerciseToProto(exercise gen.LearnExercise) *pb.Exercise {
+	return &pb.Exercise{
+		Id:         exercise.ID,
+		LessonId:   exercise.LessonID,
+		Position:   exercise.Position,
+		Type:       exercise.Type,
+		PromptJson: string(exercise.Prompt),
+	}
 }
 
 func mapGuestError(err error) error {

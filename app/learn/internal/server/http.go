@@ -16,10 +16,12 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, learnCfg *conf.Learn, jwtValidator *authpkg.JWTValidator, learnService *service.LearnService) *kratoshttp.Server {
+func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, learnCfg *conf.Learn, sessionValidator *authpkg.SessionValidator, learnService *service.LearnService) *kratoshttp.Server {
 	publicPaths := append([]string(nil), authCfg.PublicPaths...)
 	if learnCfg != nil {
 		publicPaths = ensurePublicPath(publicPaths, "/v1/learn/guest/session")
+		publicPaths = ensurePublicPath(publicPaths, "/v1/learn/units/")
+		publicPaths = ensurePublicPath(publicPaths, "/v1/learn/lessons/")
 	}
 
 	var opts = []kratoshttp.ServerOption{
@@ -34,10 +36,13 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, learnCfg *conf.Learn, jwt
 				return nil
 			}),
 		),
-		kratoshttp.Filter(authpkg.Middleware(authpkg.MiddlewareConfig{
-			PublicPaths: publicPaths,
-			Validator:   jwtValidator,
-		})),
+		kratoshttp.Filter(
+			learnOptionalAuthFilter(sessionValidator),
+			authpkg.Middleware(authpkg.MiddlewareConfig{
+				PublicPaths: publicPaths,
+				Validator:   sessionValidator,
+			}),
+		),
 	}
 	if c.Http.Network != "" {
 		opts = append(opts, kratoshttp.Network(c.Http.Network))

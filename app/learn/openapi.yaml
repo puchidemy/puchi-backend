@@ -40,6 +40,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/puchi.learn.v1.GuestSession'
+    /v1/learn/lessons/{id}:
+        get:
+            tags:
+                - LearnService
+            operationId: LearnService_GetLesson
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.GetLessonResponse'
     /v1/learn/ping:
         get:
             tags:
@@ -49,6 +67,24 @@ paths:
                 "200":
                     description: OK
                     content: {}
+    /v1/learn/units/{id}:
+        get:
+            tags:
+                - LearnService
+            operationId: LearnService_GetUnit
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.GetUnitResponse'
 components:
     schemas:
         puchi.learn.v1.ClaimGuestRequest:
@@ -60,10 +96,89 @@ components:
                 lessonsMerged:
                     type: integer
                     format: int32
+        puchi.learn.v1.Exercise:
+            type: object
+            properties:
+                id:
+                    type: string
+                lessonId:
+                    type: string
+                position:
+                    type: integer
+                    format: int32
+                type:
+                    type: string
+                promptJson:
+                    type: string
+                answerJson:
+                    type: string
+        puchi.learn.v1.GetLessonResponse:
+            type: object
+            properties:
+                lesson:
+                    $ref: '#/components/schemas/puchi.learn.v1.Lesson'
+                exercises:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/puchi.learn.v1.Exercise'
+        puchi.learn.v1.GetUnitResponse:
+            type: object
+            properties:
+                unit:
+                    $ref: '#/components/schemas/puchi.learn.v1.Unit'
+                skills:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/puchi.learn.v1.Skill'
         puchi.learn.v1.GuestSession:
             type: object
             properties:
                 guestId:
+                    type: string
+        puchi.learn.v1.Lesson:
+            type: object
+            properties:
+                id:
+                    type: string
+                skillId:
+                    type: string
+                position:
+                    type: integer
+                    format: int32
+                title:
+                    type: string
+                xpReward:
+                    type: integer
+                    format: int32
+                required:
+                    type: boolean
+        puchi.learn.v1.Skill:
+            type: object
+            properties:
+                id:
+                    type: string
+                unitId:
+                    type: string
+                position:
+                    type: integer
+                    format: int32
+                title:
+                    type: string
+                lessons:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/puchi.learn.v1.Lesson'
+        puchi.learn.v1.Unit:
+            type: object
+            properties:
+                id:
+                    type: string
+                courseId:
+                    type: string
+                position:
+                    type: integer
+                    format: int32
+                title:
                     type: string
 tags:
     - name: LearnService

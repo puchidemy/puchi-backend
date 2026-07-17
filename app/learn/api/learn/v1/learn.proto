@@ -3,6 +3,7 @@ syntax = "proto3";
 package puchi.learn.v1;
 
 import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
 import "google/protobuf/empty.proto";
 
 option go_package = "github.com/puchidemy/puchi-backend/app/learn/api/learn/v1;v1";
@@ -20,6 +21,12 @@ service LearnService {
   rpc ClaimGuest(ClaimGuestRequest) returns (ClaimGuestResponse) {
     option (google.api.http) = { post: "/v1/learn/guest/claim" body: "*" };
   }
+  rpc GetUnit(GetUnitRequest) returns (GetUnitResponse) {
+    option (google.api.http) = { get: "/v1/learn/units/{id}" };
+  }
+  rpc GetLesson(GetLessonRequest) returns (GetLessonResponse) {
+    option (google.api.http) = { get: "/v1/learn/lessons/{id}" };
+  }
 }
 
 message GuestSession {
@@ -30,4 +37,55 @@ message ClaimGuestRequest {}
 
 message ClaimGuestResponse {
   int32 lessons_merged = 1;
+}
+
+message GetUnitRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetLessonRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message Unit {
+  string id = 1;
+  string course_id = 2;
+  int32 position = 3;
+  string title = 4;
+}
+
+message Skill {
+  string id = 1;
+  string unit_id = 2;
+  int32 position = 3;
+  string title = 4;
+  repeated Lesson lessons = 5;
+}
+
+message Lesson {
+  string id = 1;
+  string skill_id = 2;
+  int32 position = 3;
+  string title = 4;
+  int32 xp_reward = 5;
+  bool required = 6;
+}
+
+message Exercise {
+  string id = 1;
+  string lesson_id = 2;
+  int32 position = 3;
+  string type = 4;
+  string prompt_json = 5;
+  string answer_json = 6;
+}
+
+message GetUnitResponse {
+  Unit unit = 1;
+  repeated Skill skills = 2;
+}
+
+message GetLessonResponse {
+  Lesson lesson = 1;
+  repeated Exercise exercises = 2;
 }

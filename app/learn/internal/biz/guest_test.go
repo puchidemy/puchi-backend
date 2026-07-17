@@ -46,7 +46,7 @@ func (m *mockTxManager) InTx(_ context.Context, fn func(GuestRepoInterface, Prog
 }
 
 func newTestUsecase(guest GuestRepoInterface, progress ProgressRepoInterface) *LearnUsecase {
-	return NewLearnUsecase(guest, progress, &mockTxManager{guest: guest, progress: progress})
+	return NewLearnUsecase(guest, progress, &mockCurriculumRepo{}, &mockTxManager{guest: guest, progress: progress})
 }
 
 type mockProgressRepo struct {
