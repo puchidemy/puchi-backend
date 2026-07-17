@@ -27,13 +27,13 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, authService *service.Auth
 	srv.HandleFunc("/.well-known/jwks.json", authService.HandleJWKS)
 
 	// Register auth REST handlers
-	srv.HandleFunc("/api/auth/logout", authService.HandleLogout)
-	srv.HandleFunc("/api/auth/password/change", authService.HandleChangePassword)
-	srv.HandleFunc("/api/auth/password/reset/request", authService.HandleResetRequest)
-	srv.HandleFunc("/api/auth/password/reset", authService.HandleResetComplete)
+	srv.HandleFunc("/auth/logout", authService.HandleLogout)
+	srv.HandleFunc("/auth/password/change", authService.HandleChangePassword)
+	srv.HandleFunc("/auth/password/reset/request", authService.HandleResetRequest)
+	srv.HandleFunc("/auth/password/reset", authService.HandleResetComplete)
 
 	// Register session management endpoints
-	srv.HandleFunc("/api/auth/sessions", func(w nethttp.ResponseWriter, r *nethttp.Request) {
+	srv.HandleFunc("/auth/sessions", func(w nethttp.ResponseWriter, r *nethttp.Request) {
 		switch r.Method {
 		case nethttp.MethodGet:
 			authService.HandleListSessions(w, r)
@@ -43,19 +43,19 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, authService *service.Auth
 			w.WriteHeader(nethttp.StatusMethodNotAllowed)
 		}
 	})
-	srv.HandleFunc("/api/auth/sessions/", authService.HandleRevokeSession)
+	srv.HandleFunc("/auth/sessions/", authService.HandleRevokeSession)
 
 	// Register refresh endpoint (raw handler, not via proto-defined route)
-	srv.HandleFunc("/api/auth/refresh", authService.HandleRefresh)
+	srv.HandleFunc("/auth/refresh", authService.HandleRefresh)
 
 	// Register magic link endpoints
-	srv.HandleFunc("/api/auth/magic-link/send", magicLinkService.HandleSend)
-	srv.HandleFunc("/api/auth/magic-link/verify", magicLinkService.HandleVerify)
+	srv.HandleFunc("/auth/magic-link/send", magicLinkService.HandleSend)
+	srv.HandleFunc("/auth/magic-link/verify", magicLinkService.HandleVerify)
 
 	// Register MFA endpoints
-	srv.HandleFunc("/api/auth/mfa/enroll", mfaService.HandleEnroll)
-	srv.HandleFunc("/api/auth/mfa/verify", mfaService.HandleVerify)
-	srv.HandleFunc("/api/auth/mfa/disable", mfaService.HandleDisable)
+	srv.HandleFunc("/auth/mfa/enroll", mfaService.HandleEnroll)
+	srv.HandleFunc("/auth/mfa/verify", mfaService.HandleVerify)
+	srv.HandleFunc("/auth/mfa/disable", mfaService.HandleDisable)
 
 	// Register admin RBAC endpoints
 	srv.HandleFunc("/admin/roles", adminService.HandleListRoles)

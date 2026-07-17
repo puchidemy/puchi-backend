@@ -9,7 +9,7 @@ import (
 )
 
 // HandleListSessions returns all active sessions for the authenticated user.
-// GET /api/auth/sessions
+// GET /auth/sessions
 func (s *AuthService) HandleListSessions(w http.ResponseWriter, r *http.Request) {
 	userID, sessionID, _, err := s.extractJWTClaims(r)
 	if err != nil {
@@ -54,7 +54,7 @@ func (s *AuthService) HandleListSessions(w http.ResponseWriter, r *http.Request)
 }
 
 // HandleRevokeAllSessions revokes all sessions except the current one.
-// DELETE /api/auth/sessions
+// DELETE /auth/sessions
 func (s *AuthService) HandleRevokeAllSessions(w http.ResponseWriter, r *http.Request) {
 	userID, sessionID, _, err := s.extractJWTClaims(r)
 	if err != nil {
@@ -71,7 +71,7 @@ func (s *AuthService) HandleRevokeAllSessions(w http.ResponseWriter, r *http.Req
 }
 
 // HandleRevokeSession revokes a specific session by ID.
-// DELETE /api/auth/sessions/{id}
+// DELETE /auth/sessions/{id}
 func (s *AuthService) HandleRevokeSession(w http.ResponseWriter, r *http.Request) {
 	userID, currentSessionID, _, err := s.extractJWTClaims(r)
 	if err != nil {
@@ -79,8 +79,8 @@ func (s *AuthService) HandleRevokeSession(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Extract session ID from path: /api/auth/sessions/{id}
-	targetID, err := uuid.Parse(strings.TrimPrefix(r.URL.Path, "/api/auth/sessions/"))
+	// Extract session ID from path: /auth/sessions/{id}
+	targetID, err := uuid.Parse(strings.TrimPrefix(r.URL.Path, "/auth/sessions/"))
 	if err != nil {
 		writeJSONError(w, http.StatusBadRequest, "invalid session ID")
 		return

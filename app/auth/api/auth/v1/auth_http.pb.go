@@ -29,8 +29,8 @@ type AuthServiceHTTPServer interface {
 
 func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
 	r := s.Route("/")
-	r.Handle("POST", "/v1/auth/register", _AuthService_Register0_HTTP_Handler(srv))
-	r.Handle("POST", "/v1/auth/login", _AuthService_Login0_HTTP_Handler(srv))
+	r.Handle("POST", "/auth/register", _AuthService_Register0_HTTP_Handler(srv))
+	r.Handle("POST", "/auth/login", _AuthService_Login0_HTTP_Handler(srv))
 }
 
 func _AuthService_Register0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
@@ -89,7 +89,7 @@ func NewAuthServiceHTTPClient(client *http.Client) AuthServiceHTTPClient {
 // Login Login authenticates a user and returns tokens.
 func (c *AuthServiceHTTPClientImpl) Login(ctx context.Context, in *LoginRequest, opts ...http.CallOption) (*LoginResponse, error) {
 	var out LoginResponse
-	pattern := "/v1/auth/login"
+	pattern := "/auth/login"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
@@ -107,7 +107,7 @@ func (c *AuthServiceHTTPClientImpl) Login(ctx context.Context, in *LoginRequest,
 // Register Register creates a new user account.
 func (c *AuthServiceHTTPClientImpl) Register(ctx context.Context, in *RegisterRequest, opts ...http.CallOption) (*RegisterResponse, error) {
 	var out RegisterResponse
-	pattern := "/v1/auth/register"
+	pattern := "/auth/register"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),

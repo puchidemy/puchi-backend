@@ -181,7 +181,7 @@ func setRefreshTokenCookie(ctx context.Context, token string) {
 	cookie := &http.Cookie{
 		Name:     "refresh_token",
 		Value:    token,
-		Path:     "/api/auth",
+		Path:     "/auth",
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteNoneMode, // cross-origin (puchi.io.vn → api.puchi.io.vn)
@@ -195,7 +195,7 @@ func clearRefreshTokenCookie(w http.ResponseWriter) {
 	cookie := &http.Cookie{
 		Name:     "refresh_token",
 		Value:    "",
-		Path:     "/api/auth",
+		Path:     "/auth",
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteNoneMode,
