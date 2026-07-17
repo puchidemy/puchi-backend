@@ -49,6 +49,7 @@ func Middleware(cfg MiddlewareConfig) func(http.Handler) http.Handler {
 
 			ctx := r.Context()
 			ctx = NewContextWithUserID(ctx, claims.UserID)
+			ctx = NewContextWithEmail(ctx, claims.Email)
 			ctx = NewContextWithRoles(ctx, claims.Roles)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

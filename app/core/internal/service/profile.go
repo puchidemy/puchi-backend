@@ -48,15 +48,17 @@ func (s *ProfileService) ListAchievements(ctx context.Context, _ *emptypb.Empty)
 }
 
 // GetProfile returns the authenticated user's profile.
+// If the user doesn't exist in core.users yet, it is auto-created (lazy sync from auth).
 func (s *ProfileService) GetProfile(ctx context.Context, _ *emptypb.Empty) (*pb.User, error) {
 	userID, ok := auth.UserIDFromContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "not authenticated")
 	}
 
-	user, err := s.uc.GetProfile(ctx, userID)
+	email, _ := auth.EmailFromContext(ctx)
+	user, err := s.uc.GetOrCreateProfile(ctx, userID, email)
 	if err != nil {
-		return nil, status.Error(codes.NotFound, "user not found")
+		return nil, status.Error(codes.Internal, "failed to get or create profile")
 	}
 
 	return userToProto(user), nil
@@ -103,6 +105,7 @@ func (s *ProfileService) GetProfileByUsername(ctx context.Context, req *pb.GetPr
 }
 
 // CompleteOnboarding completes onboarding and saves profile + answers.
+// If the user doesn't exist in core.users yet, it is auto-created first (lazy sync).
 func (s *ProfileService) CompleteOnboarding(ctx context.Context, req *pb.CompleteOnboardingRequest) (*pb.User, error) {
 	userID, ok := auth.UserIDFromContext(ctx)
 	if !ok {
@@ -125,6 +128,12 @@ func (s *ProfileService) CompleteOnboarding(ctx context.Context, req *pb.Complet
 	}
 	if !validAgeRanges[req.AgeRange] {
 		return nil, status.Error(codes.InvalidArgument, "invalid age_range value")
+	}
+
+	// Ensure user exists in core.users (lazy creation if first request)
+	email, _ := auth.EmailFromContext(ctx)
+	if _, err := s.uc.GetOrCreateProfile(ctx, userID, email); err != nil {
+		return nil, status.Error(codes.Internal, "failed to get or create profile")
 	}
 
 	user, err := s.uc.CompleteOnboarding(ctx, userID, biz.OnboardingInput{

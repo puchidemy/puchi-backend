@@ -6,6 +6,7 @@ type contextKey string
 
 const (
 	userIDKey    contextKey = "user_id"
+	userEmailKey contextKey = "user_email"
 	userRolesKey contextKey = "user_roles"
 )
 
@@ -24,6 +25,17 @@ func NewContextWithUserID(ctx context.Context, userID string) context.Context {
 // NewContextWithRoles creates a new context with the user roles set.
 func NewContextWithRoles(ctx context.Context, roles []string) context.Context {
 	return context.WithValue(ctx, userRolesKey, roles)
+}
+
+// NewContextWithEmail creates a new context with the user email set.
+func NewContextWithEmail(ctx context.Context, email string) context.Context {
+	return context.WithValue(ctx, userEmailKey, email)
+}
+
+// EmailFromContext extracts the authenticated user email from context.
+func EmailFromContext(ctx context.Context) (string, bool) {
+	email, ok := ctx.Value(userEmailKey).(string)
+	return email, ok && email != ""
 }
 
 // RolesFromContext extracts the user roles from context.
