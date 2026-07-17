@@ -168,10 +168,18 @@ func (m *memStatsRepo) UpsertWeeklyXP(_ context.Context, userID string, weekStar
 	return nil
 }
 
+type passthroughStatsTx struct {
+	repo StatsRepoInterface
+}
+
+func (p passthroughStatsTx) InTx(_ context.Context, fn func(StatsRepoInterface) error) error {
+	return fn(p.repo)
+}
+
 func TestOnLessonCompleted_XPAppliedOnce(t *testing.T) {
 	repo := newMemStatsRepo()
 	repo.stats["user-1"] = &gen.CoreUserStat{UserID: "user-1", Level: 1}
-	uc := NewStatsUsecase(repo)
+	uc := NewStatsUsecase(repo, passthroughStatsTx{repo: repo})
 
 	evt := LessonCompletedEvent{
 		UserID:      "user-1",

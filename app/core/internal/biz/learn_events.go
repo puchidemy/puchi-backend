@@ -41,28 +41,57 @@ func (uc *StatsUsecase) OnLessonCompleted(ctx context.Context, evt LessonComplet
 		evt.CompletedAt = time.Now().UTC()
 	}
 
-	claimed, err := uc.repo.ClaimLearnEvent(ctx, learnEventLesson, evt.UserID, evt.LessonID, evt.XP)
-	if err != nil {
-		return err
+	return uc.tx.InTx(ctx, func(repo StatsRepoInterface) error {
+		claimed, err := repo.ClaimLearnEvent(ctx, learnEventLesson, evt.UserID, evt.LessonID, evt.XP)
+		if err != nil {
+			return err
+		}
+		if !claimed {
+			return nil
+		}
+		return applyLessonCompleted(ctx, repo, evt)
+	})
+}
+
+// OnUnitCompleted applies bonus XP idempotently per user+unit.
+func (uc *StatsUsecase) OnUnitCompleted(ctx context.Context, evt UnitCompletedEvent) error {
+	if evt.UserID == "" || evt.UnitID == "" {
+		return errors.New("invalid unit completed event")
 	}
-	if !claimed {
-		return nil
+	if evt.CompletedAt.IsZero() {
+		evt.CompletedAt = time.Now().UTC()
 	}
 
-	stats, err := uc.ensureStats(ctx, evt.UserID)
+	return uc.tx.InTx(ctx, func(repo StatsRepoInterface) error {
+		claimed, err := repo.ClaimLearnEvent(ctx, learnEventUnit, evt.UserID, evt.UnitID, evt.XP)
+		if err != nil {
+			return err
+		}
+		if !claimed {
+			return nil
+		}
+		if evt.XP == 0 {
+			return nil
+		}
+		return applyUnitCompleted(ctx, repo, evt)
+	})
+}
+
+func applyLessonCompleted(ctx context.Context, repo StatsRepoInterface, evt LessonCompletedEvent) error {
+	stats, err := ensureStats(ctx, repo, evt.UserID)
 	if err != nil {
 		return err
 	}
 
 	activityDate := toPgDate(evt.CompletedAt)
-	hadToday, err := uc.hadActivityToday(ctx, evt.UserID, activityDate)
+	hadToday, err := hadActivityToday(ctx, repo, evt.UserID, activityDate)
 	if err != nil {
 		return err
 	}
 
 	var prevDate *time.Time
 	if !hadToday {
-		pd, err := uc.repo.GetLatestActivityDateBefore(ctx, evt.UserID, activityDate)
+		pd, err := repo.GetLatestActivityDateBefore(ctx, evt.UserID, activityDate)
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			return err
 		}
@@ -78,17 +107,17 @@ func (uc *StatsUsecase) OnLessonCompleted(ctx context.Context, evt LessonComplet
 		longestStreak = newStreak
 	}
 
-	if err := uc.repo.UpsertDailyActivity(ctx, evt.UserID, activityDate, evt.XP); err != nil {
+	if err := repo.UpsertDailyActivity(ctx, evt.UserID, activityDate, evt.XP); err != nil {
 		return err
 	}
-	if err := uc.repo.UpsertWeeklyXP(ctx, evt.UserID, toPgDate(weekStartUTC(evt.CompletedAt)), evt.XP); err != nil {
+	if err := repo.UpsertWeeklyXP(ctx, evt.UserID, toPgDate(weekStartUTC(evt.CompletedAt)), evt.XP); err != nil {
 		return err
 	}
 
 	newTotalXP := stats.TotalXp + evt.XP
-	level, currentXP := uc.calcLevelFromTotalXP(ctx, newTotalXP)
+	level, currentXP := calcLevelFromTotalXP(ctx, repo, newTotalXP)
 
-	_, err = uc.repo.UpdateStats(ctx, gen.UpdateUserStatsParams{
+	_, err = repo.UpdateStats(ctx, gen.UpdateUserStatsParams{
 		UserID:           evt.UserID,
 		CurrentXp:        currentXP,
 		TotalXp:          newTotalXP,
@@ -104,39 +133,20 @@ func (uc *StatsUsecase) OnLessonCompleted(ctx context.Context, evt LessonComplet
 	return err
 }
 
-// OnUnitCompleted applies bonus XP idempotently per user+unit.
-func (uc *StatsUsecase) OnUnitCompleted(ctx context.Context, evt UnitCompletedEvent) error {
-	if evt.UserID == "" || evt.UnitID == "" {
-		return errors.New("invalid unit completed event")
-	}
-	if evt.CompletedAt.IsZero() {
-		evt.CompletedAt = time.Now().UTC()
-	}
-
-	claimed, err := uc.repo.ClaimLearnEvent(ctx, learnEventUnit, evt.UserID, evt.UnitID, evt.XP)
-	if err != nil {
-		return err
-	}
-	if !claimed {
-		return nil
-	}
-	if evt.XP == 0 {
-		return nil
-	}
-
-	stats, err := uc.ensureStats(ctx, evt.UserID)
+func applyUnitCompleted(ctx context.Context, repo StatsRepoInterface, evt UnitCompletedEvent) error {
+	stats, err := ensureStats(ctx, repo, evt.UserID)
 	if err != nil {
 		return err
 	}
 
-	if err := uc.repo.UpsertWeeklyXP(ctx, evt.UserID, toPgDate(weekStartUTC(evt.CompletedAt)), evt.XP); err != nil {
+	if err := repo.UpsertWeeklyXP(ctx, evt.UserID, toPgDate(weekStartUTC(evt.CompletedAt)), evt.XP); err != nil {
 		return err
 	}
 
 	newTotalXP := stats.TotalXp + evt.XP
-	level, currentXP := uc.calcLevelFromTotalXP(ctx, newTotalXP)
+	level, currentXP := calcLevelFromTotalXP(ctx, repo, newTotalXP)
 
-	_, err = uc.repo.UpdateStats(ctx, gen.UpdateUserStatsParams{
+	_, err = repo.UpdateStats(ctx, gen.UpdateUserStatsParams{
 		UserID:           evt.UserID,
 		CurrentXp:        currentXP,
 		TotalXp:          newTotalXP,
@@ -152,26 +162,26 @@ func (uc *StatsUsecase) OnUnitCompleted(ctx context.Context, evt UnitCompletedEv
 	return err
 }
 
-func (uc *StatsUsecase) ensureStats(ctx context.Context, userID string) (*gen.CoreUserStat, error) {
-	stats, err := uc.repo.GetUserStats(ctx, userID)
+func ensureStats(ctx context.Context, repo StatsRepoInterface, userID string) (*gen.CoreUserStat, error) {
+	stats, err := repo.GetUserStats(ctx, userID)
 	if err == nil {
 		return stats, nil
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return nil, err
 	}
-	if err := uc.repo.UpsertStats(ctx, userID); err != nil {
+	if err := repo.UpsertStats(ctx, userID); err != nil {
 		return nil, err
 	}
-	stats, err = uc.repo.GetUserStats(ctx, userID)
+	stats, err = repo.GetUserStats(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 	return stats, nil
 }
 
-func (uc *StatsUsecase) hadActivityToday(ctx context.Context, userID string, activityDate pgtype.Date) (bool, error) {
-	row, err := uc.repo.GetDailyActivity(ctx, userID, activityDate)
+func hadActivityToday(ctx context.Context, repo StatsRepoInterface, userID string, activityDate pgtype.Date) (bool, error) {
+	row, err := repo.GetDailyActivity(ctx, userID, activityDate)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return false, nil
@@ -181,11 +191,11 @@ func (uc *StatsUsecase) hadActivityToday(ctx context.Context, userID string, act
 	return row.LessonsCompleted > 0, nil
 }
 
-func (uc *StatsUsecase) calcLevelFromTotalXP(ctx context.Context, totalXP int32) (level, currentXP int32) {
+func calcLevelFromTotalXP(ctx context.Context, repo StatsRepoInterface, totalXP int32) (level, currentXP int32) {
 	level = 1
 	baseXP := int32(0)
 	for l := int32(1); l <= 10; l++ {
-		req, err := uc.repo.GetLevelThreshold(ctx, l)
+		req, err := repo.GetLevelThreshold(ctx, l)
 		if err != nil {
 			break
 		}

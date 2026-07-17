@@ -26,11 +26,12 @@ type StatsRepoInterface interface {
 // StatsUsecase handles gamification stats operations.
 type StatsUsecase struct {
 	repo StatsRepoInterface
+	tx   StatsTxManagerInterface
 }
 
 // NewStatsUsecase creates a new StatsUsecase.
-func NewStatsUsecase(repo StatsRepoInterface) *StatsUsecase {
-	return &StatsUsecase{repo: repo}
+func NewStatsUsecase(repo StatsRepoInterface, tx StatsTxManagerInterface) *StatsUsecase {
+	return &StatsUsecase{repo: repo, tx: tx}
 }
 
 // GetStats returns the user's gamification stats.
