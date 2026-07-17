@@ -15,12 +15,13 @@ data:
     write_timeout: 0.2s
 media:
   storage:
-    endpoint: "http://localhost:3900"
-    access_key_id: "puchi"
-    secret_access_key: "change-in-production"
+    endpoint: "https://<ACCOUNT_ID>.r2.cloudflarestorage.com"
+    access_key_id: "" # set via R2_ACCESS_KEY_ID env
+    secret_access_key: "" # set via R2_SECRET_ACCESS_KEY env
     bucket: "puchi-media"
-    use_ssl: false
-    region: "garage"
+    use_ssl: true
+    region: "auto"
+    cdn_base_url: "https://cdn.puchi.io.vn"
   upload:
     max_size_bytes: 10485760
     presigned_url_ttl: 900

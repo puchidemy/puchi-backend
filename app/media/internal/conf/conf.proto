@@ -55,6 +55,7 @@ message Media {
     string bucket = 4;
     bool use_ssl = 5;
     string region = 6;
+    string cdn_base_url = 7;
   }
   message Upload {
     int64 max_size_bytes = 1;

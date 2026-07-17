@@ -24,18 +24,22 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, media *conf.Media, confAuth *conf.Auth, jwtValidator *auth.JWTValidator, logger *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, confData *conf.Data, media *conf.Media, confAuth *conf.Auth, arg *auth.JWTValidator, logger *slog.Logger) (*kratos.App, func(), error) {
 	dataData, cleanup, err := data.NewData(confData)
 	if err != nil {
 		return nil, nil, err
 	}
 	pool := dataData.Pool
 	mediaRepo := data.NewMediaRepo(pool)
-	mockStorage := data.NewStorageProvider()
-	mediaUsecase := biz.NewMediaUsecase(mediaRepo, mockStorage)
+	storageProvider, err := data.NewStorageProvider(media)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	mediaUsecase := biz.NewMediaUsecase(mediaRepo, storageProvider)
 	mediaService := service.NewMediaService(mediaUsecase)
 	grpcServer := server.NewGRPCServer(confServer, mediaService)
-	httpServer := server.NewHTTPServer(confServer, confAuth, jwtValidator, mediaService)
+	httpServer := server.NewHTTPServer(confServer, confAuth, arg, mediaService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()
