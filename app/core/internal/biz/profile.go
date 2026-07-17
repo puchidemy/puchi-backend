@@ -67,16 +67,28 @@ func (uc *ProfileUsecase) GetProfile(ctx context.Context, userID string) (*gen.C
 }
 
 // GetOrCreateProfile returns user by ID, or creates one if not found (lazy creation).
-// email is used to seed the new user record when the profile doesn't exist yet.
 func (uc *ProfileUsecase) GetOrCreateProfile(ctx context.Context, userID, email string) (*gen.CoreUser, error) {
 	user, err := uc.repo.GetUser(ctx, userID)
 	if err == nil {
 		return user, nil
 	}
 
-	// User not found in core.users — auto-create (lazy sync from auth)
-	displayName := generateUsername(email)
-	user, err = uc.repo.CreateUser(ctx, userID, displayName, email, "", "")
+	// User not found in core.users — auto-create (lazy sync from auth).
+	// Generate a unique username from email.
+	baseUsername := generateUsername(email)
+	username := baseUsername
+	for i := 2; ; i++ {
+		exists, err := uc.repo.UsernameExists(ctx, username)
+		if err != nil {
+			return nil, fmt.Errorf("check username: %w", err)
+		}
+		if !exists {
+			break
+		}
+		username = fmt.Sprintf("%s-%d", baseUsername, i)
+	}
+
+	user, err = uc.repo.CreateUser(ctx, userID, username, email, "", "")
 	if err != nil {
 		return nil, fmt.Errorf("lazy create user: %w", err)
 	}

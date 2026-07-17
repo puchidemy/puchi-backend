@@ -162,6 +162,8 @@ All routes are registered in `internal/server/http.go`.
 - **Magic link**: Token SHA-256 hash lưu DB. MarkUsed sau khi create user thành công. 15 phút TTL. Publish `email.send` NATS event.
 - **Password reset**: Token hash lưu `password_reset_tokens`. CompletePasswordReset → revoke all sessions. Publish `email.send` NATS event.
 - **Email verification**: 6-digit code, SHA-256 hash lưu DB. 15 phút TTL. Gửi qua NATS outbox (`email.send` topic). Trigger tự động sau Register.
+- **Lazy sync to core**: Auth-service publish `auth.user.created` (NATS outbox). Core-service không subscribe (future). Hiện tại dùng lazy creation — core-service auto-create user từ JWT claims (`GetOrCreateProfile`).
+- **Username**: Auto-generated từ email local part. Check UNIQUE constraint, append -2, -3 nếu trùng. User có thể đổi sau trong Settings.
 - **Unlink social**: Guard last auth method — không cho xóa method cuối nếu user không có password.
 - **Audit**: Fire-and-forget goroutine cho tất cả auth events.
 - **Rate limit**: Login 5/15min per email+IP. Magic link 1/60s. TOTP 3/5min. Register 3/hour per IP.
