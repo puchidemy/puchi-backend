@@ -21,6 +21,7 @@ type CurriculumRepoInterface interface {
 	ListLessonsBySkillID(ctx context.Context, skillID string) ([]gen.LearnLesson, error)
 	GetLessonByID(ctx context.Context, id string) (*gen.LearnLesson, error)
 	ListExercisesByLessonID(ctx context.Context, lessonID string) ([]gen.LearnExercise, error)
+	GetExerciseByID(ctx context.Context, id string) (*gen.LearnExercise, error)
 }
 
 // SkillWithLessons groups a skill and its lessons.

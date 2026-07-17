@@ -6,6 +6,15 @@ RETURNING *;
 -- name: GetAttemptByID :one
 SELECT * FROM learn.attempts WHERE id = $1;
 
+-- name: GetActiveAttemptByOwnerLesson :one
+SELECT * FROM learn.attempts
+WHERE owner_type = $1 AND owner_id = $2 AND lesson_id = $3 AND status = 'active'
+ORDER BY created_at DESC
+LIMIT 1;
+
+-- name: ListAttemptAnswersByAttemptID :many
+SELECT * FROM learn.attempt_answers WHERE attempt_id = $1 ORDER BY created_at;
+
 -- name: InsertAttemptAnswer :one
 INSERT INTO learn.attempt_answers (attempt_id, exercise_id, payload, correct)
 VALUES ($1, $2, $3, $4)

@@ -9,6 +9,24 @@ import (
 	"context"
 )
 
+const getExerciseByID = `-- name: GetExerciseByID :one
+SELECT id, lesson_id, position, type, prompt, answer FROM learn.exercises WHERE id = $1
+`
+
+func (q *Queries) GetExerciseByID(ctx context.Context, id string) (LearnExercise, error) {
+	row := q.db.QueryRow(ctx, getExerciseByID, id)
+	var i LearnExercise
+	err := row.Scan(
+		&i.ID,
+		&i.LessonID,
+		&i.Position,
+		&i.Type,
+		&i.Prompt,
+		&i.Answer,
+	)
+	return i, err
+}
+
 const getLessonByID = `-- name: GetLessonByID :one
 SELECT id, skill_id, position, title, xp_reward, required FROM learn.lessons WHERE id = $1
 `

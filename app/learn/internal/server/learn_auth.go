@@ -46,7 +46,8 @@ func learnOptionalAuthFilter(validator *authpkg.SessionValidator) func(http.Hand
 
 func isLearnGuestOrUserPath(path string) bool {
 	return strings.HasPrefix(path, "/v1/learn/units/") ||
-		strings.HasPrefix(path, "/v1/learn/lessons/")
+		strings.HasPrefix(path, "/v1/learn/lessons/") ||
+		strings.HasPrefix(path, "/v1/learn/attempts/")
 }
 
 func writeLearnUnauthorized(w http.ResponseWriter) {

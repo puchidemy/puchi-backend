@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -112,6 +113,48 @@ func (s *LearnService) GetLesson(ctx context.Context, req *pb.GetLessonRequest) 
 	return lessonDetailToProto(lesson), nil
 }
 
+// StartLesson creates a lesson attempt for the resolved owner.
+func (s *LearnService) StartLesson(ctx context.Context, req *pb.StartLessonRequest) (*pb.StartLessonResponse, error) {
+	ownerType, ownerID, err := s.resolveOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	attemptID, err := s.uc.StartLesson(ctx, ownerType, ownerID, req.GetId(), s.trialUnitID())
+	if err != nil {
+		return nil, mapAttemptError(err)
+	}
+	return &pb.StartLessonResponse{AttemptId: attemptID.String()}, nil
+}
+
+// SubmitAnswer grades and stores an answer for an attempt.
+func (s *LearnService) SubmitAnswer(ctx context.Context, req *pb.SubmitAnswerRequest) (*pb.SubmitAnswerResponse, error) {
+	ownerType, ownerID, err := s.resolveOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	correct, err := s.uc.SubmitAnswer(ctx, ownerType, ownerID, req.GetAttemptId(), req.GetExerciseId(), json.RawMessage(req.GetPayloadJson()), s.trialUnitID())
+	if err != nil {
+		return nil, mapAttemptError(err)
+	}
+	return &pb.SubmitAnswerResponse{Correct: correct}, nil
+}
+
+// CompleteLesson finalizes the active attempt and returns session XP.
+func (s *LearnService) CompleteLesson(ctx context.Context, req *pb.CompleteLessonRequest) (*pb.CompleteLessonResponse, error) {
+	ownerType, ownerID, err := s.resolveOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	xp, unitCompleted, err := s.uc.CompleteLesson(ctx, ownerType, ownerID, req.GetId(), s.trialUnitID())
+	if err != nil {
+		return nil, mapAttemptError(err)
+	}
+	return &pb.CompleteLessonResponse{Xp: xp, UnitCompleted: unitCompleted}, nil
+}
+
 // resolveOwner prefers an authenticated user from context, else guest cookie.
 func (s *LearnService) resolveOwner(ctx context.Context) (ownerType, ownerID string, err error) {
 	if userID, ok := authpkg.UserIDFromContext(ctx); ok {
@@ -136,6 +179,25 @@ func mapCurriculumError(err error) error {
 	case errors.Is(err, biz.ErrTrialLimit):
 		return status.Error(codes.PermissionDenied, "TRIAL_LIMIT")
 	case errors.Is(err, biz.ErrCurriculumNotFound):
+		return status.Error(codes.NotFound, err.Error())
+	default:
+		return status.Error(codes.Internal, err.Error())
+	}
+}
+
+func mapAttemptError(err error) error {
+	switch {
+	case errors.Is(err, biz.ErrTrialLimit):
+		return status.Error(codes.PermissionDenied, "TRIAL_LIMIT")
+	case errors.Is(err, biz.ErrCurriculumNotFound):
+		return status.Error(codes.NotFound, err.Error())
+	case errors.Is(err, biz.ErrAttemptNotFound):
+		return status.Error(codes.NotFound, err.Error())
+	case errors.Is(err, biz.ErrAttemptForbidden), errors.Is(err, biz.ErrExerciseForbidden):
+		return status.Error(codes.PermissionDenied, err.Error())
+	case errors.Is(err, biz.ErrAttemptNotActive):
+		return status.Error(codes.FailedPrecondition, err.Error())
+	case errors.Is(err, biz.ErrExerciseNotFound):
 		return status.Error(codes.NotFound, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())

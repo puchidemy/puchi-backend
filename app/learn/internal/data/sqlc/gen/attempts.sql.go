@@ -54,6 +54,35 @@ func (q *Queries) CreateAttempt(ctx context.Context, arg CreateAttemptParams) (L
 	return i, err
 }
 
+const getActiveAttemptByOwnerLesson = `-- name: GetActiveAttemptByOwnerLesson :one
+SELECT id, owner_type, owner_id, lesson_id, status, session_xp, created_at, completed_at FROM learn.attempts
+WHERE owner_type = $1 AND owner_id = $2 AND lesson_id = $3 AND status = 'active'
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+type GetActiveAttemptByOwnerLessonParams struct {
+	OwnerType string `db:"owner_type"`
+	OwnerID   string `db:"owner_id"`
+	LessonID  string `db:"lesson_id"`
+}
+
+func (q *Queries) GetActiveAttemptByOwnerLesson(ctx context.Context, arg GetActiveAttemptByOwnerLessonParams) (LearnAttempt, error) {
+	row := q.db.QueryRow(ctx, getActiveAttemptByOwnerLesson, arg.OwnerType, arg.OwnerID, arg.LessonID)
+	var i LearnAttempt
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerType,
+		&i.OwnerID,
+		&i.LessonID,
+		&i.Status,
+		&i.SessionXp,
+		&i.CreatedAt,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
 const getAttemptByID = `-- name: GetAttemptByID :one
 SELECT id, owner_type, owner_id, lesson_id, status, session_xp, created_at, completed_at FROM learn.attempts WHERE id = $1
 `
@@ -104,6 +133,37 @@ func (q *Queries) InsertAttemptAnswer(ctx context.Context, arg InsertAttemptAnsw
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const listAttemptAnswersByAttemptID = `-- name: ListAttemptAnswersByAttemptID :many
+SELECT id, attempt_id, exercise_id, payload, correct, created_at FROM learn.attempt_answers WHERE attempt_id = $1 ORDER BY created_at
+`
+
+func (q *Queries) ListAttemptAnswersByAttemptID(ctx context.Context, attemptID string) ([]LearnAttemptAnswer, error) {
+	rows, err := q.db.Query(ctx, listAttemptAnswersByAttemptID, attemptID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []LearnAttemptAnswer{}
+	for rows.Next() {
+		var i LearnAttemptAnswer
+		if err := rows.Scan(
+			&i.ID,
+			&i.AttemptID,
+			&i.ExerciseID,
+			&i.Payload,
+			&i.Correct,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const reassignGuestAttempts = `-- name: ReassignGuestAttempts :exec

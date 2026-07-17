@@ -27,6 +27,15 @@ service LearnService {
   rpc GetLesson(GetLessonRequest) returns (GetLessonResponse) {
     option (google.api.http) = { get: "/v1/learn/lessons/{id}" };
   }
+  rpc StartLesson(StartLessonRequest) returns (StartLessonResponse) {
+    option (google.api.http) = { post: "/v1/learn/lessons/{id}/start" body: "*" };
+  }
+  rpc SubmitAnswer(SubmitAnswerRequest) returns (SubmitAnswerResponse) {
+    option (google.api.http) = { post: "/v1/learn/attempts/{attempt_id}/answer" body: "*" };
+  }
+  rpc CompleteLesson(CompleteLessonRequest) returns (CompleteLessonResponse) {
+    option (google.api.http) = { post: "/v1/learn/lessons/{id}/complete" body: "*" };
+  }
 }
 
 message GuestSession {
@@ -88,4 +97,31 @@ message GetUnitResponse {
 message GetLessonResponse {
   Lesson lesson = 1;
   repeated Exercise exercises = 2;
+}
+
+message StartLessonRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message StartLessonResponse {
+  string attempt_id = 1;
+}
+
+message SubmitAnswerRequest {
+  string attempt_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string exercise_id = 2 [(google.api.field_behavior) = REQUIRED];
+  string payload_json = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message SubmitAnswerResponse {
+  bool correct = 1;
+}
+
+message CompleteLessonRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message CompleteLessonResponse {
+  int32 xp = 1;
+  bool unit_completed = 2;
 }

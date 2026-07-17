@@ -651,6 +651,294 @@ func (x *GetLessonResponse) GetExercises() []*Exercise {
 	return nil
 }
 
+type StartLessonRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartLessonRequest) Reset() {
+	*x = StartLessonRequest{}
+	mi := &file_learn_v1_learn_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartLessonRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartLessonRequest) ProtoMessage() {}
+
+func (x *StartLessonRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartLessonRequest.ProtoReflect.Descriptor instead.
+func (*StartLessonRequest) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *StartLessonRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type StartLessonResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AttemptId     string                 `protobuf:"bytes,1,opt,name=attempt_id,json=attemptId,proto3" json:"attempt_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartLessonResponse) Reset() {
+	*x = StartLessonResponse{}
+	mi := &file_learn_v1_learn_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartLessonResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartLessonResponse) ProtoMessage() {}
+
+func (x *StartLessonResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartLessonResponse.ProtoReflect.Descriptor instead.
+func (*StartLessonResponse) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *StartLessonResponse) GetAttemptId() string {
+	if x != nil {
+		return x.AttemptId
+	}
+	return ""
+}
+
+type SubmitAnswerRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AttemptId     string                 `protobuf:"bytes,1,opt,name=attempt_id,json=attemptId,proto3" json:"attempt_id,omitempty"`
+	ExerciseId    string                 `protobuf:"bytes,2,opt,name=exercise_id,json=exerciseId,proto3" json:"exercise_id,omitempty"`
+	PayloadJson   string                 `protobuf:"bytes,3,opt,name=payload_json,json=payloadJson,proto3" json:"payload_json,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubmitAnswerRequest) Reset() {
+	*x = SubmitAnswerRequest{}
+	mi := &file_learn_v1_learn_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubmitAnswerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubmitAnswerRequest) ProtoMessage() {}
+
+func (x *SubmitAnswerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubmitAnswerRequest.ProtoReflect.Descriptor instead.
+func (*SubmitAnswerRequest) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *SubmitAnswerRequest) GetAttemptId() string {
+	if x != nil {
+		return x.AttemptId
+	}
+	return ""
+}
+
+func (x *SubmitAnswerRequest) GetExerciseId() string {
+	if x != nil {
+		return x.ExerciseId
+	}
+	return ""
+}
+
+func (x *SubmitAnswerRequest) GetPayloadJson() string {
+	if x != nil {
+		return x.PayloadJson
+	}
+	return ""
+}
+
+type SubmitAnswerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Correct       bool                   `protobuf:"varint,1,opt,name=correct,proto3" json:"correct,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubmitAnswerResponse) Reset() {
+	*x = SubmitAnswerResponse{}
+	mi := &file_learn_v1_learn_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubmitAnswerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubmitAnswerResponse) ProtoMessage() {}
+
+func (x *SubmitAnswerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubmitAnswerResponse.ProtoReflect.Descriptor instead.
+func (*SubmitAnswerResponse) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *SubmitAnswerResponse) GetCorrect() bool {
+	if x != nil {
+		return x.Correct
+	}
+	return false
+}
+
+type CompleteLessonRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteLessonRequest) Reset() {
+	*x = CompleteLessonRequest{}
+	mi := &file_learn_v1_learn_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteLessonRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteLessonRequest) ProtoMessage() {}
+
+func (x *CompleteLessonRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteLessonRequest.ProtoReflect.Descriptor instead.
+func (*CompleteLessonRequest) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *CompleteLessonRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type CompleteLessonResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Xp            int32                  `protobuf:"varint,1,opt,name=xp,proto3" json:"xp,omitempty"`
+	UnitCompleted bool                   `protobuf:"varint,2,opt,name=unit_completed,json=unitCompleted,proto3" json:"unit_completed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteLessonResponse) Reset() {
+	*x = CompleteLessonResponse{}
+	mi := &file_learn_v1_learn_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteLessonResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteLessonResponse) ProtoMessage() {}
+
+func (x *CompleteLessonResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteLessonResponse.ProtoReflect.Descriptor instead.
+func (*CompleteLessonResponse) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *CompleteLessonResponse) GetXp() int32 {
+	if x != nil {
+		return x.Xp
+	}
+	return 0
+}
+
+func (x *CompleteLessonResponse) GetUnitCompleted() bool {
+	if x != nil {
+		return x.UnitCompleted
+	}
+	return false
+}
+
 var File_learn_v1_learn_proto protoreflect.FileDescriptor
 
 const file_learn_v1_learn_proto_rawDesc = "" +
@@ -697,14 +985,35 @@ const file_learn_v1_learn_proto_rawDesc = "" +
 	"\x06skills\x18\x02 \x03(\v2\x15.puchi.learn.v1.SkillR\x06skills\"{\n" +
 	"\x11GetLessonResponse\x12.\n" +
 	"\x06lesson\x18\x01 \x01(\v2\x16.puchi.learn.v1.LessonR\x06lesson\x126\n" +
-	"\texercises\x18\x02 \x03(\v2\x18.puchi.learn.v1.ExerciseR\texercises2\xa1\x04\n" +
+	"\texercises\x18\x02 \x03(\v2\x18.puchi.learn.v1.ExerciseR\texercises\")\n" +
+	"\x12StartLessonRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"4\n" +
+	"\x13StartLessonResponse\x12\x1d\n" +
+	"\n" +
+	"attempt_id\x18\x01 \x01(\tR\tattemptId\"\x87\x01\n" +
+	"\x13SubmitAnswerRequest\x12\"\n" +
+	"\n" +
+	"attempt_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tattemptId\x12$\n" +
+	"\vexercise_id\x18\x02 \x01(\tB\x03\xe0A\x02R\n" +
+	"exerciseId\x12&\n" +
+	"\fpayload_json\x18\x03 \x01(\tB\x03\xe0A\x02R\vpayloadJson\"0\n" +
+	"\x14SubmitAnswerResponse\x12\x18\n" +
+	"\acorrect\x18\x01 \x01(\bR\acorrect\",\n" +
+	"\x15CompleteLessonRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"O\n" +
+	"\x16CompleteLessonResponse\x12\x0e\n" +
+	"\x02xp\x18\x01 \x01(\x05R\x02xp\x12%\n" +
+	"\x0eunit_completed\x18\x02 \x01(\bR\runitCompleted2\xbf\a\n" +
 	"\fLearnService\x12N\n" +
 	"\x04Ping\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/learn/ping\x12n\n" +
 	"\x12CreateGuestSession\x12\x16.google.protobuf.Empty\x1a\x1c.puchi.learn.v1.GuestSession\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/v1/learn/guest/session\x12u\n" +
 	"\n" +
 	"ClaimGuest\x12!.puchi.learn.v1.ClaimGuestRequest\x1a\".puchi.learn.v1.ClaimGuestResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/learn/guest/claim\x12h\n" +
 	"\aGetUnit\x12\x1e.puchi.learn.v1.GetUnitRequest\x1a\x1f.puchi.learn.v1.GetUnitResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/learn/units/{id}\x12p\n" +
-	"\tGetLesson\x12 .puchi.learn.v1.GetLessonRequest\x1a!.puchi.learn.v1.GetLessonResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/v1/learn/lessons/{id}Bg\n" +
+	"\tGetLesson\x12 .puchi.learn.v1.GetLessonRequest\x1a!.puchi.learn.v1.GetLessonResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/v1/learn/lessons/{id}\x12\x7f\n" +
+	"\vStartLesson\x12\".puchi.learn.v1.StartLessonRequest\x1a#.puchi.learn.v1.StartLessonResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/v1/learn/lessons/{id}/start\x12\x8c\x01\n" +
+	"\fSubmitAnswer\x12#.puchi.learn.v1.SubmitAnswerRequest\x1a$.puchi.learn.v1.SubmitAnswerResponse\"1\x82\xd3\xe4\x93\x02+:\x01*\"&/v1/learn/attempts/{attempt_id}/answer\x12\x8b\x01\n" +
+	"\x0eCompleteLesson\x12%.puchi.learn.v1.CompleteLessonRequest\x1a&.puchi.learn.v1.CompleteLessonResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/learn/lessons/{id}/completeBg\n" +
 	"\x19io.grpc.examples.learn.v1B\n" +
 	"LearnProtoP\x01Z<github.com/puchidemy/puchi-backend/app/learn/api/learn/v1;v1b\x06proto3"
 
@@ -720,20 +1029,26 @@ func file_learn_v1_learn_proto_rawDescGZIP() []byte {
 	return file_learn_v1_learn_proto_rawDescData
 }
 
-var file_learn_v1_learn_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_learn_v1_learn_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_learn_v1_learn_proto_goTypes = []any{
-	(*GuestSession)(nil),       // 0: puchi.learn.v1.GuestSession
-	(*ClaimGuestRequest)(nil),  // 1: puchi.learn.v1.ClaimGuestRequest
-	(*ClaimGuestResponse)(nil), // 2: puchi.learn.v1.ClaimGuestResponse
-	(*GetUnitRequest)(nil),     // 3: puchi.learn.v1.GetUnitRequest
-	(*GetLessonRequest)(nil),   // 4: puchi.learn.v1.GetLessonRequest
-	(*Unit)(nil),               // 5: puchi.learn.v1.Unit
-	(*Skill)(nil),              // 6: puchi.learn.v1.Skill
-	(*Lesson)(nil),             // 7: puchi.learn.v1.Lesson
-	(*Exercise)(nil),           // 8: puchi.learn.v1.Exercise
-	(*GetUnitResponse)(nil),    // 9: puchi.learn.v1.GetUnitResponse
-	(*GetLessonResponse)(nil),  // 10: puchi.learn.v1.GetLessonResponse
-	(*emptypb.Empty)(nil),      // 11: google.protobuf.Empty
+	(*GuestSession)(nil),           // 0: puchi.learn.v1.GuestSession
+	(*ClaimGuestRequest)(nil),      // 1: puchi.learn.v1.ClaimGuestRequest
+	(*ClaimGuestResponse)(nil),     // 2: puchi.learn.v1.ClaimGuestResponse
+	(*GetUnitRequest)(nil),         // 3: puchi.learn.v1.GetUnitRequest
+	(*GetLessonRequest)(nil),       // 4: puchi.learn.v1.GetLessonRequest
+	(*Unit)(nil),                   // 5: puchi.learn.v1.Unit
+	(*Skill)(nil),                  // 6: puchi.learn.v1.Skill
+	(*Lesson)(nil),                 // 7: puchi.learn.v1.Lesson
+	(*Exercise)(nil),               // 8: puchi.learn.v1.Exercise
+	(*GetUnitResponse)(nil),        // 9: puchi.learn.v1.GetUnitResponse
+	(*GetLessonResponse)(nil),      // 10: puchi.learn.v1.GetLessonResponse
+	(*StartLessonRequest)(nil),     // 11: puchi.learn.v1.StartLessonRequest
+	(*StartLessonResponse)(nil),    // 12: puchi.learn.v1.StartLessonResponse
+	(*SubmitAnswerRequest)(nil),    // 13: puchi.learn.v1.SubmitAnswerRequest
+	(*SubmitAnswerResponse)(nil),   // 14: puchi.learn.v1.SubmitAnswerResponse
+	(*CompleteLessonRequest)(nil),  // 15: puchi.learn.v1.CompleteLessonRequest
+	(*CompleteLessonResponse)(nil), // 16: puchi.learn.v1.CompleteLessonResponse
+	(*emptypb.Empty)(nil),          // 17: google.protobuf.Empty
 }
 var file_learn_v1_learn_proto_depIdxs = []int32{
 	7,  // 0: puchi.learn.v1.Skill.lessons:type_name -> puchi.learn.v1.Lesson
@@ -741,18 +1056,24 @@ var file_learn_v1_learn_proto_depIdxs = []int32{
 	6,  // 2: puchi.learn.v1.GetUnitResponse.skills:type_name -> puchi.learn.v1.Skill
 	7,  // 3: puchi.learn.v1.GetLessonResponse.lesson:type_name -> puchi.learn.v1.Lesson
 	8,  // 4: puchi.learn.v1.GetLessonResponse.exercises:type_name -> puchi.learn.v1.Exercise
-	11, // 5: puchi.learn.v1.LearnService.Ping:input_type -> google.protobuf.Empty
-	11, // 6: puchi.learn.v1.LearnService.CreateGuestSession:input_type -> google.protobuf.Empty
+	17, // 5: puchi.learn.v1.LearnService.Ping:input_type -> google.protobuf.Empty
+	17, // 6: puchi.learn.v1.LearnService.CreateGuestSession:input_type -> google.protobuf.Empty
 	1,  // 7: puchi.learn.v1.LearnService.ClaimGuest:input_type -> puchi.learn.v1.ClaimGuestRequest
 	3,  // 8: puchi.learn.v1.LearnService.GetUnit:input_type -> puchi.learn.v1.GetUnitRequest
 	4,  // 9: puchi.learn.v1.LearnService.GetLesson:input_type -> puchi.learn.v1.GetLessonRequest
-	11, // 10: puchi.learn.v1.LearnService.Ping:output_type -> google.protobuf.Empty
-	0,  // 11: puchi.learn.v1.LearnService.CreateGuestSession:output_type -> puchi.learn.v1.GuestSession
-	2,  // 12: puchi.learn.v1.LearnService.ClaimGuest:output_type -> puchi.learn.v1.ClaimGuestResponse
-	9,  // 13: puchi.learn.v1.LearnService.GetUnit:output_type -> puchi.learn.v1.GetUnitResponse
-	10, // 14: puchi.learn.v1.LearnService.GetLesson:output_type -> puchi.learn.v1.GetLessonResponse
-	10, // [10:15] is the sub-list for method output_type
-	5,  // [5:10] is the sub-list for method input_type
+	11, // 10: puchi.learn.v1.LearnService.StartLesson:input_type -> puchi.learn.v1.StartLessonRequest
+	13, // 11: puchi.learn.v1.LearnService.SubmitAnswer:input_type -> puchi.learn.v1.SubmitAnswerRequest
+	15, // 12: puchi.learn.v1.LearnService.CompleteLesson:input_type -> puchi.learn.v1.CompleteLessonRequest
+	17, // 13: puchi.learn.v1.LearnService.Ping:output_type -> google.protobuf.Empty
+	0,  // 14: puchi.learn.v1.LearnService.CreateGuestSession:output_type -> puchi.learn.v1.GuestSession
+	2,  // 15: puchi.learn.v1.LearnService.ClaimGuest:output_type -> puchi.learn.v1.ClaimGuestResponse
+	9,  // 16: puchi.learn.v1.LearnService.GetUnit:output_type -> puchi.learn.v1.GetUnitResponse
+	10, // 17: puchi.learn.v1.LearnService.GetLesson:output_type -> puchi.learn.v1.GetLessonResponse
+	12, // 18: puchi.learn.v1.LearnService.StartLesson:output_type -> puchi.learn.v1.StartLessonResponse
+	14, // 19: puchi.learn.v1.LearnService.SubmitAnswer:output_type -> puchi.learn.v1.SubmitAnswerResponse
+	16, // 20: puchi.learn.v1.LearnService.CompleteLesson:output_type -> puchi.learn.v1.CompleteLessonResponse
+	13, // [13:21] is the sub-list for method output_type
+	5,  // [5:13] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
 	5,  // [5:5] is the sub-list for extension extendee
 	0,  // [0:5] is the sub-list for field type_name
@@ -769,7 +1090,7 @@ func file_learn_v1_learn_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_learn_v1_learn_proto_rawDesc), len(file_learn_v1_learn_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

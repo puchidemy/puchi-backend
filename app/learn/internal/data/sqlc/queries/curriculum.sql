@@ -15,3 +15,6 @@ SELECT * FROM learn.lessons WHERE skill_id = $1 ORDER BY position;
 
 -- name: ListExercisesByLessonID :many
 SELECT * FROM learn.exercises WHERE lesson_id = $1 ORDER BY position;
+
+-- name: GetExerciseByID :one
+SELECT * FROM learn.exercises WHERE id = $1;

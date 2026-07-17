@@ -15,7 +15,9 @@ type Querier interface {
 	CreateGuest(ctx context.Context, id string) error
 	DeleteGuestLessonProgress(ctx context.Context, arg DeleteGuestLessonProgressParams) error
 	DeleteGuestUnitProgress(ctx context.Context, arg DeleteGuestUnitProgressParams) error
+	GetActiveAttemptByOwnerLesson(ctx context.Context, arg GetActiveAttemptByOwnerLessonParams) (LearnAttempt, error)
 	GetAttemptByID(ctx context.Context, id string) (LearnAttempt, error)
+	GetExerciseByID(ctx context.Context, id string) (LearnExercise, error)
 	GetGuestByID(ctx context.Context, id string) (LearnGuest, error)
 	GetGuestByIDForUpdate(ctx context.Context, id string) (LearnGuest, error)
 	GetLessonByID(ctx context.Context, id string) (LearnLesson, error)
@@ -24,6 +26,7 @@ type Querier interface {
 	GetUnitByID(ctx context.Context, id string) (LearnUnit, error)
 	GetUnitProgress(ctx context.Context, arg GetUnitProgressParams) (LearnUserUnitProgress, error)
 	InsertAttemptAnswer(ctx context.Context, arg InsertAttemptAnswerParams) (LearnAttemptAnswer, error)
+	ListAttemptAnswersByAttemptID(ctx context.Context, attemptID string) ([]LearnAttemptAnswer, error)
 	ListExercisesByLessonID(ctx context.Context, lessonID string) ([]LearnExercise, error)
 	ListLessonProgressByOwner(ctx context.Context, arg ListLessonProgressByOwnerParams) ([]LearnUserLessonProgress, error)
 	ListLessonsBySkillID(ctx context.Context, skillID string) ([]LearnLesson, error)

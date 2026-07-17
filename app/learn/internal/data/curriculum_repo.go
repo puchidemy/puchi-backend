@@ -46,3 +46,8 @@ func (r *CurriculumRepo) GetLessonByID(ctx context.Context, id string) (*gen.Lea
 func (r *CurriculumRepo) ListExercisesByLessonID(ctx context.Context, lessonID string) ([]gen.LearnExercise, error) {
 	return r.q.ListExercisesByLessonID(ctx, lessonID)
 }
+
+// GetExerciseByID returns an exercise by ID.
+func (r *CurriculumRepo) GetExerciseByID(ctx context.Context, id string) (*gen.LearnExercise, error) {
+	return mapNoRows(r.q.GetExerciseByID(ctx, id))
+}

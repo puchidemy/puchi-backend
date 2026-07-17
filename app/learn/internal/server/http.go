@@ -22,6 +22,7 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, learnCfg *conf.Learn, ses
 		publicPaths = ensurePublicPath(publicPaths, "/v1/learn/guest/session")
 		publicPaths = ensurePublicPath(publicPaths, "/v1/learn/units/")
 		publicPaths = ensurePublicPath(publicPaths, "/v1/learn/lessons/")
+		publicPaths = ensurePublicPath(publicPaths, "/v1/learn/attempts/")
 	}
 
 	var opts = []kratoshttp.ServerOption{

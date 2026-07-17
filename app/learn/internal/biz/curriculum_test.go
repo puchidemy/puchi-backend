@@ -18,6 +18,7 @@ type mockCurriculumRepo struct {
 	listLessons func(ctx context.Context, skillID string) ([]gen.LearnLesson, error)
 	getLesson  func(ctx context.Context, id string) (*gen.LearnLesson, error)
 	listExercises func(ctx context.Context, lessonID string) ([]gen.LearnExercise, error)
+	getExercise func(ctx context.Context, id string) (*gen.LearnExercise, error)
 }
 
 func (m *mockCurriculumRepo) GetUnitByID(ctx context.Context, id string) (*gen.LearnUnit, error) {
@@ -44,8 +45,15 @@ func (m *mockCurriculumRepo) ListExercisesByLessonID(ctx context.Context, lesson
 	return m.listExercises(ctx, lessonID)
 }
 
+func (m *mockCurriculumRepo) GetExerciseByID(ctx context.Context, id string) (*gen.LearnExercise, error) {
+	if m.getExercise != nil {
+		return m.getExercise(ctx, id)
+	}
+	return nil, pgx.ErrNoRows
+}
+
 func newCurriculumTestUsecase(curriculum CurriculumRepoInterface) *LearnUsecase {
-	return NewLearnUsecase(&mockGuestRepo{}, &mockProgressRepo{}, curriculum, &mockTxManager{
+	return NewLearnUsecase(&mockGuestRepo{}, &mockProgressRepo{}, curriculum, &mockAttemptRepo{}, NoOpLessonEventPublisher{}, &mockTxManager{
 		guest:    &mockGuestRepo{},
 		progress: &mockProgressRepo{},
 	})

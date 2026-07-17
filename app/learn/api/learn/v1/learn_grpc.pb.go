@@ -25,6 +25,9 @@ const (
 	LearnService_ClaimGuest_FullMethodName         = "/puchi.learn.v1.LearnService/ClaimGuest"
 	LearnService_GetUnit_FullMethodName            = "/puchi.learn.v1.LearnService/GetUnit"
 	LearnService_GetLesson_FullMethodName          = "/puchi.learn.v1.LearnService/GetLesson"
+	LearnService_StartLesson_FullMethodName        = "/puchi.learn.v1.LearnService/StartLesson"
+	LearnService_SubmitAnswer_FullMethodName       = "/puchi.learn.v1.LearnService/SubmitAnswer"
+	LearnService_CompleteLesson_FullMethodName     = "/puchi.learn.v1.LearnService/CompleteLesson"
 )
 
 // LearnServiceClient is the client API for LearnService service.
@@ -36,6 +39,9 @@ type LearnServiceClient interface {
 	ClaimGuest(ctx context.Context, in *ClaimGuestRequest, opts ...grpc.CallOption) (*ClaimGuestResponse, error)
 	GetUnit(ctx context.Context, in *GetUnitRequest, opts ...grpc.CallOption) (*GetUnitResponse, error)
 	GetLesson(ctx context.Context, in *GetLessonRequest, opts ...grpc.CallOption) (*GetLessonResponse, error)
+	StartLesson(ctx context.Context, in *StartLessonRequest, opts ...grpc.CallOption) (*StartLessonResponse, error)
+	SubmitAnswer(ctx context.Context, in *SubmitAnswerRequest, opts ...grpc.CallOption) (*SubmitAnswerResponse, error)
+	CompleteLesson(ctx context.Context, in *CompleteLessonRequest, opts ...grpc.CallOption) (*CompleteLessonResponse, error)
 }
 
 type learnServiceClient struct {
@@ -96,6 +102,36 @@ func (c *learnServiceClient) GetLesson(ctx context.Context, in *GetLessonRequest
 	return out, nil
 }
 
+func (c *learnServiceClient) StartLesson(ctx context.Context, in *StartLessonRequest, opts ...grpc.CallOption) (*StartLessonResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartLessonResponse)
+	err := c.cc.Invoke(ctx, LearnService_StartLesson_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learnServiceClient) SubmitAnswer(ctx context.Context, in *SubmitAnswerRequest, opts ...grpc.CallOption) (*SubmitAnswerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SubmitAnswerResponse)
+	err := c.cc.Invoke(ctx, LearnService_SubmitAnswer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learnServiceClient) CompleteLesson(ctx context.Context, in *CompleteLessonRequest, opts ...grpc.CallOption) (*CompleteLessonResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompleteLessonResponse)
+	err := c.cc.Invoke(ctx, LearnService_CompleteLesson_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LearnServiceServer is the server API for LearnService service.
 // All implementations must embed UnimplementedLearnServiceServer
 // for forward compatibility.
@@ -105,6 +141,9 @@ type LearnServiceServer interface {
 	ClaimGuest(context.Context, *ClaimGuestRequest) (*ClaimGuestResponse, error)
 	GetUnit(context.Context, *GetUnitRequest) (*GetUnitResponse, error)
 	GetLesson(context.Context, *GetLessonRequest) (*GetLessonResponse, error)
+	StartLesson(context.Context, *StartLessonRequest) (*StartLessonResponse, error)
+	SubmitAnswer(context.Context, *SubmitAnswerRequest) (*SubmitAnswerResponse, error)
+	CompleteLesson(context.Context, *CompleteLessonRequest) (*CompleteLessonResponse, error)
 	mustEmbedUnimplementedLearnServiceServer()
 }
 
@@ -129,6 +168,15 @@ func (UnimplementedLearnServiceServer) GetUnit(context.Context, *GetUnitRequest)
 }
 func (UnimplementedLearnServiceServer) GetLesson(context.Context, *GetLessonRequest) (*GetLessonResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetLesson not implemented")
+}
+func (UnimplementedLearnServiceServer) StartLesson(context.Context, *StartLessonRequest) (*StartLessonResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartLesson not implemented")
+}
+func (UnimplementedLearnServiceServer) SubmitAnswer(context.Context, *SubmitAnswerRequest) (*SubmitAnswerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SubmitAnswer not implemented")
+}
+func (UnimplementedLearnServiceServer) CompleteLesson(context.Context, *CompleteLessonRequest) (*CompleteLessonResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteLesson not implemented")
 }
 func (UnimplementedLearnServiceServer) mustEmbedUnimplementedLearnServiceServer() {}
 func (UnimplementedLearnServiceServer) testEmbeddedByValue()                      {}
@@ -241,6 +289,60 @@ func _LearnService_GetLesson_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LearnService_StartLesson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartLessonRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearnServiceServer).StartLesson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearnService_StartLesson_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearnServiceServer).StartLesson(ctx, req.(*StartLessonRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearnService_SubmitAnswer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubmitAnswerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearnServiceServer).SubmitAnswer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearnService_SubmitAnswer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearnServiceServer).SubmitAnswer(ctx, req.(*SubmitAnswerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearnService_CompleteLesson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteLessonRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearnServiceServer).CompleteLesson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearnService_CompleteLesson_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearnServiceServer).CompleteLesson(ctx, req.(*CompleteLessonRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LearnService_ServiceDesc is the grpc.ServiceDesc for LearnService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -267,6 +369,18 @@ var LearnService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetLesson",
 			Handler:    _LearnService_GetLesson_Handler,
+		},
+		{
+			MethodName: "StartLesson",
+			Handler:    _LearnService_StartLesson_Handler,
+		},
+		{
+			MethodName: "SubmitAnswer",
+			Handler:    _LearnService_SubmitAnswer_Handler,
+		},
+		{
+			MethodName: "CompleteLesson",
+			Handler:    _LearnService_CompleteLesson_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

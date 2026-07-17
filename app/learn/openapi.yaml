@@ -6,6 +6,30 @@ info:
     title: LearnService API
     version: 0.0.1
 paths:
+    /v1/learn/attempts/{attemptId}/answer:
+        post:
+            tags:
+                - LearnService
+            operationId: LearnService_SubmitAnswer
+            parameters:
+                - name: attemptId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.learn.v1.SubmitAnswerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.SubmitAnswerResponse'
     /v1/learn/guest/claim:
         post:
             tags:
@@ -58,6 +82,54 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/puchi.learn.v1.GetLessonResponse'
+    /v1/learn/lessons/{id}/complete:
+        post:
+            tags:
+                - LearnService
+            operationId: LearnService_CompleteLesson
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.learn.v1.CompleteLessonRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.CompleteLessonResponse'
+    /v1/learn/lessons/{id}/start:
+        post:
+            tags:
+                - LearnService
+            operationId: LearnService_StartLesson
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.learn.v1.StartLessonRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.StartLessonResponse'
     /v1/learn/ping:
         get:
             tags:
@@ -96,6 +168,21 @@ components:
                 lessonsMerged:
                     type: integer
                     format: int32
+        puchi.learn.v1.CompleteLessonRequest:
+            required:
+                - id
+            type: object
+            properties:
+                id:
+                    type: string
+        puchi.learn.v1.CompleteLessonResponse:
+            type: object
+            properties:
+                xp:
+                    type: integer
+                    format: int32
+                unitCompleted:
+                    type: boolean
         puchi.learn.v1.Exercise:
             type: object
             properties:
@@ -168,6 +255,36 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/puchi.learn.v1.Lesson'
+        puchi.learn.v1.StartLessonRequest:
+            required:
+                - id
+            type: object
+            properties:
+                id:
+                    type: string
+        puchi.learn.v1.StartLessonResponse:
+            type: object
+            properties:
+                attemptId:
+                    type: string
+        puchi.learn.v1.SubmitAnswerRequest:
+            required:
+                - attemptId
+                - exerciseId
+                - payloadJson
+            type: object
+            properties:
+                attemptId:
+                    type: string
+                exerciseId:
+                    type: string
+                payloadJson:
+                    type: string
+        puchi.learn.v1.SubmitAnswerResponse:
+            type: object
+            properties:
+                correct:
+                    type: boolean
         puchi.learn.v1.Unit:
             type: object
             properties:
