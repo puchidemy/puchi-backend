@@ -2,7 +2,7 @@
 
 Monorepo Go microservices cho **Puchi** — nền tảng học tiếng Việt.
 
-Kiến trúc: **Kratos v3** monorepo, 8 service modules, Go workspace.
+Kiến trúc: **Kratos v3** monorepo, 7 service modules, Go workspace.
 
 ## Tech Stack
 
@@ -25,12 +25,10 @@ puchi-backend/
 ├── api/                      # Protobuf definitions (shared)
 ├── app/                      # Go service modules
 │   ├── auth/                 # Limen auth-service (identity, OAuth, session)
-│   ├── core/                 # Profile + game stats
-│   ├── content/              # Courses, units, lessons
-│   ├── grading/              # Dictation, listening grading
+│   ├── core/                 # Profile + gamification stats
+│   ├── learn/                # Curriculum, attempts, guest trial, grading
 │   ├── user/                 # Social features
-│   ├── game/                 # XP, leaderboard
-│   ├── media/                # Upload, resize
+│   ├── media/                # Upload (R2)
 │   └── notification/         # Push, email
 ├── pkg/                      # Shared Kit library
 │   └── auth/                 # Bearer session introspect middleware
@@ -54,16 +52,14 @@ Chi tiết: xem `.cursor/rules/auth-service.mdc` và workspace spec `docs/superp
 
 ## Services
 
-| Service | Module | Ports | Docker image |
-|---------|--------|-------|-------------|
-| Auth | `app/auth` | **8000** | `puchi-auth` |
-| Core | `app/core` | 8000/9000 | `puchi-core` |
-| Content | `app/content` | 8000/9000 | `puchi-content` |
-| Grading | `app/grading` | 8000/9000 | `puchi-grading` |
-| User | `app/user` | 8000/9000 | `puchi-user` |
-| Game | `app/game` | 8000/9000 | `puchi-game` |
-| Media | `app/media` | 8000/9000 | `puchi-media` |
-| Notification | `app/notification` | 8000/9000 | `puchi-notification` |
+| Service | Module | Ports | Docker image | Envoy path |
+|---------|--------|-------|-------------|------------|
+| Auth | `app/auth` | **8000** | `puchi-auth` | `/auth` |
+| Core | `app/core` | 8000/9000 | `puchi-core` | `/core` |
+| Learn | `app/learn` | 8000/9000 | `puchi-learn` | `/v1/learn` |
+| User | `app/user` | 8000/9000 | `puchi-user` | `/user` |
+| Media | `app/media` | 8000/9000 | `puchi-media` | `/media` |
+| Notification | `app/notification` | 8000/9000 | `puchi-notification` | `/notification` |
 
 ## Dev Local
 

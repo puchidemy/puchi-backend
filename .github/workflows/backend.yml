@@ -24,9 +24,7 @@ jobs:
       matrix:
         service:
           - core
-          - content
-          - grading
-          - game
+          - learn
           - user
           - media
           - notification
@@ -49,9 +47,7 @@ jobs:
       matrix:
         service:
           - core
-          - content
-          - grading
-          - game
+          - learn
           - user
           - media
           - notification
@@ -107,7 +103,7 @@ jobs:
       - name: Update all backend deployment images
         run: |
           SHA_TAG="git-${GITHUB_SHA::7}"
-          for service in core content grading game user media notification auth email; do
+          for service in core learn user media notification auth email; do
             DEPLOY="puchi-infra/infra/backend/$service/deployment.yaml"
             OLD_IMAGE="ghcr.io/puchidemy/puchi-$service:latest"
             NEW_IMAGE="ghcr.io/puchidemy/puchi-$service:$SHA_TAG"
