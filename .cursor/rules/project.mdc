@@ -14,8 +14,8 @@ Monorepo Go microservices với **Kratos v3**. 8 service modules trong `app/`, w
 | Ngôn ngữ | Go 1.26 |
 | Framework | Kratos v3 (HTTP/gRPC hybrid, Protobuf-first) |
 | DI | Wire (compile-time) |
-| Auth | Auth-service tự xây dựng (app/auth/) — JWT RS256, JWKS endpoint |
-| Auth middleware | `pkg/auth/` (shared across services, JWKS local verify) |
+| Auth | Auth-service (Limen) — `app/auth/` opaque session + Bearer |
+| Auth middleware | `pkg/auth/` — session introspect via `GET /internal/session` |
 | Database | PostgreSQL 18 (CloudNativePG), schema `auth.*` + `core.*` |
 | Cache | Valkey/Redis |
 | Message Queue | NATS (event-driven, outbox pattern) |
@@ -26,8 +26,8 @@ Monorepo Go microservices với **Kratos v3**. 8 service modules trong `app/`, w
 
 ```
 puchi-backend/
-├── app/                           # 9 Go service modules
-│   ├── auth/                      # Auth-service — identity, OAuth2, MFA, RBAC
+├── app/                           # Go service modules
+│   ├── auth/                      # Limen auth-service — identity, OAuth, sessions
 │   ├── core/                      # User profile, game, stats (core domain)
 │   ├── content/                   # Courses, units, lessons
 │   ├── grading/                   # Dictation, listening grading
@@ -37,7 +37,7 @@ puchi-backend/
 │   ├── email/                     # Email sender (NATS subscriber → SMTP)
 │   └── notification/              # Push, email (SMTP + NATS)
 ├── pkg/                           # Shared Kit library
-│   └── auth/                      # JWT verification middleware (JWKS local cache)
+│   └── auth/                      # Bearer session introspect middleware
 ├── go.work                        # Go workspace (dev only)
 └── Makefile                       # Build helper
 ```
@@ -55,27 +55,28 @@ internal/
 
 ## Auth middleware — `pkg/auth/`
 
-Shared package cho JWT verification, tất cả backend service đều import.
+Shared package cho **opaque Bearer session introspect**, tất cả backend service (trừ auth) đều import.
 
 | File | Mô tả |
 |------|-------|
-| `auth.go` | `InitAuth(authServiceURL)` — tạo JWTValidator từ auth-service URL |
-| `jwt.go` | JWTValidator — fetch JWKS từ auth-service, verify signature + issuer, double-checked locking cache |
-| `middleware.go` | HTTP middleware — parse JWT từ `Authorization: Bearer`, inject UserID + Roles vào context |
+| `auth.go` | `InitAuth(authServiceURL)` — tạo `SessionValidator` |
+| `jwt.go` | `SessionValidator` — `GET /internal/session`, cache ~60s; `JWTValidator` = alias |
+| `middleware.go` | Parse `Authorization: Bearer`, inject UserID (+ roles nếu có) vào context |
 | `context.go` | `UserIDFromContext()`, `RolesFromContext()`, `HasRole()` |
 
-JWT verification flow:
+Session verification flow:
 ```
-Request → Authorization: Bearer <JWT>
-       → JWTValidator.ParseAndValidate()
-       → Fetch JWKS từ auth-service: /.well-known/jwks.json (cached 15 phút)
-       → Verify signature (RS256) + issuer claim + exp (30s leeway)
-       → Extract sub (userID), roles, perm_version → inject context
+Request → Authorization: Bearer <opaque>
+       → SessionValidator.ParseAndValidate()
+       → GET {auth_service_url}/internal/session (cached ~60s)
+       → Extract user id → inject context
 ```
+
+Không dùng JWT/JWKS.
 
 ## Auth-service — `app/auth/`
 
-Auth-service riêng biệt (không phải middleware). Xem `auth-service.mdc` rule.
+Thin Limen service (không phải Kratos layered). Xem `auth-service.mdc` rule.
 
 ## Docker build pattern
 
@@ -104,14 +105,14 @@ CI matrix (`.github/workflows/backend.yml`): `context: .`, `file: app/{service}/
 - **CI**: GitHub Actions (`backend.yml`) — Matrix build 8 services, Go 1.26
 - **Paths trigger**: `app/**`, `pkg/**`
 - **Registry**: `ghcr.io/puchidemy/puchi-{service}`
-- **Ports**: HTTP 8000-8080, gRPC 9090
+- **Ports**: Auth HTTP **8000**; other services HTTP 8000 + gRPC 9000
 
 ## Kết nối Infra
 
 | Service | Internal DNS |
 |---------|--------------|
-| Auth-service | `auth-service.puchi-backend.svc.cluster.local:8080` |
-| Auth-service JWKS | `auth-service.puchi-backend.svc.cluster.local:8080/.well-known/jwks.json` |
+| Auth-service | `auth-service.puchi-backend.svc.cluster.local:8000` |
+| Auth introspect | `http://auth-service.puchi-backend:8000/internal/session` |
 | PostgreSQL (Puchi) | `pg-puchi-rw.puchi-db.svc.cluster.local:5432` |
 | NATS | `nats.platform.svc.cluster.local:4222` |
 | Garage (S3) | `http://garage.platform.svc.cluster.local:3900` |
@@ -120,13 +121,13 @@ CI matrix (`.github/workflows/backend.yml`): `context: .`, `file: app/{service}/
 ## Dev Local
 
 ```bash
-# Auth-service (phải chạy trước)
-export TOTP_ENCRYPTION_KEY=0000000000000000000000000000000000000000000000000000000000000000
-cd app/auth && go run ./cmd/auth/
+# Auth-service (phải chạy trước) — cần LIMEN_SECRET đúng 32 bytes
+export LIMEN_SECRET="$(openssl rand -base64 24 | head -c 32)"
+# apply app/auth/migrations/001_limen_schema.up.sql
+cd app/auth && go run ./cmd/auth/ -conf ../../configs
 
 # Backend service khác
 cd app/core && go run ./cmd/core/
 
-# Config
-app/auth/configs/config.yaml: auth.issuer = http://localhost:8080
+# Config: auth.auth_service_url = http://localhost:8000
 ```

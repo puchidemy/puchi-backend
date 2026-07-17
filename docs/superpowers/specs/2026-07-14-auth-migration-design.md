@@ -1,10 +1,10 @@
 # Auth Migration: Clerk → Supertokens (Self-hosted)
 
-> **⚠️ SUPERSEDED** — Auth đã migrate từ Supertokens → Zitadel (xem `docs/superpowers/specs/2026-07-16-auth-service-design.md` cho thiết kế hiện tại).
-> Sau đó từ Zitadel → Auth-service tự xây dựng (Go/Kratos), xoá bỏ hoàn toàn Zitadel.
+> **⚠️ SUPERSEDED** — Auth hiện dùng **Limen**. Spec: `docs/superpowers/specs/2026-07-17-limen-auth-design.md` (workspace root).  
+> Lịch sử: Clerk → Supertokens → Zitadel → custom JWT auth-service → **Limen**.
 
 **Date:** 2026-07-14
-**Status:** Implemented & Deployed
+**Status:** Historical
 **Author:** Hoan
 
 ## Overview

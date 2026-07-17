@@ -166,7 +166,7 @@ func runMigrations(pool *pgxpool.Pool) error {
 | Schema | `{service}_name` | `core`, `user_social` |
 | Table | `snake_case`, plural only if collection | `users`, `daily_activities` |
 | Column | `snake_case` | `first_name`, `created_at` |
-| Primary key | `id TEXT` (UUID from Zitadel for users), `BIGSERIAL` for auto-increment | |
+| Primary key | `id` UUID (text/uuid từ Limen user id), `BIGSERIAL` cho auto-increment | |
 | Foreign key | `{referenced_table}_id` | `user_id` |
 | Timestamp | `TIMESTAMPTZ`, suffix `_at` | `created_at`, `unlocked_at` |
 | Boolean | `IS_` prefix or `_enabled` suffix | `unlocked`, `push_enabled` |
@@ -301,26 +301,25 @@ Subject format: `puchi.{domain}.{event}`
 
 ---
 
-## 5. Auth Sync — Zitadel JWT → Core DB
+## 5. Auth Sync — Limen session → Core DB
 
 ### Hybrid Strategy
 
-**Path A — JWT lazy creation (primary):**
+**Path A — NATS event (preferred):**
 ```
-FE request → Core middleware verify JWT → userId từ sub claim
+auth-service (Limen) tạo user → publish auth.user.created
+  → Core subscriber (nếu có) INSERT core.users
+```
+
+**Path B — Lazy creation (fallback):**
+```
+FE request → Core middleware introspect Bearer → userId
   → SELECT users WHERE id = userId → NOT FOUND
-  → Extract email từ JWT claims
-  → INSERT users (auto-generate username), INSERT user_stats
-  → NATS publish "user.created"
+  → INSERT users (auto-generate username từ email nếu có), INSERT user_stats
+  → NATS publish user.created (domain event)
 ```
 
-**Path B — Fallback via Zitadel API:**
-```
-Khi JWT không có email claim, gọi Zitadel Management API để lấy user info
-  → GET /v2beta/users/{userId}
-  → INSERT users
-```
-
+Không gọi Zitadel / không parse JWT claims. User id = Limen user UUID.
 ### Username Auto-generation
 
 ```go
@@ -461,14 +460,11 @@ data:
   redis:
     addr: valkey:6379
 auth:
-  zitadel:
-    issuer_url: "https://auth.puchi.io.vn"
-    jwks_url: "https://auth.puchi.io.vn/oauth/v2/keys"
+  auth_service_url: "http://auth-service.puchi-backend:8000"
   public_paths:
     - /v1/health
     - /v1/healthz
 ```
-
 Config proto for data section (update existing template):
 
 ```protobuf

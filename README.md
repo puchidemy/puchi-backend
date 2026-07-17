@@ -11,7 +11,7 @@ Kiến trúc: **Kratos v3** monorepo, 8 service modules, Go workspace.
 | Ngôn ngữ | Go 1.26 |
 | Framework | Kratos v3 (HTTP + gRPC hybrid, Protobuf-first) |
 | DI | Wire (compile-time) |
-| Auth | Auth-service tự xây dựng — JWT RS256, JWKS local cache |
+| Auth | **Limen** (`app/auth/`) — opaque session + Bearer introspect |
 | Database | PostgreSQL 18 (CloudNativePG) |
 | Cache | Valkey / Redis |
 | Message Queue | NATS (event-driven) |
@@ -23,46 +23,40 @@ Kiến trúc: **Kratos v3** monorepo, 8 service modules, Go workspace.
 ```
 puchi-backend/
 ├── api/                      # Protobuf definitions (shared)
-│   ├── auth/v1/
-│   ├── content/v1/
-│   ├── grading/v1/
-│   ├── user/v1/
-│   ├── game/v1/
-│   ├── media/v1/
-│   └── notification/v1/
-├── app/                      # 8 Go service modules
-│   ├── auth/                 # Identity: login, register, OAuth2, session, MFA, RBAC
-│   ├── core/                 # Auth verify + User + Game (Phase 1)
+├── app/                      # Go service modules
+│   ├── auth/                 # Limen auth-service (identity, OAuth, session)
+│   ├── core/                 # Profile + game stats
 │   ├── content/              # Courses, units, lessons
 │   ├── grading/              # Dictation, listening grading
-│   ├── user/                 # Profile, settings (Phase 3)
-│   ├── game/                 # XP, leaderboard (Phase 3)
-│   ├── media/                # Upload, resize (Phase 1)
-│   └── notification/         # Push, email (Phase 3)
+│   ├── user/                 # Social features
+│   ├── game/                 # XP, leaderboard
+│   ├── media/                # Upload, resize
+│   └── notification/         # Push, email
 ├── pkg/                      # Shared Kit library
-│   └── auth/                 # JWT verification middleware (JWKS local, 15-min cache)
+│   └── auth/                 # Bearer session introspect middleware
 ├── go.work                   # Go workspace (dev only, không build CI)
-└── Makefile                  # Build helper
+└── Makefile
 ```
 
-## Auth
+## Auth (Limen)
 
-Backend xác thực qua **JWT verification** từ auth-service tự xây dựng. Middleware trong `pkg/auth/`:
+Auth-service mount [Limen](https://limenauth.dev/) tại `/auth/`. Các Go service khác verify qua `pkg/auth/`:
 
-1. Parse `Authorization: Bearer <JWT>` từ request
-2. Fetch JWKS từ auth-service (cached 15 phút)
-3. Verify RS256 signature + issuer claim
-4. Lấy userID từ `sub` claim → inject vào context
+1. Parse `Authorization: Bearer <opaque>`
+2. `GET {auth_service_url}/internal/session` (cache ~60s)
+3. Inject user id vào context
 
-Double token pattern: JWT access (RS256, 15min) + opaque refresh (SHA-256, 30d rotation).
+Methods: Email/Password + Google + Facebook + TikTok.
 
-Auth methods: Email/Password (Argon2id) + Google + Facebook + TikTok + Magic Link + TOTP MFA.
+OAuth callbacks: `https://api.puchi.io.vn/auth/oauth/{google|facebook|tiktok}/callback`
+
+Chi tiết: xem `.cursor/rules/auth-service.mdc` và workspace spec `docs/superpowers/specs/2026-07-17-limen-auth-design.md`.
 
 ## Services
 
 | Service | Module | Ports | Docker image |
 |---------|--------|-------|-------------|
-| Auth | `app/auth` | 8080 | `puchi-auth` |
+| Auth | `app/auth` | **8000** | `puchi-auth` |
 | Core | `app/core` | 8000/9000 | `puchi-core` |
 | Content | `app/content` | 8000/9000 | `puchi-content` |
 | Grading | `app/grading` | 8000/9000 | `puchi-grading` |
@@ -74,17 +68,16 @@ Auth methods: Email/Password (Argon2id) + Google + Facebook + TikTok + Magic Lin
 ## Dev Local
 
 ```bash
-# Auth service (cần private.pem)
+# Auth (cần LIMEN_SECRET đúng 32 bytes + migration 001_limen_schema)
+export LIMEN_SECRET="$(openssl rand -base64 24 | head -c 32)"
 cd app/auth && go run ./cmd/auth/ -conf ../../configs
 
-# Core service
+# Core
 cd app/core && go run ./cmd/core/
 
-# Auth config trong configs/config.yaml
-# auth.issuer = https://api.puchi.io.vn
-# auth.private_key_path = configs/private.pem
+# auth.auth_service_url = http://localhost:8000
 ```
 
 ## Deployment
 
-CI/CD: GitHub Actions (`backend.yml`) — matrix build 8 services → `ghcr.io/puchidemy/puchi-{service}`.
+CI/CD: GitHub Actions (`backend.yml`) — matrix build → `ghcr.io/puchidemy/puchi-{service}`.

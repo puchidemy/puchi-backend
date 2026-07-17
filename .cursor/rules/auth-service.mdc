@@ -14,14 +14,16 @@ Thin auth service built on [Limen](https://limenauth.dev/) — replaces the cust
 |-------|------|
 | Library | `github.com/thecodearcher/limen` + plugins |
 | HTTP | `net/http` (Limen handler mounted at `/auth/`) |
+| Port | **8000** (HTTP only — no gRPC) |
 | DB | PostgreSQL schema `auth` (Limen tables) |
 | Events | NATS (`auth.user.created`, `email.send`) |
 | Session | Opaque cookie + Bearer (`WithBearerEnabled`) |
 
-## Plugins (day 1)
+## Plugins
 
 - `credential-password` (username support, password reset, email verify)
 - `oauth` + `oauth-google` + `oauth-facebook`
+- Custom TikTok provider: `internal/oauth/tiktok` (Login Kit — `client_key` / `client_secret`)
 
 ## Layout
 
@@ -31,7 +33,8 @@ app/auth/
 ├── configs/config.yaml
 ├── migrations/001_limen_schema.up.sql
 ├── internal/config/
-└── internal/events/
+├── internal/events/
+└── internal/oauth/tiktok/
 ```
 
 ## Key endpoints
@@ -46,17 +49,30 @@ app/auth/
 
 `pkg/auth` validates `Authorization: Bearer <opaque>` by calling
 `GET {auth_service_url}/internal/session` (in-memory cache ~60s).
+`JWTValidator` is a type alias for `SessionValidator` (Wire compatibility).
 
-## Config
+## Config / secrets
 
-- `LIMEN_SECRET` — exactly 32 bytes
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
-- `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET`
-- OAuth callbacks: `{BaseURL}/auth/oauth/{google|facebook}/callback`
+| Env | Notes |
+|-----|-------|
+| `LIMEN_SECRET` | Exactly 32 bytes — cluster secret `auth-limen-secret` |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | |
+| `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET` | |
+| `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET` | TikTok Login Kit naming |
+| OAuth credentials | Cluster secret `auth-oauth-credentials` (not in git) |
+
+OAuth callbacks: `{BaseURL}/auth/oauth/{google|facebook|tiktok}/callback`
+
+Production BaseURL: `https://api.puchi.io.vn`
 
 ## Local
 
 ```bash
 # apply migrations/001_limen_schema.up.sql to Postgres (search_path=auth)
+export LIMEN_SECRET="$(openssl rand -base64 24 | head -c 32)"
 cd app/auth && go run ./cmd/auth/ -conf ../../configs
 ```
+
+## Không còn (đã xoá)
+
+JWT RS256 / JWKS, magic-link, TOTP MFA, RBAC trong auth-service, Valkey session store tùy chỉnh.

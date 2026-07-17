@@ -1,5 +1,8 @@
 # Auth Migration Implementation Plan (Updated)
 
+> **?? SUPERSEDED (2026-07-17)** — Auth ð? chuy?n sang **Limen**. Spec hi?n t?i: `docs/superpowers/specs/2026-07-17-limen-auth-design.md`. Plan dý?i ðây là l?ch s? JWT custom — **không** follow ð? implement.
+
+
 > **âš ï¸ SUPERSEDED** â€” Auth Ä‘Ã£ migrate tá»« Supertokens â†’ Auth-service tá»± xÃ¢y dá»±ng (Go/Kratos), xoÃ¡ hoÃ n toÃ n Zitadel.
 > Xem main spec: `docs/superpowers/specs/2026-07-16-auth-service-design.md`
 

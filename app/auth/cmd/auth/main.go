@@ -25,6 +25,7 @@ import (
 
 	"github.com/puchidemy/puchi-backend/app/auth/internal/config"
 	"github.com/puchidemy/puchi-backend/app/auth/internal/events"
+	oauthtiktok "github.com/puchidemy/puchi-backend/app/auth/internal/oauth/tiktok"
 )
 
 func main() {
@@ -154,10 +155,20 @@ func main() {
 					})
 				}),
 			),
-			oauth.New(oauth.WithProviders(
-				oauthgoogle.New(),
-				oauthfacebook.New(),
-			)),
+			oauth.New(
+				oauth.WithProviders(
+					oauthgoogle.New(),
+					oauthfacebook.New(),
+					oauthtiktok.New(),
+				),
+				oauth.WithMapProfileToUser(func(info *limen.OAuthAccountProfile) map[string]any {
+					out := map[string]any{}
+					if info.Name != "" {
+						out["first_name"] = info.Name
+					}
+					return out
+				}),
+			),
 		},
 	})
 	if err != nil {

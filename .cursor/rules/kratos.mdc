@@ -35,18 +35,18 @@ app/{service}/
 
 ## Auth middleware (shared — `pkg/auth/`)
 
-Tất cả backend service đều dùng `pkg/auth/` cho JWT verification:
+Tất cả backend service (trừ auth) dùng `pkg/auth/` cho **opaque Bearer session introspect** (Limen):
 
 ```go
 import authpkg "github.com/puchidemy/puchi-backend/pkg/auth"
 
 // Trong main.go:
-jwtValidator := authpkg.InitAuth(bc.Auth.AuthServiceUrl)
+sessionValidator := authpkg.InitAuth(bc.Auth.AuthServiceUrl)
 
 // Trong http.go server options:
 http.Filter(authpkg.Middleware(authpkg.MiddlewareConfig{
     PublicPaths: bc.Auth.PublicPaths,
-    Validator:   jwtValidator,
+    Validator:   sessionValidator,
 }))
 
 // Trong service layer:
@@ -54,6 +54,9 @@ userID, _ := auth.UserIDFromContext(ctx)
 roles, _ := auth.RolesFromContext(ctx)
 auth.HasRole(ctx, "admin")
 ```
+
+`auth.auth_service_url` trỏ tới auth-service (vd. `http://auth-service.puchi-backend:8000`).
+Không fetch JWKS — gọi `GET /internal/session` (+ cache ~60s).
 
 ## Coding rules
 
