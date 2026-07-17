@@ -9,40 +9,25 @@ alwaysApply: false
 ## Package naming
 
 ```protobuf
-package puchi.{domain}.v1;
+package auth.v1;
 ```
 
-Import path: `api/{domain}/v1/{service}.proto`
+Import path: `app/{service}/api/{domain}/v1/{service}.proto`
 
 ## File structure
 
 ```protobuf
 syntax = "proto3";
-
-package puchi.auth.v1;
-
+package auth.v1;
 import "google/api/annotations.proto";
-import "validate/validate.proto";
 
-// Service definition
 service AuthService {
-  rpc Register (RegisterRequest) returns (RegisterResponse) {
-    option (google.api.http) = {
-      post: "/v1/auth/register"
-      body: "*"
-    };
-  }
+  rpc Register(RegisterRequest) returns (RegisterResponse);
 }
 
-// Messages
 message RegisterRequest {
-  string email = 1 [(validate.rules).string.email = true];
-  string password = 2 [(validate.rules).string.min_len = 8];
-}
-
-message RegisterResponse {
-  string user_id = 1;
-  string token = 2;
+  string email = 1;
+  string password = 2;
 }
 ```
 
@@ -56,6 +41,10 @@ message RegisterResponse {
 
 ## HTTP mapping
 
-- RESTful: `GET/POST/PUT/DELETE /v1/{resource}/:id`
-- Body: `body: "*"` cho POST/PUT
-- gRPC: port 9090, HTTP: port 8080
+- Service proto dùng annotations để generate HTTP handler (qua protoc-gen-go-http)
+- Auth-service: HTTP port 8080, gRPC port 9090
+- Backend service: HTTP port 8000, gRPC port 9000
+
+## Generate
+
+Dùng `buf generate` với cấu hình trong file `buf.gen.yaml` của service.

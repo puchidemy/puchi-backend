@@ -19,49 +19,67 @@ Mỗi service follow layout Kratos chuẩn:
 ```
 app/{service}/
 ├── cmd/{service}/
-│   ├── main.go          # Entrypoint
-│   ├── wire.go          # Wire DI providers
-│   └── wire_gen.go      # Generated Wire code
+│   ├── main.go              # Entrypoint
+│   ├── wire.go              # Wire DI providers
+│   └── wire_gen.go          # Generated Wire code
 ├── internal/
-│   ├── conf/            # Config proto → conf.pb.go
-│   ├── server/          # HTTP + gRPC server bootstrap
-│   ├── service/         # Proto server impl (transport)
-│   ├── biz/             # Domain logic, entities, repo interfaces
-│   └── data/            # Repository implementations
-├── api/todo/v1/         # Proto definitions (move to root api/ later)
-├── configs/             # Kratos config YAML
+│   ├── conf/                # Config proto → conf.pb.go
+│   ├── server/              # HTTP + gRPC server bootstrap
+│   ├── service/             # Proto server impl (transport)
+│   ├── biz/                 # Domain logic, entities, repo interfaces
+│   └── data/                # Repository implementations (sqlc, publisher, cache)
+├── configs/                 # Kratos config YAML
 ├── Dockerfile
-├── Makefile
 └── go.mod
 ```
 
-## Auth middleware (shared — pkg/auth/)
+## Auth middleware (shared — `pkg/auth/`)
 
-Auth middleware nằm trong `pkg/auth/`, các service có thể dùng lại:
+Tất cả backend service đều dùng `pkg/auth/` cho JWT verification:
 
-- `auth.InitZitadel(issuerURL, jwksURL)` — khởi tạo JWT verifier (gọi ở main.go trước wireApp)
-- `auth.Middleware()` — HTTP middleware, verify JWT (JWKS), inject UserID vào context
-- `auth.UserIDFromContext(ctx)` — lấy UserID từ context
-- JWT verification: fetch JWKS từ Zitadel, verify signature + issuer (không phải session verification)
-- Note: `app/core/internal/auth/` re-exports từ `pkg/auth/` qua type aliases (backward compat)
+```go
+import authpkg "github.com/puchidemy/puchi-backend/pkg/auth"
+
+// Trong main.go:
+jwtValidator := authpkg.InitAuth(bc.Auth.AuthServiceUrl)
+
+// Trong http.go server options:
+http.Filter(authpkg.Middleware(authpkg.MiddlewareConfig{
+    PublicPaths: bc.Auth.PublicPaths,
+    Validator:   jwtValidator,
+}))
+
+// Trong service layer:
+userID, _ := auth.UserIDFromContext(ctx)
+roles, _ := auth.RolesFromContext(ctx)
+auth.HasRole(ctx, "admin")
+```
 
 ## Coding rules
 
 - **Service layer**: Validate input, ko business logic
 - **Biz layer**: Domain logic, định nghĩa repository interface
-- **Data layer**: Implement repository (GORM, SQL, Redis client)
+- **Data layer**: Implement repository (sqlc, pgx/v5, redis client, nats publisher)
 - **Wire**: Dùng compile-time DI, ko có `init()` pattern
-- **Error**: Dùng Kratos error với `error_reason.proto`
+- **Error**: Dùng sentinel errors (`errors.New`), kiểm tra với `errors.Is()`. Ko leak internal error ra client.
 - **Logger**: Dùng `log/slog` (Kratos v3 standard)
 - **Config**: Đọc từ `configs/config.yaml`, parse bằng proto
 
-## Event-driven (NATS)
+## NATS Events (Outbox Pattern)
 
-- Service emit event → Grading `lesson.completed` → NATS
-- Service listen event → Game +XP, User update progress, Notification push
-- Subject pattern: `puchi.{domain}.{event}`
+- Service emit event → ghi vào `auth.outbox` table (transactional)
+- Publisher goroutine poll outbox (5s) → publish to NATS
+- Subject pattern: `auth.{domain}.{event}` (ví dụ: `auth.user.created`)
+- Email: publish `email.send` → notification-service handle SMTP
 
-## Migrations
+## sqlc + goose
 
 - Dùng `goose` cho migration
 - File migration: `migrations/` ở mỗi service
+- Dùng `sqlc` generate type-safe Go code từ SQL
+- `sqlc.yaml`: engine postgresql, sql_package pgx/v5, emit_interface=true
+
+## PostgreSQL 18 features
+
+- Dùng `uuidv7()` cho PK của bảng có time-range query (sessions, audit_logs, outbox)
+- Schema riêng (`auth.*`, `core.*`) — mỗi service sở hữu schema của mình

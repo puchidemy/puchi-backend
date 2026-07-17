@@ -1,0 +1,151 @@
+---
+description: Auth-service conventions — app/auth/ của puchi-backend
+globs: app/auth/**/*.go, app/auth/**/*.sql
+alwaysApply: false
+---
+
+# Auth Service
+
+Auth service tự xây dựng (self-hosted), thay thế Zitadel/Supertokens. Nằm trong `app/auth/`.
+
+## Tech Stack
+
+| Thành phần | Công nghệ |
+|------------|-----------|
+| Framework | Kratos v3 (HTTP 8080 + gRPC 9090) |
+| DI | Wire (compile-time) |
+| DB | PostgreSQL 18, schema `auth` |
+| Cache | Valkey/Redis (session, rate limit, token blacklist) |
+| Queue | NATS (outbox pattern) |
+| Password | Argon2id (golang.org/x/crypto) |
+| JWT | RS256 (golang-jwt/jwt/v5) |
+| OAuth2 | golang.org/x/oauth2 + per-provider implementation |
+| TOTP | github.com/pquerna/otp (AES-256-GCM encrypted) |
+| Migration | goose + sqlc |
+
+## Cấu trúc
+
+```
+app/auth/
+├── api/auth/v1/auth.proto          # Proto định nghĩa
+├── cmd/auth/
+│   ├── main.go                     # Entrypoint, đọc config, init
+│   ├── wire.go                     # Wire DI
+│   ├── wire_gen.go                 # Generated
+│   └── providers.go                # TokenConfig, EncryptionKey providers
+├── configs/config.yaml             # Dev config
+├── internal/
+│   ├── conf/conf.proto             # Bootstrap config proto
+│   ├── server/                     # HTTP + gRPC server
+│   │   ├── http.go                 # Routes, CORS, JWKS endpoint
+│   │   ├── grpc.go                 # gRPC server
+│   │   ├── cors.go                 # CORS middleware
+│   │   └── server.go               # ProviderSet
+│   ├── service/                    # HTTP handlers (transport)
+│   │   ├── auth.go                 # Register, Login, Refresh, Logout
+│   │   ├── social.go               # OAuth2 callback handlers (stubs)
+│   │   ├── mfa.go                  # TOTP handlers + extractJWTClaims
+│   │   ├── magic_link.go          # Magic link handlers
+│   │   ├── session.go             # Session management handlers
+│   │   ├── admin.go               # RBAC admin handlers
+│   │   └── service.go             # ProviderSet
+│   ├── biz/                        # Business logic
+│   │   ├── auth.go                 # AuthUsecase: Register, Login, Refresh, Logout, ChangePassword
+│   │   ├── social.go              # SocialUsecase: LoginOrLink, LinkToExistingUser, Unlink
+│   │   ├── mfa.go                 # MFAUsecase: TOTP Enroll, Verify, Disable, Recovery
+│   │   ├── magic_link.go          # MagicLinkUsecase: Send, Verify
+│   │   ├── token.go               # TokenUsecase: JWT issue/verify, refresh generator
+│   │   ├── password.go            # Argon2id hash/verify
+│   │   ├── rbac.go               # RBACUsecase: roles, permissions, assign
+│   │   ├── audit.go              # AuditUsecase: fire-and-forget audit logging
+│   │   ├── device.go             # User-Agent parser
+│   │   └── biz.go                # Types, interfaces, ProviderSet
+│   ├── data/                       # Data access
+│   │   ├── user_repo.go
+│   │   ├── session_repo.go
+│   │   ├── social_connection_repo.go
+│   │   ├── totp_repo.go
+│   │   ├── magic_link_repo.go
+│   │   ├── password_reset_repo.go
+│   │   ├── role_repo.go
+│   │   ├── permission_repo.go
+│   │   ├── audit_repo.go
+│   │   ├── cache/                  # Valkey operations
+│   │   │   ├── cache.go
+│   │   │   ├── session_cache.go
+│   │   │   ├── token_blacklist.go
+│   │   │   └── ratelimit.go
+│   │   ├── publisher/nats.go      # Outbox polling + NATS publish
+│   │   ├── crypto/aes.go          # AES-256-GCM encrypt/decrypt
+│   │   ├── data.go                # Data struct, ProviderSet
+│   │   └── sqlc/                  # sqlc generated code
+│   └── oauth2/                    # OAuth2 providers
+│       ├── provider.go            # OAuth2Provider interface
+│       ├── google.go              # Google (OIDC + JWKS)
+│       ├── facebook.go            # Facebook (OIDC + JWKS)
+│       └── tiktok.go             # TikTok (userinfo API, non-OIDC)
+```
+
+## Token Architecture
+
+| Token | Type | TTL | Storage | Transport |
+|-------|------|-----|---------|-----------|
+| Access | JWT RS256 | 15 phút | — (stateless) | Response body |
+| Refresh | Opaque (SHA-256 hash) | 30 ngày | DB (hash only) | HttpOnly cookie |
+
+**Refresh rotation + reuse detection:**
+- Mỗi refresh → revoke old session, create new (cùng family, child++)
+- Nếu còn active session khác trong cùng family → revoke toàn bộ (replay attack)
+
+## Database Schema `auth.*`
+
+| Table | Purpose | PK |
+|-------|---------|----|
+| `auth.users` | Core identity | gen_random_uuid() |
+| `auth.social_connections` | OAuth2 provider links | gen_random_uuid() |
+| `auth.sessions` | Refresh tokens + device info | uuidv7() |
+| `auth.totp_secrets` | Encrypted TOTP secrets | gen_random_uuid() |
+| `auth.magic_links` | Magic link tokens | uuidv7() |
+| `auth.password_reset_tokens` | Password reset tokens | uuidv7() |
+| `auth.email_verifications` | Email verification | gen_random_uuid() |
+| `auth.roles` | System roles | gen_random_uuid() |
+| `auth.permissions` | Permissions | gen_random_uuid() |
+| `auth.user_roles` | User → role mapping | composite PK |
+| `auth.role_permissions` | Role → permission mapping | composite PK |
+| `auth.audit_logs` | All auth events | uuidv7() |
+| `auth.outbox` | NATS outbox | uuidv7() |
+
+## Key Business Rules
+
+- **Password**: Argon2id (time=3, memory=64MB, threads=4). Min 8 chars. Error message generic ("invalid email or password").
+- **Email**: Normalized (lowercase, trim). UNIQUE constraint in DB. Registration: unique violation → `ErrEmailAlreadyExists`.
+- **Social login**: Google/Facebook OIDC + JWKS. TikTok userinfo API (no OIDC). All PKCE S256. No access_token stored.
+- **TOTP**: AES-256-GCM encrypted. Enroll → not enabled. Verify first → enable. Key từ env `TOTP_ENCRYPTION_KEY`.
+- **Magic link**: Token SHA-256 hash lưu DB. MarkUsed sau khi create user thành công. 15 phút TTL.
+- **Password reset**: Token hash lưu `password_reset_tokens`. CompletePasswordReset → revoke all sessions.
+- **Unlink social**: Guard last auth method — không cho xóa method cuối nếu user không có password.
+- **Audit**: Fire-and-forget goroutine cho tất cả auth events.
+- **Rate limit**: Login 5/15min per email+IP. Magic link 1/60s. TOTP 3/5min. Register 3/hour per IP.
+
+## Environment Variables
+
+| Env | Required | Mô tả |
+|-----|----------|-------|
+| `TOTP_ENCRYPTION_KEY` | Yes | 64-char hex string (32 bytes cho AES-256). Hard fail nếu thiếu. |
+
+## Dev Local
+
+```bash
+# Generate dev RSA key
+openssl genrsa -out app/auth/configs/private.pem 2048
+
+# Run
+export TOTP_ENCRYPTION_KEY=0000000000000000000000000000000000000000000000000000000000000000
+cd app/auth && go run ./cmd/auth/ -conf ../../configs
+```
+
+## Docker
+
+- Auth-service KHÔNG import `pkg/auth/` (nó serve JWKS, không verify)
+- Dockerfile đơn giản (không cần `COPY pkg/`)
+- Port: 8080 (HTTP) + 9090 (gRPC)

@@ -1,5 +1,8 @@
 # Auth Migration Implementation Plan (Updated)
 
+> **⚠️ SUPERSEDED** — Auth đã migrate từ Supertokens → Auth-service tự xây dựng (Go/Kratos), xoá hoàn toàn Zitadel.
+> Xem main spec: `docs/superpowers/specs/2026-07-16-auth-service-design.md`
+
 > **Status:** 28/31 tasks completed ✅
 
 ## Phase 1: Backend Auth Middleware ✅ All Done

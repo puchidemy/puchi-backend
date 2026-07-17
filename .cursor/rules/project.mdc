@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Puchi Backend
 
-Monorepo Go microservices với **Kratos v3**. 7 service modules trong `app/`, workspace qua `go.work`.
+Monorepo Go microservices với **Kratos v3**. 8 service modules trong `app/`, workspace qua `go.work`.
 
 ## Tech Stack
 
@@ -14,11 +14,11 @@ Monorepo Go microservices với **Kratos v3**. 7 service modules trong `app/`, w
 | Ngôn ngữ | Go 1.26 |
 | Framework | Kratos v3 (HTTP/gRPC hybrid, Protobuf-first) |
 | DI | Wire (compile-time) |
-| Auth | Zitadel (self-host) — JWT verification qua JWKS |
-| Auth middleware | `pkg/auth/` (shared across services, JWT middleware verify signature + issuer) |
-| Database | PostgreSQL 18 (CloudNativePG) |
+| Auth | Auth-service tự xây dựng (app/auth/) — JWT RS256, JWKS endpoint |
+| Auth middleware | `pkg/auth/` (shared across services, JWKS local verify) |
+| Database | PostgreSQL 18 (CloudNativePG), schema `auth.*` + `core.*` |
 | Cache | Valkey/Redis |
-| Message Queue | NATS (event-driven) |
+| Message Queue | NATS (event-driven, outbox pattern) |
 | Object Storage | Garage (S3 API) |
 | Migration | goose |
 
@@ -26,19 +26,17 @@ Monorepo Go microservices với **Kratos v3**. 7 service modules trong `app/`, w
 
 ```
 puchi-backend/
-├── api/                           # Protobuf definitions CHUNG
-│   ├── auth/v1/
-│   ├── content/v1/
-│   └── ...
-├── app/                           # 7 Go service modules
-│   ├── core/                      # Auth verify + User + Game (Phase 1)
+├── app/                           # 8 Go service modules
+│   ├── auth/                      # Auth-service — identity, OAuth2, MFA, RBAC
+│   ├── core/                      # User profile, game, stats (core domain)
 │   ├── content/                   # Courses, units, lessons
 │   ├── grading/                   # Dictation, listening grading
-│   ├── user/                      # Profile, settings (Phase 3)
-│   ├── game/                      # XP, leaderboard (Phase 3)
-│   ├── media/                     # Upload, resize (Phase 1)
-│   └── notification/              # Push, email (Phase 3)
-├── pkg/                           # Shared Kit library (includes pkg/auth/ for JWT auth middleware)
+│   ├── user/                      # Profile, settings, social features
+│   ├── game/                      # XP, leaderboard, achievements
+│   ├── media/                     # Upload, resize (Garage S3)
+│   └── notification/              # Push, email (SMTP + NATS)
+├── pkg/                           # Shared Kit library
+│   └── auth/                      # JWT verification middleware (JWKS local cache)
 ├── go.work                        # Go workspace (dev only)
 └── Makefile                       # Build helper
 ```
@@ -47,78 +45,87 @@ puchi-backend/
 
 ```
 internal/
-├── service/       # Transport layer - proto server impl, validate input
-├── biz/           # Domain logic - usecases, entities, repo interfaces
-└── data/          # Data layer - repository implementations (DB, cache)
+├── service/       # Transport layer — proto server impl, validate input
+├── biz/           # Domain logic — usecases, entities, repo interfaces
+└── data/          # Data layer — repository implementations (DB, cache, publisher)
 ```
 
 **Dependency rule:** `service -> biz -> data` (biz không import data)
 
-## Auth middleware
+## Auth middleware — `pkg/auth/`
 
-Auth middleware nằm trong `pkg/auth/` (shared across services), gồm:
+Shared package cho JWT verification, tất cả backend service đều import.
 
 | File | Mô tả |
 |------|-------|
-| `auth.go` | Khởi tạo JWTValidator từ config |
-| `jwt.go` | JWTValidator — fetch JWKS từ Zitadel, verify signature + issuer |
-| `middleware.go` | HTTP middleware — parse JWT từ `Authorization` header, inject UserID vào context |
-| `context.go` | `UserIDFromContext()` / `NewContextWithUserID()` |
-| `sync.go` | Lazy user sync — tạo user trong DB từ JWT claims |
+| `auth.go` | `InitAuth(authServiceURL)` — tạo JWTValidator từ auth-service URL |
+| `jwt.go` | JWTValidator — fetch JWKS từ auth-service, verify signature + issuer, double-checked locking cache |
+| `middleware.go` | HTTP middleware — parse JWT từ `Authorization: Bearer`, inject UserID + Roles vào context |
+| `context.go` | `UserIDFromContext()`, `RolesFromContext()`, `HasRole()` |
 
 JWT verification flow:
 ```
 Request → Authorization: Bearer <JWT>
        → JWTValidator.ParseAndValidate()
-       → Fetch JWKS từ https://auth.puchi.io.vn/oauth/v2/keys (cached 15 phút)
-       → Verify signature + issuer claim
-       → Extract sub (userID) + email → inject context
+       → Fetch JWKS từ auth-service: /.well-known/jwks.json (cached 15 phút)
+       → Verify signature (RS256) + issuer claim + exp (30s leeway)
+       → Extract sub (userID), roles, perm_version → inject context
 ```
 
-## CI/CD
+## Auth-service — `app/auth/`
 
-- **CI**: GitHub Actions (`backend.yml`) — Matrix build 7 services, Go 1.26
-- **Paths trigger**: `app/**`, `api/**`, `pkg/**`
-- **Docker**: Mỗi service có Dockerfile riêng (Go 1.26 builder → debian slim runner)
-- **Registry**: `ghcr.io/puchidemy/puchi-{service}`
-- **Ports**: HTTP 8000, gRPC 9000
+Auth-service riêng biệt (không phải middleware). Xem `auth-service.mdc` rule.
 
-## Dockerfile pattern
+## Docker build pattern
 
+**QUAN TRỌNG:** Mỗi service import `pkg/auth/` → cần `replace` directive trong `go.mod`:
+```
+require github.com/puchidemy/puchi-backend/pkg v0.0.0
+replace github.com/puchidemy/puchi-backend/pkg => ../../pkg
+```
+
+Dockerfile phải copy `pkg/` vào build context (build từ monorepo root):
 ```dockerfile
 FROM golang:1.26 AS builder
 WORKDIR /src
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN go mod tidy && go build -o /bin/{service} ./cmd/{service}/
-
-FROM debian:stable-slim
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates netbase && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /bin/{service} /app/{service}
-WORKDIR /app
-EXPOSE 8000 9000
-CMD ["./{service}", "-conf", "/data/conf"]
+COPY pkg/go.mod pkg/go.sum ./pkg/
+COPY app/{service}/go.mod app/{service}/go.sum ./app/{service}/
+RUN cd app/{service} && go mod download
+COPY pkg/ ./pkg/
+COPY app/{service}/ ./app/{service}/
+RUN cd app/{service} && go build -o /bin/{service} ./cmd/{service}/
 ```
+
+CI matrix (`.github/workflows/backend.yml`): `context: .`, `file: app/{service}/Dockerfile`
+
+## CI/CD
+
+- **CI**: GitHub Actions (`backend.yml`) — Matrix build 8 services, Go 1.26
+- **Paths trigger**: `app/**`, `pkg/**`
+- **Registry**: `ghcr.io/puchidemy/puchi-{service}`
+- **Ports**: HTTP 8000-8080, gRPC 9090
 
 ## Kết nối Infra
 
 | Service | Internal DNS |
 |---------|--------------|
+| Auth-service | `auth-service.puchi-backend.svc.cluster.local:8080` |
+| Auth-service JWKS | `auth-service.puchi-backend.svc.cluster.local:8080/.well-known/jwks.json` |
 | PostgreSQL (Puchi) | `pg-puchi-rw.puchi-db.svc.cluster.local:5432` |
 | NATS | `nats.platform.svc.cluster.local:4222` |
 | Garage (S3) | `http://garage.platform.svc.cluster.local:3900` |
-| Valkey/Redis | `valkey-node.platform.svc.cluster.local:6379` |
-| Zitadel | `zitadel.puchi-auth.svc.cluster.local:8080` |
-| Zitadel JWKS | `https://auth.puchi.io.vn/oauth/v2/keys` |
+| Valkey/Redis | `valkey.platform.svc.cluster.local:6379` |
 
 ## Dev Local
 
-```
-# Backend
+```bash
+# Auth-service (phải chạy trước)
+export TOTP_ENCRYPTION_KEY=0000000000000000000000000000000000000000000000000000000000000000
+cd app/auth && go run ./cmd/auth/
+
+# Backend service khác
 cd app/core && go run ./cmd/core/
 
 # Config
-configs/config.yaml: auth.zitadel.issuer_url = https://auth.puchi.io.vn
+app/auth/configs/config.yaml: auth.issuer = http://localhost:8080
 ```
