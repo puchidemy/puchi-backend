@@ -81,7 +81,7 @@ func main() {
 
 	jwtValidator := authpkg.InitAuth(bc.Auth.AuthServiceUrl)
 
-	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Auth, jwtValidator, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Auth, bc.Learn, jwtValidator, logger)
 	if err != nil {
 		panic(err)
 	}

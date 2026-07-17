@@ -12,6 +12,7 @@ import (
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
+	sync "sync"
 	unsafe "unsafe"
 )
 
@@ -22,24 +23,176 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type GuestSession struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GuestId       string                 `protobuf:"bytes,1,opt,name=guest_id,json=guestId,proto3" json:"guest_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GuestSession) Reset() {
+	*x = GuestSession{}
+	mi := &file_learn_v1_learn_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GuestSession) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GuestSession) ProtoMessage() {}
+
+func (x *GuestSession) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GuestSession.ProtoReflect.Descriptor instead.
+func (*GuestSession) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *GuestSession) GetGuestId() string {
+	if x != nil {
+		return x.GuestId
+	}
+	return ""
+}
+
+type ClaimGuestRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClaimGuestRequest) Reset() {
+	*x = ClaimGuestRequest{}
+	mi := &file_learn_v1_learn_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClaimGuestRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClaimGuestRequest) ProtoMessage() {}
+
+func (x *ClaimGuestRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClaimGuestRequest.ProtoReflect.Descriptor instead.
+func (*ClaimGuestRequest) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{1}
+}
+
+type ClaimGuestResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LessonsMerged int32                  `protobuf:"varint,1,opt,name=lessons_merged,json=lessonsMerged,proto3" json:"lessons_merged,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClaimGuestResponse) Reset() {
+	*x = ClaimGuestResponse{}
+	mi := &file_learn_v1_learn_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClaimGuestResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClaimGuestResponse) ProtoMessage() {}
+
+func (x *ClaimGuestResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClaimGuestResponse.ProtoReflect.Descriptor instead.
+func (*ClaimGuestResponse) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ClaimGuestResponse) GetLessonsMerged() int32 {
+	if x != nil {
+		return x.LessonsMerged
+	}
+	return 0
+}
+
 var File_learn_v1_learn_proto protoreflect.FileDescriptor
 
 const file_learn_v1_learn_proto_rawDesc = "" +
 	"\n" +
-	"\x14learn/v1/learn.proto\x12\x0epuchi.learn.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto2^\n" +
+	"\x14learn/v1/learn.proto\x12\x0epuchi.learn.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\")\n" +
+	"\fGuestSession\x12\x19\n" +
+	"\bguest_id\x18\x01 \x01(\tR\aguestId\"\x13\n" +
+	"\x11ClaimGuestRequest\";\n" +
+	"\x12ClaimGuestResponse\x12%\n" +
+	"\x0elessons_merged\x18\x01 \x01(\x05R\rlessonsMerged2\xc5\x02\n" +
 	"\fLearnService\x12N\n" +
-	"\x04Ping\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/learn/pingBg\n" +
+	"\x04Ping\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/learn/ping\x12n\n" +
+	"\x12CreateGuestSession\x12\x16.google.protobuf.Empty\x1a\x1c.puchi.learn.v1.GuestSession\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/v1/learn/guest/session\x12u\n" +
+	"\n" +
+	"ClaimGuest\x12!.puchi.learn.v1.ClaimGuestRequest\x1a\".puchi.learn.v1.ClaimGuestResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/learn/guest/claimBg\n" +
 	"\x19io.grpc.examples.learn.v1B\n" +
 	"LearnProtoP\x01Z<github.com/puchidemy/puchi-backend/app/learn/api/learn/v1;v1b\x06proto3"
 
+var (
+	file_learn_v1_learn_proto_rawDescOnce sync.Once
+	file_learn_v1_learn_proto_rawDescData []byte
+)
+
+func file_learn_v1_learn_proto_rawDescGZIP() []byte {
+	file_learn_v1_learn_proto_rawDescOnce.Do(func() {
+		file_learn_v1_learn_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_learn_v1_learn_proto_rawDesc), len(file_learn_v1_learn_proto_rawDesc)))
+	})
+	return file_learn_v1_learn_proto_rawDescData
+}
+
+var file_learn_v1_learn_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_learn_v1_learn_proto_goTypes = []any{
-	(*emptypb.Empty)(nil), // 0: google.protobuf.Empty
+	(*GuestSession)(nil),       // 0: puchi.learn.v1.GuestSession
+	(*ClaimGuestRequest)(nil),  // 1: puchi.learn.v1.ClaimGuestRequest
+	(*ClaimGuestResponse)(nil), // 2: puchi.learn.v1.ClaimGuestResponse
+	(*emptypb.Empty)(nil),      // 3: google.protobuf.Empty
 }
 var file_learn_v1_learn_proto_depIdxs = []int32{
-	0, // 0: puchi.learn.v1.LearnService.Ping:input_type -> google.protobuf.Empty
-	0, // 1: puchi.learn.v1.LearnService.Ping:output_type -> google.protobuf.Empty
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	3, // 0: puchi.learn.v1.LearnService.Ping:input_type -> google.protobuf.Empty
+	3, // 1: puchi.learn.v1.LearnService.CreateGuestSession:input_type -> google.protobuf.Empty
+	1, // 2: puchi.learn.v1.LearnService.ClaimGuest:input_type -> puchi.learn.v1.ClaimGuestRequest
+	3, // 3: puchi.learn.v1.LearnService.Ping:output_type -> google.protobuf.Empty
+	0, // 4: puchi.learn.v1.LearnService.CreateGuestSession:output_type -> puchi.learn.v1.GuestSession
+	2, // 5: puchi.learn.v1.LearnService.ClaimGuest:output_type -> puchi.learn.v1.ClaimGuestResponse
+	3, // [3:6] is the sub-list for method output_type
+	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -56,12 +209,13 @@ func file_learn_v1_learn_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_learn_v1_learn_proto_rawDesc), len(file_learn_v1_learn_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   0,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_learn_v1_learn_proto_goTypes,
 		DependencyIndexes: file_learn_v1_learn_proto_depIdxs,
+		MessageInfos:      file_learn_v1_learn_proto_msgTypes,
 	}.Build()
 	File_learn_v1_learn_proto = out.File
 	file_learn_v1_learn_proto_goTypes = nil

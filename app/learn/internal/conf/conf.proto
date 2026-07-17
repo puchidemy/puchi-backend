@@ -9,6 +9,13 @@ message Bootstrap {
   Server server = 1;
   Data data = 2;
   Auth auth = 3;
+  Learn learn = 4;
+}
+
+message Learn {
+  string trial_unit_id = 1;
+  string guest_cookie_name = 2;
+  int32 guest_ttl_days = 3;
 }
 
 message Auth {

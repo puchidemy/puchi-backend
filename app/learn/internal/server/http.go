@@ -16,7 +16,12 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWTValidator, learnService *service.LearnService) *kratoshttp.Server {
+func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, learnCfg *conf.Learn, jwtValidator *authpkg.JWTValidator, learnService *service.LearnService) *kratoshttp.Server {
+	publicPaths := append([]string(nil), authCfg.PublicPaths...)
+	if learnCfg != nil {
+		publicPaths = ensurePublicPath(publicPaths, "/v1/learn/guest/session")
+	}
+
 	var opts = []kratoshttp.ServerOption{
 		kratoshttp.Middleware(
 			recovery.Recovery(),
@@ -30,7 +35,7 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWT
 			}),
 		),
 		kratoshttp.Filter(authpkg.Middleware(authpkg.MiddlewareConfig{
-			PublicPaths: authCfg.PublicPaths,
+			PublicPaths: publicPaths,
 			Validator:   jwtValidator,
 		})),
 	}
@@ -47,6 +52,15 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWT
 	pb.RegisterLearnServiceHTTPServer(srv, learnService)
 	srv.HandleFunc("/v1/healthz", handleHealthz)
 	return srv
+}
+
+func ensurePublicPath(paths []string, path string) []string {
+	for _, p := range paths {
+		if p == path {
+			return paths
+		}
+	}
+	return append(paths, path)
 }
 
 // handleHealthz reports service liveness for k8s probes and smoke tests.

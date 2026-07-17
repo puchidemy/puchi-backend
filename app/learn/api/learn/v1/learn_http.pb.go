@@ -18,15 +18,21 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationLearnServiceClaimGuest = "/puchi.learn.v1.LearnService/ClaimGuest"
+const OperationLearnServiceCreateGuestSession = "/puchi.learn.v1.LearnService/CreateGuestSession"
 const OperationLearnServicePing = "/puchi.learn.v1.LearnService/Ping"
 
 type LearnServiceHTTPServer interface {
+	ClaimGuest(context.Context, *ClaimGuestRequest) (*ClaimGuestResponse, error)
+	CreateGuestSession(context.Context, *emptypb.Empty) (*GuestSession, error)
 	Ping(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 }
 
 func RegisterLearnServiceHTTPServer(s *http.Server, srv LearnServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("GET", "/v1/learn/ping", _LearnService_Ping0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/learn/guest/session", _LearnService_CreateGuestSession0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/learn/guest/claim", _LearnService_ClaimGuest0_HTTP_Handler(srv))
 }
 
 func _LearnService_Ping0_HTTP_Handler(srv LearnServiceHTTPServer) func(ctx http.Context) error {
@@ -48,7 +54,47 @@ func _LearnService_Ping0_HTTP_Handler(srv LearnServiceHTTPServer) func(ctx http.
 	}
 }
 
+func _LearnService_CreateGuestSession0_HTTP_Handler(srv LearnServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in emptypb.Empty
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationLearnServiceCreateGuestSession)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateGuestSession(ctx, req.(*emptypb.Empty))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GuestSession)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _LearnService_ClaimGuest0_HTTP_Handler(srv LearnServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ClaimGuestRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationLearnServiceClaimGuest)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ClaimGuest(ctx, req.(*ClaimGuestRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ClaimGuestResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type LearnServiceHTTPClient interface {
+	ClaimGuest(ctx context.Context, req *ClaimGuestRequest, opts ...http.CallOption) (rsp *ClaimGuestResponse, err error)
+	CreateGuestSession(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *GuestSession, err error)
 	Ping(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *emptypb.Empty, err error)
 }
 
@@ -58,6 +104,40 @@ type LearnServiceHTTPClientImpl struct {
 
 func NewLearnServiceHTTPClient(client *http.Client) LearnServiceHTTPClient {
 	return &LearnServiceHTTPClientImpl{client}
+}
+
+func (c *LearnServiceHTTPClientImpl) ClaimGuest(ctx context.Context, in *ClaimGuestRequest, opts ...http.CallOption) (*ClaimGuestResponse, error) {
+	var out ClaimGuestResponse
+	pattern := "/v1/learn/guest/claim"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationLearnServiceClaimGuest),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *LearnServiceHTTPClientImpl) CreateGuestSession(ctx context.Context, in *emptypb.Empty, opts ...http.CallOption) (*GuestSession, error) {
+	var out GuestSession
+	pattern := "/v1/learn/guest/session"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationLearnServiceCreateGuestSession),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 func (c *LearnServiceHTTPClientImpl) Ping(ctx context.Context, in *emptypb.Empty, opts ...http.CallOption) (*emptypb.Empty, error) {

@@ -13,6 +13,8 @@ type Querier interface {
 	CompleteAttempt(ctx context.Context, arg CompleteAttemptParams) error
 	CreateAttempt(ctx context.Context, arg CreateAttemptParams) (LearnAttempt, error)
 	CreateGuest(ctx context.Context, id string) error
+	DeleteGuestLessonProgress(ctx context.Context, arg DeleteGuestLessonProgressParams) error
+	DeleteGuestUnitProgress(ctx context.Context, arg DeleteGuestUnitProgressParams) error
 	GetAttemptByID(ctx context.Context, id string) (LearnAttempt, error)
 	GetGuestByID(ctx context.Context, id string) (LearnGuest, error)
 	GetLessonByID(ctx context.Context, id string) (LearnLesson, error)
@@ -24,6 +26,7 @@ type Querier interface {
 	ListLessonProgressByOwner(ctx context.Context, arg ListLessonProgressByOwnerParams) ([]LearnUserLessonProgress, error)
 	ListLessonsBySkillID(ctx context.Context, skillID string) ([]LearnLesson, error)
 	ListSkillsByUnitID(ctx context.Context, unitID string) ([]LearnSkill, error)
+	ListUnitProgressByOwner(ctx context.Context, arg ListUnitProgressByOwnerParams) ([]LearnUserUnitProgress, error)
 	ReassignGuestAttempts(ctx context.Context, arg ReassignGuestAttemptsParams) error
 	ReassignGuestLessonProgress(ctx context.Context, arg ReassignGuestLessonProgressParams) error
 	ReassignGuestUnitProgress(ctx context.Context, arg ReassignGuestUnitProgressParams) error

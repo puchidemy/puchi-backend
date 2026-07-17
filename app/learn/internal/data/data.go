@@ -5,11 +5,19 @@ import (
 
 	"github.com/google/wire"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/puchidemy/puchi-backend/app/learn/internal/biz"
 	"github.com/puchidemy/puchi-backend/app/learn/internal/conf"
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, wire.FieldsOf(new(*Data), "Pool"))
+var ProviderSet = wire.NewSet(
+	NewData,
+	NewGuestRepo,
+	NewProgressRepo,
+	wire.FieldsOf(new(*Data), "Pool"),
+	wire.Bind(new(biz.GuestRepoInterface), new(*GuestRepo)),
+	wire.Bind(new(biz.ProgressRepoInterface), new(*ProgressRepo)),
+)
 
 // Data wraps the database connection pool.
 type Data struct {

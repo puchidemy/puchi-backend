@@ -4,11 +4,42 @@
 openapi: 3.0.3
 info:
     title: LearnService API
-    description: |-
-        LearnService is an empty scaffold. Curriculum and guest-progress RPCs are
-         added in later tasks of the learn-service reorg.
     version: 0.0.1
 paths:
+    /v1/learn/guest/claim:
+        post:
+            tags:
+                - LearnService
+            operationId: LearnService_ClaimGuest
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.learn.v1.ClaimGuestRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.ClaimGuestResponse'
+    /v1/learn/guest/session:
+        post:
+            tags:
+                - LearnService
+            operationId: LearnService_CreateGuestSession
+            requestBody:
+                content:
+                    application/json: {}
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.GuestSession'
     /v1/learn/ping:
         get:
             tags:
@@ -19,6 +50,20 @@ paths:
                     description: OK
                     content: {}
 components:
-    schemas: {}
+    schemas:
+        puchi.learn.v1.ClaimGuestRequest:
+            type: object
+            properties: {}
+        puchi.learn.v1.ClaimGuestResponse:
+            type: object
+            properties:
+                lessonsMerged:
+                    type: integer
+                    format: int32
+        puchi.learn.v1.GuestSession:
+            type: object
+            properties:
+                guestId:
+                    type: string
 tags:
     - name: LearnService

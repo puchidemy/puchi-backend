@@ -14,6 +14,18 @@ ON CONFLICT (owner_type, owner_id, lesson_id) DO UPDATE SET
 SELECT * FROM learn.user_lesson_progress
 WHERE owner_type = $1 AND owner_id = $2;
 
+-- name: ListUnitProgressByOwner :many
+SELECT * FROM learn.user_unit_progress
+WHERE owner_type = $1 AND owner_id = $2;
+
+-- name: DeleteGuestLessonProgress :exec
+DELETE FROM learn.user_lesson_progress
+WHERE owner_type = 'guest' AND owner_id = $1 AND lesson_id = $2;
+
+-- name: DeleteGuestUnitProgress :exec
+DELETE FROM learn.user_unit_progress
+WHERE owner_type = 'guest' AND owner_id = $1 AND unit_id = $2;
+
 -- name: GetUnitProgress :one
 SELECT * FROM learn.user_unit_progress
 WHERE owner_type = $1 AND owner_id = $2 AND unit_id = $3;

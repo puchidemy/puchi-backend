@@ -9,6 +9,36 @@ import (
 	"context"
 )
 
+const deleteGuestLessonProgress = `-- name: DeleteGuestLessonProgress :exec
+DELETE FROM learn.user_lesson_progress
+WHERE owner_type = 'guest' AND owner_id = $1 AND lesson_id = $2
+`
+
+type DeleteGuestLessonProgressParams struct {
+	OwnerID  string `db:"owner_id"`
+	LessonID string `db:"lesson_id"`
+}
+
+func (q *Queries) DeleteGuestLessonProgress(ctx context.Context, arg DeleteGuestLessonProgressParams) error {
+	_, err := q.db.Exec(ctx, deleteGuestLessonProgress, arg.OwnerID, arg.LessonID)
+	return err
+}
+
+const deleteGuestUnitProgress = `-- name: DeleteGuestUnitProgress :exec
+DELETE FROM learn.user_unit_progress
+WHERE owner_type = 'guest' AND owner_id = $1 AND unit_id = $2
+`
+
+type DeleteGuestUnitProgressParams struct {
+	OwnerID string `db:"owner_id"`
+	UnitID  string `db:"unit_id"`
+}
+
+func (q *Queries) DeleteGuestUnitProgress(ctx context.Context, arg DeleteGuestUnitProgressParams) error {
+	_, err := q.db.Exec(ctx, deleteGuestUnitProgress, arg.OwnerID, arg.UnitID)
+	return err
+}
+
 const getLessonProgress = `-- name: GetLessonProgress :one
 SELECT owner_type, owner_id, lesson_id, status, xp_earned, updated_at FROM learn.user_lesson_progress
 WHERE owner_type = $1 AND owner_id = $2 AND lesson_id = $3
@@ -83,6 +113,42 @@ func (q *Queries) ListLessonProgressByOwner(ctx context.Context, arg ListLessonP
 			&i.LessonID,
 			&i.Status,
 			&i.XpEarned,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUnitProgressByOwner = `-- name: ListUnitProgressByOwner :many
+SELECT owner_type, owner_id, unit_id, status, updated_at FROM learn.user_unit_progress
+WHERE owner_type = $1 AND owner_id = $2
+`
+
+type ListUnitProgressByOwnerParams struct {
+	OwnerType string `db:"owner_type"`
+	OwnerID   string `db:"owner_id"`
+}
+
+func (q *Queries) ListUnitProgressByOwner(ctx context.Context, arg ListUnitProgressByOwnerParams) ([]LearnUserUnitProgress, error) {
+	rows, err := q.db.Query(ctx, listUnitProgressByOwner, arg.OwnerType, arg.OwnerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []LearnUserUnitProgress{}
+	for rows.Next() {
+		var i LearnUserUnitProgress
+		if err := rows.Scan(
+			&i.OwnerType,
+			&i.OwnerID,
+			&i.UnitID,
+			&i.Status,
 			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
