@@ -2,12 +2,14 @@ package auth
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
 	"sync"
 	"time"
-
-	"github.com/MicahParks/keyfunc/v2"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 var (
@@ -15,103 +17,126 @@ var (
 	ErrSessionExpired = errors.New("session expired")
 )
 
-// JWTValidator validates JWT tokens using JWKS from the auth-service.
-type JWTValidator struct {
-	jwksURL   string
-	issuer    string
-	cacheTTL  time.Duration
-	mu        sync.RWMutex
-	jwks      *keyfunc.JWKS
-	lastFetch time.Time
+var defaultHTTPClient = &http.Client{Timeout: 5 * time.Second}
+
+// SessionInfo is the authenticated identity resolved from a Limen session.
+type SessionInfo struct {
+	UserID   string
+	Email    string
+	Username string
+	Roles    []string
 }
 
-// Claims represents the JWT claims issued by the auth-service.
-type Claims struct {
-	UserID        string   `json:"sub"`
-	Email         string   `json:"email"`
-	EmailVerified bool     `json:"email_verified"`
-	Roles         []string `json:"roles"`
-	PermVersion   int64    `json:"perm_version"`
-	SessionID     string   `json:"sid"`
+// SessionValidator validates opaque session tokens via auth-service introspect.
+type SessionValidator struct {
+	authServiceURL string
+	httpClient     *http.Client
+	cacheTTL       time.Duration
+
+	mu    sync.RWMutex
+	cache map[string]cacheEntry
 }
 
-// ParseAndValidate parses and validates a JWT token string.
-// It fetches the JWKS from the auth-service (with caching), validates
-// issuer and expiration (30s leeway), and returns typed Claims.
-func (v *JWTValidator) ParseAndValidate(ctx context.Context, tokenStr string) (*Claims, error) {
-	jwks, err := v.getJWKS(ctx)
+type cacheEntry struct {
+	info      SessionInfo
+	expiresAt time.Time
+}
+
+// Claims is kept for compatibility with older call sites; prefer SessionInfo.
+type Claims = SessionInfo
+
+// JWTValidator is an alias for SessionValidator (legacy name used by Wire).
+type JWTValidator = SessionValidator
+
+// ParseAndValidate validates a Bearer session token and returns identity claims.
+func (v *SessionValidator) ParseAndValidate(ctx context.Context, tokenStr string) (*SessionInfo, error) {
+	if tokenStr == "" {
+		return nil, ErrNoSession
+	}
+
+	key := hashToken(tokenStr)
+	if info, ok := v.getCached(key); ok {
+		return &info, nil
+	}
+
+	info, err := v.introspect(ctx, tokenStr)
 	if err != nil {
 		return nil, err
 	}
-
-	token, err := jwt.Parse(tokenStr, jwks.Keyfunc,
-		jwt.WithIssuer(v.issuer),
-		jwt.WithLeeway(30*time.Second),
-	)
-	if err != nil {
-		if errors.Is(err, jwt.ErrTokenExpired) {
-			return nil, ErrSessionExpired
-		}
-		return nil, ErrNoSession
-	}
-
-	mapClaims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
-		return nil, ErrNoSession
-	}
-
-	c := &Claims{}
-
-	if sub, err := mapClaims.GetSubject(); err == nil {
-		c.UserID = sub
-	}
-	if e, ok := mapClaims["email"].(string); ok {
-		c.Email = e
-	}
-	if ev, ok := mapClaims["email_verified"].(bool); ok {
-		c.EmailVerified = ev
-	}
-	if r, ok := mapClaims["roles"].([]any); ok {
-		for _, v := range r {
-			if s, ok := v.(string); ok {
-				c.Roles = append(c.Roles, s)
-			}
-		}
-	}
-	if pv, ok := mapClaims["perm_version"].(float64); ok {
-		c.PermVersion = int64(pv)
-	}
-	if sid, ok := mapClaims["sid"].(string); ok {
-		c.SessionID = sid
-	}
-
-	return c, nil
+	v.setCached(key, *info)
+	return info, nil
 }
 
-// getJWKS returns the JWKS, fetching from the auth-service with double-checked
-// locking cache if the TTL has expired.
-func (v *JWTValidator) getJWKS(ctx context.Context) (*keyfunc.JWKS, error) {
-	v.mu.RLock()
-	if v.jwks != nil && time.Since(v.lastFetch) < v.cacheTTL {
-		jwks := v.jwks
-		v.mu.RUnlock()
-		return jwks, nil
+func (v *SessionValidator) introspect(ctx context.Context, tokenStr string) (*SessionInfo, error) {
+	url := v.authServiceURL + "/internal/session"
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
 	}
-	v.mu.RUnlock()
+	req.Header.Set("Authorization", "Bearer "+tokenStr)
 
+	client := v.httpClient
+	if client == nil {
+		client = defaultHTTPClient
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("introspect session: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, ErrNoSession
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("introspect session: status %d", resp.StatusCode)
+	}
+
+	var body struct {
+		UserID   string `json:"user_id"`
+		Email    string `json:"email"`
+		Username string `json:"username"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		return nil, err
+	}
+	if body.UserID == "" {
+		return nil, ErrNoSession
+	}
+	return &SessionInfo{
+		UserID:   body.UserID,
+		Email:    body.Email,
+		Username: body.Username,
+	}, nil
+}
+
+func (v *SessionValidator) getCached(key string) (SessionInfo, bool) {
+	v.mu.RLock()
+	defer v.mu.RUnlock()
+	if v.cache == nil {
+		return SessionInfo{}, false
+	}
+	e, ok := v.cache[key]
+	if !ok || time.Now().After(e.expiresAt) {
+		return SessionInfo{}, false
+	}
+	return e.info, true
+}
+
+func (v *SessionValidator) setCached(key string, info SessionInfo) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
-
-	if v.jwks != nil && time.Since(v.lastFetch) < v.cacheTTL {
-		return v.jwks, nil
+	if v.cache == nil {
+		v.cache = make(map[string]cacheEntry)
 	}
-
-	jwks, err := keyfunc.Get(v.jwksURL, keyfunc.Options{RefreshInterval: v.cacheTTL})
-	if err != nil {
-		return nil, err
+	ttl := v.cacheTTL
+	if ttl <= 0 {
+		ttl = 60 * time.Second
 	}
+	v.cache[key] = cacheEntry{info: info, expiresAt: time.Now().Add(ttl)}
+}
 
-	v.jwks = jwks
-	v.lastFetch = time.Now()
-	return jwks, nil
+func hashToken(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:])
 }

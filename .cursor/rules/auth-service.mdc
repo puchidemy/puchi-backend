@@ -1,192 +1,62 @@
 ---
-description: Auth-service conventions — app/auth/ của puchi-backend
+description: Auth-service conventions — Limen-based app/auth/
 globs: app/auth/**/*.go, app/auth/**/*.sql
 alwaysApply: false
 ---
 
-# Auth Service
+# Auth Service (Limen)
 
-Auth service tự xây dựng (self-hosted), thay thế Zitadel/Supertokens. Nằm trong `app/auth/`.
+Thin auth service built on [Limen](https://limenauth.dev/) — replaces the custom JWT/JWKS auth stack.
 
-## Tech Stack
+## Stack
 
-| Thành phần | Công nghệ |
-|------------|-----------|
-| Framework | Kratos v3 (HTTP 8080 + gRPC 9090) |
-| DI | Wire (compile-time) |
-| DB | PostgreSQL 18, schema `auth` |
-| Cache | Valkey/Redis (session, rate limit, token blacklist) |
-| Queue | NATS (outbox pattern) |
-| Password | Argon2id (golang.org/x/crypto) |
-| JWT | RS256 (golang-jwt/jwt/v5) |
-| OAuth2 | golang.org/x/oauth2 + per-provider implementation |
-| TOTP | github.com/pquerna/otp (AES-256-GCM encrypted) |
-| Migration | goose + sqlc |
+| Piece | Tech |
+|-------|------|
+| Library | `github.com/thecodearcher/limen` + plugins |
+| HTTP | `net/http` (Limen handler mounted at `/auth/`) |
+| DB | PostgreSQL schema `auth` (Limen tables) |
+| Events | NATS (`auth.user.created`, `email.send`) |
+| Session | Opaque cookie + Bearer (`WithBearerEnabled`) |
 
-## Cấu trúc
+## Plugins (day 1)
+
+- `credential-password` (username support, password reset, email verify)
+- `oauth` + `oauth-google` + `oauth-facebook`
+
+## Layout
 
 ```
 app/auth/
-├── api/auth/v1/auth.proto          # Proto định nghĩa
-├── cmd/auth/
-│   ├── main.go                     # Entrypoint, đọc config, init
-│   ├── wire.go                     # Wire DI
-│   ├── wire_gen.go                 # Generated
-│   └── providers.go                # TokenConfig, EncryptionKey providers
-├── configs/config.yaml             # Dev config
-├── internal/
-│   ├── conf/conf.proto             # Bootstrap config proto
-│   ├── server/                     # HTTP + gRPC server
-│   │   ├── http.go                 # Routes, CORS, JWKS endpoint, social provider init
-│   │   ├── grpc.go                 # gRPC server
-│   │   ├── cors.go                 # CORS middleware
-│   │   └── server.go               # ProviderSet
-│   ├── service/                    # HTTP handlers (transport)
-│   │   ├── auth.go                 # Register, Login, Refresh, Logout
-│   │   ├── social.go               # OAuth2 social login/callback/link/unlink handlers
-│   │   ├── email_verification.go   # Email verification send/verify handlers
-│   │   ├── mfa.go                  # TOTP handlers + extractJWTClaims
-│   │   ├── magic_link.go          # Magic link handlers
-│   │   ├── session.go             # Session management handlers
-│   │   ├── admin.go               # RBAC admin handlers
-│   │   └── service.go             # ProviderSet
-│   ├── biz/                        # Business logic
-│   │   ├── auth.go                 # AuthUsecase: Register, Login, Refresh, Logout, ChangePassword
-│   │   ├── social.go              # SocialUsecase: LoginOrLink, LinkToExistingUser, Unlink
-│   │   ├── email_verification.go  # EmailVerificationUsecase: Send, Verify
-│   │   ├── mfa.go                 # MFAUsecase: TOTP Enroll, Verify, Disable, Recovery
-│   │   ├── magic_link.go          # MagicLinkUsecase: Send, Verify (publish email.send dùng NATS)
-│   │   ├── token.go               # TokenUsecase: JWT issue/verify, refresh generator
-│   │   ├── password.go            # Argon2id hash/verify
-│   │   ├── rbac.go               # RBACUsecase: roles, permissions, assign
-│   │   ├── audit.go              # AuditUsecase: fire-and-forget audit logging
-│   │   ├── device.go             # User-Agent parser
-│   │   └── biz.go                # Types, interfaces, ProviderSet
-│   ├── data/                       # Data access
-│   │   ├── user_repo.go
-│   │   ├── session_repo.go
-│   │   ├── social_connection_repo.go
-│   │   ├── email_verification_repo.go
-│   │   ├── totp_repo.go
-│   │   ├── magic_link_repo.go
-│   │   ├── password_reset_repo.go
-│   │   ├── role_repo.go
-│   │   ├── permission_repo.go
-│   │   ├── audit_repo.go
-│   │   ├── oauth_state.go          # OAuth state storage (Valkey, PKCE)
-│   │   ├── cache/                  # Valkey operations
-│   │   │   ├── cache.go
-│   │   │   ├── session_cache.go
-│   │   │   ├── token_blacklist.go
-│   │   │   └── ratelimit.go
-│   │   ├── publisher/nats.go      # Outbox polling + NATS publish
-│   │   ├── crypto/aes.go          # AES-256-GCM encrypt/decrypt
-│   │   ├── data.go                # Data struct, ProviderSet
-│   │   └── sqlc/                  # sqlc generated code
-│   └── oauth2/                    # OAuth2 providers
-│       ├── provider.go            # OAuth2Provider interface
-│       ├── google.go              # Google (OIDC + JWKS)
-│       ├── facebook.go            # Facebook (OIDC + JWKS)
-│       └── tiktok.go             # TikTok (userinfo API, non-OIDC)
+├── cmd/auth/main.go
+├── configs/config.yaml
+├── migrations/001_limen_schema.up.sql
+├── internal/config/
+└── internal/events/
 ```
 
-## Token Architecture
+## Key endpoints
 
-| Token | Type | TTL | Storage | Transport |
-|-------|------|-----|---------|-----------|
-| Access | JWT RS256 | 15 phút | — (stateless) | Response body |
-| Refresh | Opaque (SHA-256 hash) | 30 ngày | DB (hash only) | HttpOnly cookie |
+| Path | Purpose |
+|------|---------|
+| `/auth/*` | Limen handler (signin/signup/oauth/me/signout/…) |
+| `GET /internal/session` | Cluster introspect for other Go services (Bearer) |
+| `GET /healthz` | Health |
 
-**Refresh rotation + reuse detection:**
-- Mỗi refresh → revoke old session, create new (cùng family, child++)
-- Nếu còn active session khác trong cùng family → revoke toàn bộ (replay attack)
+## Other services
 
-## Database Schema `auth.*`
+`pkg/auth` validates `Authorization: Bearer <opaque>` by calling
+`GET {auth_service_url}/internal/session` (in-memory cache ~60s).
 
-| Table | Purpose | PK |
-|-------|---------|----|
-| `auth.users` | Core identity | gen_random_uuid() |
-| `auth.social_connections` | OAuth2 provider links | gen_random_uuid() |
-| `auth.sessions` | Refresh tokens + device info | uuidv7() |
-| `auth.totp_secrets` | Encrypted TOTP secrets | gen_random_uuid() |
-| `auth.magic_links` | Magic link tokens | uuidv7() |
-| `auth.password_reset_tokens` | Password reset tokens | uuidv7() |
-| `auth.email_verifications` | Email verification | gen_random_uuid() |
-| `auth.roles` | System roles | gen_random_uuid() |
-| `auth.permissions` | Permissions | gen_random_uuid() |
-| `auth.user_roles` | User → role mapping | composite PK |
-| `auth.role_permissions` | Role → permission mapping | composite PK |
-| `auth.audit_logs` | All auth events | uuidv7() |
-| `auth.outbox` | NATS outbox | uuidv7() |
+## Config
 
-## Endpoints (HTTP)
+- `LIMEN_SECRET` — exactly 32 bytes
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
+- `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET`
+- OAuth callbacks: `{BaseURL}/auth/oauth/{google|facebook}/callback`
 
-All routes are registered in `internal/server/http.go`.
-
-| Method | Path | Auth | Handler | Mô tả |
-|--------|------|:----:|---------|-------|
-| POST | `/auth/register` | No | Proto (gRPC→HTTP) | Register email/password |
-| POST | `/auth/login` | No | Proto (gRPC→HTTP) | Login → tokens + set refresh_token cookie |
-| GET | `/auth/refresh` | Cookie | HandleRefresh | Refresh access token (dùng refresh_token cookie) |
-| POST | `/auth/logout` | Bearer | HandleLogout | Revoke session + clear cookie |
-| GET | `/auth/sessions` | Bearer | HandleListSessions | List sessions |
-| DELETE | `/auth/sessions` | Bearer | HandleRevokeAllSessions | Revoke all except current |
-| DELETE | `/auth/sessions/{id}` | Bearer | HandleRevokeSession | Revoke specific session |
-| GET | `/auth/social/{provider}` | No | HandleSocialLogin | OAuth2 redirect (PKCE S256) |
-| GET | `/auth/callback/{provider}` | No | HandleOAuthCallback | OAuth2 callback → exchange code → login/link |
-| POST | `/auth/social/link` | Bearer | HandleLink | Link social account |
-| POST | `/auth/social/unlink` | Bearer | HandleUnlink | Unlink social connection |
-| GET | `/auth/social/connections` | Bearer | HandleListConnections | List linked social accounts |
-| POST | `/auth/magic-link/send` | No | HandleSend | Send magic link (NATS outbox) |
-| GET | `/auth/magic-link/verify` | No | HandleVerify | Verify magic link → tokens |
-| POST | `/auth/email/verify/send` | Bearer | HandleSend (EmailVerification) | Send email verification code (6-digit) |
-| POST | `/auth/email/verify` | Bearer | HandleVerify (EmailVerification) | Verify email code → mark email_verified |
-| POST | `/auth/mfa/enroll` | Bearer | HandleEnroll | Start TOTP enrollment |
-| POST | `/auth/mfa/verify` | Bearer | HandleVerify | Verify TOTP code → enable MFA |
-| POST | `/auth/mfa/disable` | Bearer | HandleDisable | Disable MFA |
-| POST | `/auth/password/change` | Bearer | HandleChangePassword | Change password (revoke all sessions) |
-| POST | `/auth/password/reset/request` | No | HandleResetRequest | Request password reset |
-| POST | `/auth/password/reset` | No | HandleResetComplete | Complete password reset |
-| GET | `/.well-known/jwks.json` | No | HandleJWKS | JWKS public keys |
-| GET/POST/DELETE | `/admin/roles` | Bearer | HandleListRoles | RBAC role management |
-| GET/POST/DELETE | `/admin/permissions` | Bearer | HandleListPermissions | RBAC permission management |
-| GET/POST/DELETE | `/admin/users/{id}/roles` | Bearer | HandleGetUserRoles / HandleAssignRole / HandleRemoveRole | User role management |
-| GET | `/admin/users/{id}/permissions` | Bearer | HandleGetUserPermissions | User permission lookup |
-
-## Key Business Rules
-
-- **Password**: Argon2id (time=3, memory=64MB, threads=4). Min 8 chars. Error message generic ("invalid email or password").
-- **Email**: Normalized (lowercase, trim). UNIQUE constraint in DB. Registration: unique violation → `ErrEmailAlreadyExists`.
-- **Social login**: Google/Facebook OIDC + JWKS. TikTok userinfo API (no OIDC). All PKCE S256. No access_token stored.
-- **TOTP**: AES-256-GCM encrypted. Enroll → not enabled. Verify first → enable. Key từ env `TOTP_ENCRYPTION_KEY`.
-- **Magic link**: Token SHA-256 hash lưu DB. MarkUsed sau khi create user thành công. 15 phút TTL. Publish `email.send` NATS event.
-- **Password reset**: Token hash lưu `password_reset_tokens`. CompletePasswordReset → revoke all sessions. Publish `email.send` NATS event.
-- **Email verification**: 6-digit code, SHA-256 hash lưu DB. 15 phút TTL. Gửi qua NATS outbox (`email.send` topic). Trigger tự động sau Register.
-- **Lazy sync to core**: Auth-service publish `auth.user.created` (NATS outbox). Core-service không subscribe (future). Hiện tại dùng lazy creation — core-service auto-create user từ JWT claims (`GetOrCreateProfile`).
-- **Username**: Auto-generated từ email local part. Check UNIQUE constraint, append -2, -3 nếu trùng. User có thể đổi sau trong Settings.
-- **Unlink social**: Guard last auth method — không cho xóa method cuối nếu user không có password.
-- **Audit**: Fire-and-forget goroutine cho tất cả auth events.
-- **Rate limit**: Login 5/15min per email+IP. Magic link 1/60s. TOTP 3/5min. Register 3/hour per IP.
-
-## Environment Variables
-
-| Env | Required | Mô tả |
-|-----|----------|-------|
-| `TOTP_ENCRYPTION_KEY` | Yes | 64-char hex string (32 bytes cho AES-256). Hard fail nếu thiếu. |
-
-## Dev Local
+## Local
 
 ```bash
-# Generate dev RSA key
-openssl genrsa -out app/auth/configs/private.pem 2048
-
-# Run
-export TOTP_ENCRYPTION_KEY=0000000000000000000000000000000000000000000000000000000000000000
+# apply migrations/001_limen_schema.up.sql to Postgres (search_path=auth)
 cd app/auth && go run ./cmd/auth/ -conf ../../configs
 ```
-
-## Docker
-
-- Auth-service KHÔNG import `pkg/auth/` (nó serve JWKS, không verify)
-- Dockerfile đơn giản (không cần `COPY pkg/`)
-- Port: 8080 (HTTP) + 9090 (gRPC)

@@ -2,14 +2,12 @@ package auth
 
 import "time"
 
-// InitAuth creates a JWTValidator configured to validate tokens from
-// a self-hosted auth-service. The validator fetches JWKS from
-// {authServiceURL}/.well-known/jwks.json and uses authServiceURL
-// as the expected issuer.
-func InitAuth(authServiceURL string) *JWTValidator {
-	return &JWTValidator{
-		jwksURL:  authServiceURL + "/.well-known/jwks.json",
-		issuer:   authServiceURL,
-		cacheTTL: 15 * time.Minute,
+// InitAuth creates a SessionValidator that introspects opaque Bearer tokens
+// against the auth-service (Limen) GET /internal/session endpoint.
+func InitAuth(authServiceURL string) *SessionValidator {
+	return &SessionValidator{
+		authServiceURL: authServiceURL,
+		httpClient:     defaultHTTPClient,
+		cacheTTL:       60 * time.Second,
 	}
 }

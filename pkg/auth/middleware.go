@@ -10,12 +10,11 @@ import (
 // MiddlewareConfig holds configuration for the auth middleware.
 type MiddlewareConfig struct {
 	PublicPaths []string
-	Validator   *JWTValidator
+	Validator   *SessionValidator
 }
 
-// Middleware returns an HTTP middleware that verifies JWT tokens from the
-// Authorization header. Requests matching PublicPaths skip verification.
-// On success, the user ID and roles are injected into the request context.
+// Middleware returns an HTTP middleware that verifies opaque Bearer session
+// tokens via auth-service introspect. Requests matching PublicPaths skip verification.
 func Middleware(cfg MiddlewareConfig) func(http.Handler) http.Handler {
 	public := make([]string, len(cfg.PublicPaths))
 	copy(public, cfg.PublicPaths)
@@ -41,16 +40,16 @@ func Middleware(cfg MiddlewareConfig) func(http.Handler) http.Handler {
 				return
 			}
 
-			claims, err := cfg.Validator.ParseAndValidate(r.Context(), tokenStr)
+			info, err := cfg.Validator.ParseAndValidate(r.Context(), tokenStr)
 			if err != nil {
 				writeUnauthorized(w, err)
 				return
 			}
 
 			ctx := r.Context()
-			ctx = NewContextWithUserID(ctx, claims.UserID)
-			ctx = NewContextWithEmail(ctx, claims.Email)
-			ctx = NewContextWithRoles(ctx, claims.Roles)
+			ctx = NewContextWithUserID(ctx, info.UserID)
+			ctx = NewContextWithEmail(ctx, info.Email)
+			ctx = NewContextWithRoles(ctx, info.Roles)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -63,7 +62,7 @@ func writeUnauthorized(w http.ResponseWriter, err error) {
 	if errors.Is(err, ErrSessionExpired) {
 		reason = "SESSION_EXPIRED"
 	}
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"code":    401,
 		"message": "unauthorized",
 		"reason":  reason,

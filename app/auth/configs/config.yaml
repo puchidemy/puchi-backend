@@ -1,43 +1,20 @@
 server:
   http:
     addr: "0.0.0.0:8080"
-    timeout: "30s"
-  grpc:
-    addr: "0.0.0.0:9090"
-    timeout: "30s"
+
+limen:
+  base_url: "http://localhost:8080"
+  # 32-byte secret; override via LIMEN_SECRET in production
+  secret: "dev-limen-secret-key-32bytes!!!!"
+  trusted_origins:
+    - "http://localhost:3000"
+    - "http://localhost:3001"
+    - "https://puchi.io.vn"
+  cookie_domain: "" # e.g. puchi.io.vn for cross-subdomain in prod
+  frontend_url: "http://localhost:3000"
 
 data:
   database:
-    driver: postgres
     source: "postgres://puchi:puchi-db-prod@192.168.100.201:30433/puchi?sslmode=disable&search_path=auth"
-  valkey:
-    addr: "127.0.0.1:6379"
-    password: ""
-    db: 0
-    pool_size: 10
   nats:
     url: ""
-
-auth:
-  issuer: "https://api.puchi.io.vn"
-  key_id: "2026-07-17-prod-1"
-  private_key_path: "configs/private.pem"
-  access_token_ttl: 900
-  refresh_token_ttl: 2592000
-  cors_allowed_origins:
-    - "https://puchi.io.vn"
-    - "http://localhost:3000"
-    - "http://localhost:3001"
-  social:
-    google:
-      client_id: "${GOOGLE_CLIENT_ID}"
-      client_secret: "${GOOGLE_CLIENT_SECRET}"
-      redirect_url: "https://api.puchi.io.vn/auth/callback/google"
-    facebook:
-      client_id: "${FACEBOOK_CLIENT_ID}"
-      client_secret: "${FACEBOOK_CLIENT_SECRET}"
-      redirect_url: "https://api.puchi.io.vn/auth/callback/facebook"
-    tiktok:
-      client_id: "${TIKTOK_CLIENT_ID}"
-      client_secret: "${TIKTOK_CLIENT_SECRET}"
-      redirect_url: "https://api.puchi.io.vn/auth/callback/tiktok"

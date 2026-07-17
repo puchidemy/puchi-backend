@@ -1,89 +1,262 @@
 package main
 
 import (
+	"context"
+	"database/sql"
+	"encoding/json"
 	"flag"
+	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
+	"os/signal"
+	"path/filepath"
+	"syscall"
+	"time"
 
-	"github.com/puchidemy/puchi-backend/app/auth/internal/conf"
+	"github.com/google/uuid"
+	_ "github.com/lib/pq"
+	"github.com/thecodearcher/limen"
+	sqladapter "github.com/thecodearcher/limen/adapters/sql"
+	credentialpassword "github.com/thecodearcher/limen/plugins/credential-password"
+	"github.com/thecodearcher/limen/plugins/oauth"
+	oauthfacebook "github.com/thecodearcher/limen/plugins/oauth-facebook"
+	oauthgoogle "github.com/thecodearcher/limen/plugins/oauth-google"
 
-	"github.com/go-kratos/kratos/v3"
-	"github.com/go-kratos/kratos/v3/config"
-	"github.com/go-kratos/kratos/v3/config/file"
-	"github.com/go-kratos/kratos/v3/log"
-	"github.com/go-kratos/kratos/v3/transport/grpc"
-	"github.com/go-kratos/kratos/v3/transport/http"
-
-	_ "go.uber.org/automaxprocs"
+	"github.com/puchidemy/puchi-backend/app/auth/internal/config"
+	"github.com/puchidemy/puchi-backend/app/auth/internal/events"
 )
-
-// go build -ldflags "-X main.Version=x.y.z"
-var (
-	// Name is the name of the compiled software.
-	Name string
-	// Version is the version of the compiled software.
-	Version string
-	// flagconf is the config flag.
-	flagconf string
-
-	id, _ = os.Hostname()
-)
-
-func init() {
-	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
-}
-
-func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
-	return kratos.New(
-		kratos.ID(id),
-		kratos.Name(Name),
-		kratos.Version(Version),
-		kratos.Metadata(map[string]string{}),
-		kratos.Logger(logger),
-		kratos.Server(
-			gs,
-			hs,
-		),
-	)
-}
 
 func main() {
+	confDir := flag.String("conf", "../../configs", "config directory or file")
 	flag.Parse()
-	logger := log.NewLogger(
-		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-			AddSource: true,
-			Level:     slog.LevelInfo,
-		}),
-	).With(
-		slog.String("service.id", id),
-		slog.String("service.name", Name),
-		slog.String("service.version", Version),
-	)
-	log.SetDefault(logger)
-	c := config.New(
-		config.WithSource(
-			file.NewSource(flagconf),
-		),
-	)
-	defer c.Close()
 
-	if err := c.Load(); err != nil {
-		panic(err)
-	}
+	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
-	var bc conf.Bootstrap
-	if err := c.Scan(&bc); err != nil {
-		panic(err)
-	}
-
-	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Auth, logger)
+	cfgPath := resolveConfigPath(*confDir)
+	cfg, err := config.Load(cfgPath)
 	if err != nil {
-		panic(err)
+		log.Error("load config", "err", err)
+		os.Exit(1)
 	}
-	defer cleanup()
 
-	// start and wait for stop signal
-	if err := app.Run(); err != nil {
-		panic(err)
+	db, err := sql.Open("postgres", cfg.Data.Database.Source)
+	if err != nil {
+		log.Error("open database", "err", err)
+		os.Exit(1)
 	}
+	defer db.Close()
+	db.SetMaxOpenConns(20)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(30 * time.Minute)
+
+	if err := db.Ping(); err != nil {
+		log.Warn("database ping failed (continuing)", "err", err)
+	}
+
+	pub, err := events.New(cfg.Data.NATS.URL, log)
+	if err != nil {
+		log.Error("nats", "err", err)
+		os.Exit(1)
+	}
+	defer pub.Close()
+
+	frontendURL := cfg.Limen.FrontendURL
+
+	httpOpts := []limen.HTTPConfigOption{
+		limen.WithHTTPTrustedOrigins(cfg.Limen.TrustedOrigins),
+		limen.WithHTTPSessionTransformer(func(user map[string]any, sessionResult *limen.SessionResult) (map[string]any, error) {
+			out := map[string]any{"user": user}
+			if sessionResult != nil && sessionResult.Token != "" {
+				out["token"] = sessionResult.Token
+			}
+			return out, nil
+		}),
+	}
+	if cfg.Limen.CookieDomain != "" {
+		httpOpts = append(httpOpts, limen.WithHTTPCookieCrossSubdomainEnabled(cfg.Limen.CookieDomain))
+	} else {
+		httpOpts = append(httpOpts, limen.WithHTTPCookieCrossDomainEnabled())
+	}
+
+	auth, err := limen.New(&limen.Config{
+		BaseURL:  cfg.Limen.BaseURL,
+		Database: sqladapter.NewPostgreSQL(db),
+		Secret:   []byte(cfg.Limen.Secret),
+		Schema: limen.NewDefaultSchemaConfig(
+			limen.WithSchemaIDGenerator(&uuidGenerator{}),
+			limen.WithSchemaUser(
+				limen.WithUserSerializer(func(u *limen.User) map[string]any {
+					raw := u.Raw()
+					if raw == nil {
+						raw = map[string]any{}
+					}
+					out := map[string]any{
+						"id":    fmt.Sprint(u.ID),
+						"email": u.Email,
+					}
+					if u.EmailVerifiedAt != nil {
+						out["email_verified_at"] = u.EmailVerifiedAt
+					}
+					for _, k := range []string{"username", "first_name", "last_name", "created_at", "updated_at"} {
+						if v, ok := raw[k]; ok {
+							out[k] = v
+						}
+					}
+					return out
+				}),
+			),
+		),
+		Session: limen.NewDefaultSessionConfig(
+			limen.WithBearerEnabled(),
+		),
+		HTTP: limen.NewDefaultHTTPConfig(append(httpOpts,
+			limen.WithHTTPHooks(&limen.Hooks{
+				After: []*limen.Hook{{
+					PathMatcher: func(ctx *limen.HookContext) bool {
+						id := ctx.RouteID()
+						return id == "signup" || id == "oauth-callback"
+					},
+					Run: func(ctx *limen.HookContext) bool {
+						if ar := ctx.GetAuthResult(); ar != nil && ar.User != nil {
+							username := ""
+							if raw := ar.User.Raw(); raw != nil {
+								if u, ok := raw["username"].(string); ok {
+									username = u
+								}
+							}
+							pub.UserCreated(fmt.Sprint(ar.User.ID), ar.User.Email, username)
+						}
+						return true
+					},
+				}},
+			}),
+		)...),
+		Email: limen.NewDefaultEmailConfig(
+			limen.WithEmailVerification(
+				limen.WithSendEmailVerificationMail(func(email, token string) {
+					link := fmt.Sprintf("%s/auth/verify-email?token=%s", frontendURL, token)
+					pub.SendEmail(email, "email-verify", map[string]any{
+						"link":  link,
+						"token": token,
+					})
+				}),
+			),
+		),
+		Plugins: []limen.Plugin{
+			credentialpassword.New(
+				credentialpassword.WithUsernameSupport(true),
+				credentialpassword.WithSendPasswordResetEmail(func(email, token string) {
+					link := fmt.Sprintf("%s/auth/reset-password?token=%s", frontendURL, token)
+					pub.SendEmail(email, "password-reset", map[string]any{
+						"link":  link,
+						"token": token,
+					})
+				}),
+			),
+			oauth.New(oauth.WithProviders(
+				oauthgoogle.New(),
+				oauthfacebook.New(),
+			)),
+		},
+	})
+	if err != nil {
+		log.Error("limen init", "err", err)
+		os.Exit(1)
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/auth/", auth.Handler())
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	})
+	// Cluster-internal session validate for other Go services (Bearer or cookie).
+	mux.HandleFunc("GET /internal/session", func(w http.ResponseWriter, r *http.Request) {
+		session, err := auth.GetSession(r)
+		if err != nil || session == nil || session.User == nil {
+			http.Error(w, `{"message":"unauthorized"}`, http.StatusUnauthorized)
+			return
+		}
+		username := ""
+		if raw := session.User.Raw(); raw != nil {
+			if u, ok := raw["username"].(string); ok {
+				username = u
+			}
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"user_id":  fmt.Sprint(session.User.ID),
+			"email":    session.User.Email,
+			"username": username,
+		})
+	})
+
+	srv := &http.Server{
+		Addr:              cfg.Server.HTTP.Addr,
+		Handler:           withCORS(mux, cfg.Limen.TrustedOrigins),
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+
+	go func() {
+		log.Info("auth-service listening", "addr", cfg.Server.HTTP.Addr, "base_url", cfg.Limen.BaseURL)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Error("server", "err", err)
+			os.Exit(1)
+		}
+	}()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	<-stop
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_ = srv.Shutdown(ctx)
+}
+
+func resolveConfigPath(conf string) string {
+	info, err := os.Stat(conf)
+	if err == nil && !info.IsDir() {
+		return conf
+	}
+	candidates := []string{
+		filepath.Join(conf, "config.yaml"),
+		filepath.Join(conf, "config.yml"),
+	}
+	for _, c := range candidates {
+		if _, err := os.Stat(c); err == nil {
+			return c
+		}
+	}
+	return filepath.Join(conf, "config.yaml")
+}
+
+type uuidGenerator struct{}
+
+func (g *uuidGenerator) GetColumnType() limen.ColumnType { return limen.ColumnTypeUUID }
+
+func (g *uuidGenerator) Generate(context.Context) (any, error) {
+	return uuid.New().String(), nil
+}
+
+func withCORS(next http.Handler, origins []string) http.Handler {
+	allowed := make(map[string]struct{}, len(origins))
+	for _, o := range origins {
+		allowed[o] = struct{}{}
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origin := r.Header.Get("Origin")
+		if _, ok := allowed[origin]; ok {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Cookie")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Expose-Headers", "Set-Auth-Token, Set-Refresh-Token")
+		}
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
