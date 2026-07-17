@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package puchi.learn.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/puchidemy/puchi-backend/app/learn/api/learn/v1;v1";
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.learn.v1";
+option java_outer_classname = "LearnProto";
+
+// LearnService is an empty scaffold. Curriculum and guest-progress RPCs are
+// added in later tasks of the learn-service reorg.
+service LearnService {
+  rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option (google.api.http) = { get: "/v1/learn/ping" };
+  }
+}

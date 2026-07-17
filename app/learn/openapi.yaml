@@ -1,0 +1,24 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: LearnService API
+    description: |-
+        LearnService is an empty scaffold. Curriculum and guest-progress RPCs are
+         added in later tasks of the learn-service reorg.
+    version: 0.0.1
+paths:
+    /v1/learn/ping:
+        get:
+            tags:
+                - LearnService
+            operationId: LearnService_Ping
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+components:
+    schemas: {}
+tags:
+    - name: LearnService
