@@ -45,5 +45,6 @@ func NewHTTPServer(c *conf.Server, authCfg *conf.Auth, jwtValidator *authpkg.JWT
 	}
 	srv := http.NewServer(opts...)
 	pb.RegisterProfileServiceHTTPServer(srv, profileService)
+	srv.HandleFunc("/v1/profile/merge-guest", profileService.HandleMergeGuest)
 	return srv
 }

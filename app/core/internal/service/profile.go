@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
 
 	pb "github.com/puchidemy/puchi-backend/app/core/api/profile/v1"
 	auth "github.com/puchidemy/puchi-backend/pkg/auth"
@@ -162,6 +164,45 @@ func (s *ProfileService) GetLinkedAccounts(ctx context.Context, _ *emptypb.Empty
 	// Linked accounts are now managed by Zitadel.
 	// This endpoint returns an empty list until Zitadel user info API integration is added.
 	return &pb.LinkedAccountsResponse{Accounts: []*pb.LinkedAccount{}}, nil
+}
+
+// HandleMergeGuest handles POST /v1/profile/merge-guest
+func (s *ProfileService) HandleMergeGuest(w http.ResponseWriter, r *http.Request) {
+	userID, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
+		return
+	}
+
+	var req struct {
+		LessonsCompleted   int      `json:"lessons_completed"`
+		TotalCorrect       int      `json:"total_correct"`
+		TotalXp            int      `json:"total_xp"`
+		CompletedLessonIDs []string `json:"completed_lesson_ids"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "invalid body"})
+		return
+	}
+
+	if err := s.uc.MergeGuestProgress(r.Context(), userID, biz.MergeGuestInput{
+		LessonsCompleted:   req.LessonsCompleted,
+		TotalCorrect:       req.TotalCorrect,
+		TotalXp:            req.TotalXp,
+		CompletedLessonIDs: req.CompletedLessonIDs,
+	}); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "merge failed"})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "guest progress merged"})
 }
 
 // userToProto converts a gen.CoreUser to a proto User.

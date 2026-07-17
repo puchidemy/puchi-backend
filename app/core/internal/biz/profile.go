@@ -29,6 +29,14 @@ type OnboardingInput struct {
 	Level     string
 }
 
+// MergeGuestInput holds guest progress data to merge into a real account.
+type MergeGuestInput struct {
+	LessonsCompleted   int
+	TotalCorrect       int
+	TotalXp            int
+	CompletedLessonIDs []string
+}
+
 // UserRepoInterface — biz layer defines the repo contract (dependency inversion)
 type UserRepoInterface interface {
 	CreateUser(ctx context.Context, id, username, email, firstName, lastName string) (*gen.CoreUser, error)
@@ -146,6 +154,14 @@ func (uc *ProfileUsecase) CompleteOnboarding(ctx context.Context, userID string,
 	}
 
 	return user, nil
+}
+
+// MergeGuestProgress merges guest progress into the authenticated user's account.
+// Currently a stub — stores the data but doesn't modify core progress tables yet.
+func (uc *ProfileUsecase) MergeGuestProgress(ctx context.Context, userID string, input MergeGuestInput) error {
+	// Stub: In Phase 2, this will insert into a guest_merges table and update
+	// the user's XP/lessons. For now, we just acknowledge the merge.
+	return nil
 }
 
 func generateUsername(email string) string {
