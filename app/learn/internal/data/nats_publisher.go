@@ -27,7 +27,6 @@ type lessonCompletedPayload struct {
 
 type unitCompletedPayload struct {
 	UserID      string `json:"user_id"`
-	LessonID    string `json:"lesson_id"`
 	UnitID      string `json:"unit_id"`
 	XP          int32  `json:"xp"`
 	CompletedAt string `json:"completed_at"`

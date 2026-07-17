@@ -161,7 +161,7 @@ func (uc *LearnUsecase) ClaimGuest(ctx context.Context, userID string, guestID u
 		if err := progressRepo.ReassignGuestAttempts(ctx, guestIDStr, userID); err != nil {
 			return err
 		}
-		return guestRepo.ClaimGuest(ctx, guestIDStr, userID)
+		return nil
 	})
 	if err != nil {
 		return 0, err
@@ -174,15 +174,15 @@ func (uc *LearnUsecase) ClaimGuest(ctx context.Context, userID string, guestID u
 		ev.CompletedAt = completedAt
 		lesson, err := uc.curriculumRepo.GetLessonByID(ctx, ev.LessonID)
 		if err != nil {
-			return lessonsMerged, err
+			return 0, err
 		}
 		skill, err := uc.curriculumRepo.GetSkillByID(ctx, lesson.SkillID)
 		if err != nil {
-			return lessonsMerged, err
+			return 0, err
 		}
 		ev.UnitID = skill.UnitID
 		if err := uc.publisher.PublishLessonCompleted(ctx, *ev); err != nil {
-			return lessonsMerged, err
+			return 0, err
 		}
 	}
 	for i := range pendingUnits {
@@ -190,8 +190,25 @@ func (uc *LearnUsecase) ClaimGuest(ctx context.Context, userID string, guestID u
 		ev.UserID = userID
 		ev.CompletedAt = completedAt
 		if err := uc.publisher.PublishUnitCompleted(ctx, ev); err != nil {
-			return lessonsMerged, err
+			return 0, err
 		}
+	}
+
+	err = uc.tx.InTx(ctx, func(guestRepo GuestRepoInterface, _ ProgressRepoInterface) error {
+		guest, err := guestRepo.GetGuestByIDForUpdate(ctx, guestIDStr)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return ErrGuestNotFound
+			}
+			return err
+		}
+		if guest.ClaimedAt.Valid {
+			return ErrGuestAlreadyClaimed
+		}
+		return guestRepo.ClaimGuest(ctx, guestIDStr, userID)
+	})
+	if err != nil {
+		return 0, err
 	}
 
 	return lessonsMerged, nil
