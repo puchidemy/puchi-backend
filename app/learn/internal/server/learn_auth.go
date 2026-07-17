@@ -7,8 +7,9 @@ import (
 	authpkg "github.com/puchidemy/puchi-backend/pkg/auth"
 )
 
-// learnOptionalAuthFilter validates Bearer tokens on curriculum read paths when
-// present, injecting user context without requiring auth for guest cookies.
+// learnOptionalAuthFilter validates Limen session (Bearer or limen_session
+// cookie) on curriculum read paths when present, injecting user context
+// without requiring auth for guest-only cookies.
 func learnOptionalAuthFilter(validator *authpkg.SessionValidator) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -17,15 +18,9 @@ func learnOptionalAuthFilter(validator *authpkg.SessionValidator) func(http.Hand
 				return
 			}
 
-			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
+			tokenStr := authpkg.SessionTokenFromRequest(r)
+			if tokenStr == "" {
 				next.ServeHTTP(w, r)
-				return
-			}
-
-			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-			if tokenStr == authHeader {
-				writeLearnUnauthorized(w)
 				return
 			}
 
