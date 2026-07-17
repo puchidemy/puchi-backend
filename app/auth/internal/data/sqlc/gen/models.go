@@ -44,6 +44,15 @@ type AuthMagicLink struct {
 	CreatedAt  time.Time          `db:"created_at"`
 }
 
+type AuthOutbox struct {
+	ID          string             `db:"id"`
+	Topic       string             `db:"topic"`
+	Payload     []byte             `db:"payload"`
+	CreatedAt   time.Time          `db:"created_at"`
+	PublishedAt pgtype.Timestamptz `db:"published_at"`
+	RetryCount  int32              `db:"retry_count"`
+}
+
 type AuthPasswordResetToken struct {
 	ID        string             `db:"id"`
 	UserID    string             `db:"user_id"`

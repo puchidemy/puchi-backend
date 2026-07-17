@@ -9,8 +9,15 @@ import (
 	"github.com/google/wire"
 )
 
+// OAuthStateData holds the temporary state stored in Valkey during the OAuth2 flow.
+type OAuthStateData struct {
+	Provider      string `json:"provider"`
+	CodeVerifier  string `json:"code_verifier"`
+	RedirectAfter string `json:"redirect_after,omitempty"`
+}
+
 // ProviderSet is biz providers.
-var ProviderSet = wire.NewSet(NewAuthUsecase, NewTokenUsecase, NewSocialUsecase, NewMagicLinkUsecase, NewMFAUsecase, NewRBACUsecase, NewAuditUsecase)
+var ProviderSet = wire.NewSet(NewAuthUsecase, NewTokenUsecase, NewSocialUsecase, NewMagicLinkUsecase, NewMFAUsecase, NewRBACUsecase, NewAuditUsecase, NewEmailVerificationUsecase)
 
 // EventPublisher defines the interface for publishing domain events.
 type EventPublisher interface {

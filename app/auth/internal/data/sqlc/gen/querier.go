@@ -11,6 +11,7 @@ import (
 type Querier interface {
 	AssignRoleToUser(ctx context.Context, arg AssignRoleToUserParams) error
 	CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) (AuthAuditLog, error)
+	CreateEmailVerification(ctx context.Context, arg CreateEmailVerificationParams) (AuthEmailVerification, error)
 	CreateMagicLink(ctx context.Context, arg CreateMagicLinkParams) (AuthMagicLink, error)
 	CreatePasswordResetToken(ctx context.Context, arg CreatePasswordResetTokenParams) (AuthPasswordResetToken, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (AuthSession, error)
@@ -19,6 +20,7 @@ type Querier interface {
 	DeleteSocialConnection(ctx context.Context, arg DeleteSocialConnectionParams) error
 	DisableTOTP(ctx context.Context, userID string) error
 	EnableTOTP(ctx context.Context, userID string) error
+	GetEmailVerificationByUserAndHash(ctx context.Context, arg GetEmailVerificationByUserAndHashParams) (AuthEmailVerification, error)
 	GetMagicLinkByToken(ctx context.Context, token string) (AuthMagicLink, error)
 	GetPasswordResetToken(ctx context.Context, token string) (AuthPasswordResetToken, error)
 	GetPermissionVersion(ctx context.Context) (int64, error)
@@ -37,6 +39,7 @@ type Querier interface {
 	ListRoles(ctx context.Context) ([]AuthRole, error)
 	ListSessionsByUser(ctx context.Context, userID string) ([]AuthSession, error)
 	ListSocialConnectionsByUser(ctx context.Context, userID string) ([]AuthSocialConnection, error)
+	MarkEmailVerificationUsed(ctx context.Context, id string) error
 	MarkMagicLinkUsed(ctx context.Context, id string) error
 	MarkPasswordResetTokenUsed(ctx context.Context, id string) error
 	RemoveRoleFromUser(ctx context.Context, arg RemoveRoleFromUserParams) error

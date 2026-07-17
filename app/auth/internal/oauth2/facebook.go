@@ -24,8 +24,8 @@ func NewFacebookProvider(clientID, clientSecret, redirectURL string) (*FacebookP
 		RedirectURL:  redirectURL,
 		Scopes:       []string{"openid", "email", "public_profile"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://www.facebook.com/v20.0/dialog/oauth",
-			TokenURL: "https://graph.facebook.com/v20.0/oauth/access_token",
+			AuthURL:  "https://www.facebook.com/v25.0/dialog/oauth",
+			TokenURL: "https://graph.facebook.com/v25.0/oauth/access_token",
 		},
 	}
 	jwks, err := keyfunc.Get("https://www.facebook.com/.well-known/oauth/openid/jwks/", keyfunc.Options{})

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -30,10 +31,12 @@ type AuthUsecase struct {
 	sessionCache       SessionCache
 	tokenBlacklist     TokenBlacklist
 	rateLimiter        RateLimiter
+	evUC               *EmailVerificationUsecase
+	frontendURL        string
 }
 
 // NewAuthUsecase creates a new AuthUsecase.
-func NewAuthUsecase(userRepo UserRepo, sessionRepo SessionRepo, passwordResetToken PasswordResetTokenRepo, tokenUC *TokenUsecase, auditUC *AuditUsecase, eventPublisher EventPublisher, sessionCache SessionCache, tokenBlacklist TokenBlacklist, rateLimiter RateLimiter) *AuthUsecase {
+func NewAuthUsecase(userRepo UserRepo, sessionRepo SessionRepo, passwordResetToken PasswordResetTokenRepo, tokenUC *TokenUsecase, auditUC *AuditUsecase, eventPublisher EventPublisher, sessionCache SessionCache, tokenBlacklist TokenBlacklist, rateLimiter RateLimiter, evUC *EmailVerificationUsecase, frontendURL string) *AuthUsecase {
 	return &AuthUsecase{
 		userRepo:           userRepo,
 		sessionRepo:        sessionRepo,
@@ -44,8 +47,13 @@ func NewAuthUsecase(userRepo UserRepo, sessionRepo SessionRepo, passwordResetTok
 		sessionCache:       sessionCache,
 		tokenBlacklist:     tokenBlacklist,
 		rateLimiter:        rateLimiter,
+		evUC:               evUC,
+		frontendURL:        frontendURL,
 	}
 }
+
+// AuthUsecase now includes EmailVerificationUsecase for triggering verification
+// after registration.
 
 // Register creates a new user account with email and password.
 func (uc *AuthUsecase) Register(ctx context.Context, input RegisterInput) (*User, error) {
@@ -83,6 +91,13 @@ func (uc *AuthUsecase) Register(ctx context.Context, input RegisterInput) (*User
 		"user_id": user.ID.String(),
 		"email":   user.Email,
 	})
+
+	// Trigger email verification (async via NATS outbox)
+	if uc.evUC != nil {
+		if _, err := uc.evUC.Send(ctx, user.ID, user.Email); err != nil {
+			slog.Warn("send verification email", "user_id", user.ID, "error", err)
+		}
+	}
 
 	return user, nil
 }
@@ -289,7 +304,7 @@ func (uc *AuthUsecase) ChangePassword(ctx context.Context, userID uuid.UUID, ses
 	return nil
 }
 
-// RequestPasswordReset generates a reset token and (in future) sends via NATS.
+// RequestPasswordReset generates a reset token and publishes email.send via NATS.
 func (uc *AuthUsecase) RequestPasswordReset(ctx context.Context, email string) error {
 	emailNorm := strings.ToLower(strings.TrimSpace(email))
 
@@ -314,8 +329,15 @@ func (uc *AuthUsecase) RequestPasswordReset(ctx context.Context, email string) e
 		return fmt.Errorf("store password reset token: %w", err)
 	}
 
-	// In Phase 3: send email with raw token link via NATS
-	_ = raw
+	// Publish email.send event for password reset
+	_ = uc.eventPublisher.Publish(ctx, "email.send", map[string]any{
+		"to":       emailNorm,
+		"template": "password-reset",
+		"data": map[string]any{
+			"link":      fmt.Sprintf("%s/auth/password/reset?token=%s", uc.frontendURL, raw),
+			"user_name": strings.Split(user.Email, "@")[0],
+		},
+	})
 
 	return nil
 }

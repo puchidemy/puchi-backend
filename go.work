@@ -4,6 +4,7 @@ use (
 	./app/auth
 	./app/content
 	./app/core
+	./app/email
 	./app/game
 	./app/grading
 	./app/media

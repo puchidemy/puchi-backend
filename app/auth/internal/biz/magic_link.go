@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -11,15 +12,17 @@ import (
 
 // MagicLinkUsecase handles magic link (passwordless email login) business logic.
 type MagicLinkUsecase struct {
-	mlRepo   MagicLinkRepo
-	userRepo UserRepo
-	session  SessionRepo
-	tokenUC  *TokenUsecase
+	mlRepo      MagicLinkRepo
+	userRepo    UserRepo
+	session     SessionRepo
+	tokenUC     *TokenUsecase
+	publisher   EventPublisher
+	frontendURL string
 }
 
 // NewMagicLinkUsecase creates a new MagicLinkUsecase.
-func NewMagicLinkUsecase(mlRepo MagicLinkRepo, userRepo UserRepo, session SessionRepo, tokenUC *TokenUsecase) *MagicLinkUsecase {
-	return &MagicLinkUsecase{mlRepo: mlRepo, userRepo: userRepo, session: session, tokenUC: tokenUC}
+func NewMagicLinkUsecase(mlRepo MagicLinkRepo, userRepo UserRepo, session SessionRepo, tokenUC *TokenUsecase, publisher EventPublisher, frontendURL string) *MagicLinkUsecase {
+	return &MagicLinkUsecase{mlRepo: mlRepo, userRepo: userRepo, session: session, tokenUC: tokenUC, publisher: publisher, frontendURL: frontendURL}
 }
 
 // Send creates a magic link token and returns the raw token (email sending deferred).
@@ -50,8 +53,17 @@ func (uc *MagicLinkUsecase) Send(ctx context.Context, email string, redirectTo s
 		return "", fmt.Errorf("create magic link: %w", err)
 	}
 
-	// In Phase 3: publish email.send on NATS
-	// For now, return raw token for dev/testing
+	// Publish email.send event
+	if err := uc.publisher.Publish(ctx, "email.send", map[string]any{
+		"to":       emailNorm,
+		"template": "magic-link",
+		"data": map[string]any{
+			"link": fmt.Sprintf("%s/auth/magic-link/verify?token=%s", uc.frontendURL, raw),
+		},
+	}); err != nil {
+		// Log but don't fail — the outbox will retry
+		slog.Warn("publish magic link email", "error", err)
+	}
 
 	return raw, nil
 }

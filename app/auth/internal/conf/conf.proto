@@ -51,4 +51,17 @@ message Auth {
   int64 access_token_ttl = 4;
   int64 refresh_token_ttl = 5;
   repeated string cors_allowed_origins = 6;
+  SocialProviders social = 7;
+}
+
+message SocialProvider {
+  string client_id = 1;
+  string client_secret = 2;
+  string redirect_url = 3;
+}
+
+message SocialProviders {
+  SocialProvider google = 1;
+  SocialProvider facebook = 2;
+  SocialProvider tiktok = 3;
 }

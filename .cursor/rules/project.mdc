@@ -26,7 +26,7 @@ Monorepo Go microservices với **Kratos v3**. 8 service modules trong `app/`, w
 
 ```
 puchi-backend/
-├── app/                           # 8 Go service modules
+├── app/                           # 9 Go service modules
 │   ├── auth/                      # Auth-service — identity, OAuth2, MFA, RBAC
 │   ├── core/                      # User profile, game, stats (core domain)
 │   ├── content/                   # Courses, units, lessons
@@ -34,6 +34,7 @@ puchi-backend/
 │   ├── user/                      # Profile, settings, social features
 │   ├── game/                      # XP, leaderboard, achievements
 │   ├── media/                     # Upload, resize (Garage S3)
+│   ├── email/                     # Email sender (NATS subscriber → SMTP)
 │   └── notification/              # Push, email (SMTP + NATS)
 ├── pkg/                           # Shared Kit library
 │   └── auth/                      # JWT verification middleware (JWKS local cache)

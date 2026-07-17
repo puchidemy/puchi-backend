@@ -202,6 +202,7 @@ type Auth struct {
 	AccessTokenTtl     int64                  `protobuf:"varint,4,opt,name=access_token_ttl,json=accessTokenTtl,proto3" json:"access_token_ttl,omitempty"`
 	RefreshTokenTtl    int64                  `protobuf:"varint,5,opt,name=refresh_token_ttl,json=refreshTokenTtl,proto3" json:"refresh_token_ttl,omitempty"`
 	CorsAllowedOrigins []string               `protobuf:"bytes,6,rep,name=cors_allowed_origins,json=corsAllowedOrigins,proto3" json:"cors_allowed_origins,omitempty"`
+	Social             *SocialProviders       `protobuf:"bytes,7,opt,name=social,proto3" json:"social,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -278,6 +279,133 @@ func (x *Auth) GetCorsAllowedOrigins() []string {
 	return nil
 }
 
+func (x *Auth) GetSocial() *SocialProviders {
+	if x != nil {
+		return x.Social
+	}
+	return nil
+}
+
+type SocialProvider struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClientId      string                 `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	ClientSecret  string                 `protobuf:"bytes,2,opt,name=client_secret,json=clientSecret,proto3" json:"client_secret,omitempty"`
+	RedirectUrl   string                 `protobuf:"bytes,3,opt,name=redirect_url,json=redirectUrl,proto3" json:"redirect_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SocialProvider) Reset() {
+	*x = SocialProvider{}
+	mi := &file_internal_conf_conf_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SocialProvider) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SocialProvider) ProtoMessage() {}
+
+func (x *SocialProvider) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_conf_conf_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SocialProvider.ProtoReflect.Descriptor instead.
+func (*SocialProvider) Descriptor() ([]byte, []int) {
+	return file_internal_conf_conf_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SocialProvider) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *SocialProvider) GetClientSecret() string {
+	if x != nil {
+		return x.ClientSecret
+	}
+	return ""
+}
+
+func (x *SocialProvider) GetRedirectUrl() string {
+	if x != nil {
+		return x.RedirectUrl
+	}
+	return ""
+}
+
+type SocialProviders struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Google        *SocialProvider        `protobuf:"bytes,1,opt,name=google,proto3" json:"google,omitempty"`
+	Facebook      *SocialProvider        `protobuf:"bytes,2,opt,name=facebook,proto3" json:"facebook,omitempty"`
+	Tiktok        *SocialProvider        `protobuf:"bytes,3,opt,name=tiktok,proto3" json:"tiktok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SocialProviders) Reset() {
+	*x = SocialProviders{}
+	mi := &file_internal_conf_conf_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SocialProviders) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SocialProviders) ProtoMessage() {}
+
+func (x *SocialProviders) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_conf_conf_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SocialProviders.ProtoReflect.Descriptor instead.
+func (*SocialProviders) Descriptor() ([]byte, []int) {
+	return file_internal_conf_conf_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SocialProviders) GetGoogle() *SocialProvider {
+	if x != nil {
+		return x.Google
+	}
+	return nil
+}
+
+func (x *SocialProviders) GetFacebook() *SocialProvider {
+	if x != nil {
+		return x.Facebook
+	}
+	return nil
+}
+
+func (x *SocialProviders) GetTiktok() *SocialProvider {
+	if x != nil {
+		return x.Tiktok
+	}
+	return nil
+}
+
 type Server_HTTP struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Addr          string                 `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
@@ -288,7 +416,7 @@ type Server_HTTP struct {
 
 func (x *Server_HTTP) Reset() {
 	*x = Server_HTTP{}
-	mi := &file_internal_conf_conf_proto_msgTypes[4]
+	mi := &file_internal_conf_conf_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -300,7 +428,7 @@ func (x *Server_HTTP) String() string {
 func (*Server_HTTP) ProtoMessage() {}
 
 func (x *Server_HTTP) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[4]
+	mi := &file_internal_conf_conf_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -340,7 +468,7 @@ type Server_GRPC struct {
 
 func (x *Server_GRPC) Reset() {
 	*x = Server_GRPC{}
-	mi := &file_internal_conf_conf_proto_msgTypes[5]
+	mi := &file_internal_conf_conf_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -352,7 +480,7 @@ func (x *Server_GRPC) String() string {
 func (*Server_GRPC) ProtoMessage() {}
 
 func (x *Server_GRPC) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[5]
+	mi := &file_internal_conf_conf_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -392,7 +520,7 @@ type Data_Database struct {
 
 func (x *Data_Database) Reset() {
 	*x = Data_Database{}
-	mi := &file_internal_conf_conf_proto_msgTypes[6]
+	mi := &file_internal_conf_conf_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -404,7 +532,7 @@ func (x *Data_Database) String() string {
 func (*Data_Database) ProtoMessage() {}
 
 func (x *Data_Database) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[6]
+	mi := &file_internal_conf_conf_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -446,7 +574,7 @@ type Data_Valkey struct {
 
 func (x *Data_Valkey) Reset() {
 	*x = Data_Valkey{}
-	mi := &file_internal_conf_conf_proto_msgTypes[7]
+	mi := &file_internal_conf_conf_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -458,7 +586,7 @@ func (x *Data_Valkey) String() string {
 func (*Data_Valkey) ProtoMessage() {}
 
 func (x *Data_Valkey) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[7]
+	mi := &file_internal_conf_conf_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -511,7 +639,7 @@ type Data_NATS struct {
 
 func (x *Data_NATS) Reset() {
 	*x = Data_NATS{}
-	mi := &file_internal_conf_conf_proto_msgTypes[8]
+	mi := &file_internal_conf_conf_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -523,7 +651,7 @@ func (x *Data_NATS) String() string {
 func (*Data_NATS) ProtoMessage() {}
 
 func (x *Data_NATS) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_conf_conf_proto_msgTypes[8]
+	mi := &file_internal_conf_conf_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -579,14 +707,23 @@ const file_internal_conf_conf_proto_rawDesc = "" +
 	"\x02db\x18\x03 \x01(\x05R\x02db\x12\x1b\n" +
 	"\tpool_size\x18\x04 \x01(\x05R\bpoolSize\x1a\x18\n" +
 	"\x04NATS\x12\x10\n" +
-	"\x03url\x18\x01 \x01(\tR\x03url\"\xe7\x01\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\"\x96\x02\n" +
 	"\x04Auth\x12\x16\n" +
 	"\x06issuer\x18\x01 \x01(\tR\x06issuer\x12\x15\n" +
 	"\x06key_id\x18\x02 \x01(\tR\x05keyId\x12(\n" +
 	"\x10private_key_path\x18\x03 \x01(\tR\x0eprivateKeyPath\x12(\n" +
 	"\x10access_token_ttl\x18\x04 \x01(\x03R\x0eaccessTokenTtl\x12*\n" +
 	"\x11refresh_token_ttl\x18\x05 \x01(\x03R\x0frefreshTokenTtl\x120\n" +
-	"\x14cors_allowed_origins\x18\x06 \x03(\tR\x12corsAllowedOriginsB@Z>github.com/puchidemy/puchi-backend/app/auth/internal/conf;confb\x06proto3"
+	"\x14cors_allowed_origins\x18\x06 \x03(\tR\x12corsAllowedOrigins\x12-\n" +
+	"\x06social\x18\a \x01(\v2\x15.conf.SocialProvidersR\x06social\"u\n" +
+	"\x0eSocialProvider\x12\x1b\n" +
+	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12#\n" +
+	"\rclient_secret\x18\x02 \x01(\tR\fclientSecret\x12!\n" +
+	"\fredirect_url\x18\x03 \x01(\tR\vredirectUrl\"\x9f\x01\n" +
+	"\x0fSocialProviders\x12,\n" +
+	"\x06google\x18\x01 \x01(\v2\x14.conf.SocialProviderR\x06google\x120\n" +
+	"\bfacebook\x18\x02 \x01(\v2\x14.conf.SocialProviderR\bfacebook\x12,\n" +
+	"\x06tiktok\x18\x03 \x01(\v2\x14.conf.SocialProviderR\x06tiktokB@Z>github.com/puchidemy/puchi-backend/app/auth/internal/conf;confb\x06proto3"
 
 var (
 	file_internal_conf_conf_proto_rawDescOnce sync.Once
@@ -600,35 +737,41 @@ func file_internal_conf_conf_proto_rawDescGZIP() []byte {
 	return file_internal_conf_conf_proto_rawDescData
 }
 
-var file_internal_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_internal_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_internal_conf_conf_proto_goTypes = []any{
 	(*Bootstrap)(nil),           // 0: conf.Bootstrap
 	(*Server)(nil),              // 1: conf.Server
 	(*Data)(nil),                // 2: conf.Data
 	(*Auth)(nil),                // 3: conf.Auth
-	(*Server_HTTP)(nil),         // 4: conf.Server.HTTP
-	(*Server_GRPC)(nil),         // 5: conf.Server.GRPC
-	(*Data_Database)(nil),       // 6: conf.Data.Database
-	(*Data_Valkey)(nil),         // 7: conf.Data.Valkey
-	(*Data_NATS)(nil),           // 8: conf.Data.NATS
-	(*durationpb.Duration)(nil), // 9: google.protobuf.Duration
+	(*SocialProvider)(nil),      // 4: conf.SocialProvider
+	(*SocialProviders)(nil),     // 5: conf.SocialProviders
+	(*Server_HTTP)(nil),         // 6: conf.Server.HTTP
+	(*Server_GRPC)(nil),         // 7: conf.Server.GRPC
+	(*Data_Database)(nil),       // 8: conf.Data.Database
+	(*Data_Valkey)(nil),         // 9: conf.Data.Valkey
+	(*Data_NATS)(nil),           // 10: conf.Data.NATS
+	(*durationpb.Duration)(nil), // 11: google.protobuf.Duration
 }
 var file_internal_conf_conf_proto_depIdxs = []int32{
 	1,  // 0: conf.Bootstrap.server:type_name -> conf.Server
 	2,  // 1: conf.Bootstrap.data:type_name -> conf.Data
 	3,  // 2: conf.Bootstrap.auth:type_name -> conf.Auth
-	4,  // 3: conf.Server.http:type_name -> conf.Server.HTTP
-	5,  // 4: conf.Server.grpc:type_name -> conf.Server.GRPC
-	6,  // 5: conf.Data.database:type_name -> conf.Data.Database
-	7,  // 6: conf.Data.valkey:type_name -> conf.Data.Valkey
-	8,  // 7: conf.Data.nats:type_name -> conf.Data.NATS
-	9,  // 8: conf.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	9,  // 9: conf.Server.GRPC.timeout:type_name -> google.protobuf.Duration
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	6,  // 3: conf.Server.http:type_name -> conf.Server.HTTP
+	7,  // 4: conf.Server.grpc:type_name -> conf.Server.GRPC
+	8,  // 5: conf.Data.database:type_name -> conf.Data.Database
+	9,  // 6: conf.Data.valkey:type_name -> conf.Data.Valkey
+	10, // 7: conf.Data.nats:type_name -> conf.Data.NATS
+	5,  // 8: conf.Auth.social:type_name -> conf.SocialProviders
+	4,  // 9: conf.SocialProviders.google:type_name -> conf.SocialProvider
+	4,  // 10: conf.SocialProviders.facebook:type_name -> conf.SocialProvider
+	4,  // 11: conf.SocialProviders.tiktok:type_name -> conf.SocialProvider
+	11, // 12: conf.Server.HTTP.timeout:type_name -> google.protobuf.Duration
+	11, // 13: conf.Server.GRPC.timeout:type_name -> google.protobuf.Duration
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_internal_conf_conf_proto_init() }
@@ -642,7 +785,7 @@ func file_internal_conf_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_internal_conf_conf_proto_rawDesc), len(file_internal_conf_conf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

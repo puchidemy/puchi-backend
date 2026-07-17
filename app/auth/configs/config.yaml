@@ -28,3 +28,16 @@ auth:
     - "https://puchi.io.vn"
     - "http://localhost:3000"
     - "http://localhost:3001"
+  social:
+    google:
+      client_id: "${GOOGLE_CLIENT_ID}"
+      client_secret: "${GOOGLE_CLIENT_SECRET}"
+      redirect_url: "https://api.puchi.io.vn/auth/callback/google"
+    facebook:
+      client_id: "${FACEBOOK_CLIENT_ID}"
+      client_secret: "${FACEBOOK_CLIENT_SECRET}"
+      redirect_url: "https://api.puchi.io.vn/auth/callback/facebook"
+    tiktok:
+      client_id: "${TIKTOK_CLIENT_ID}"
+      client_secret: "${TIKTOK_CLIENT_SECRET}"
+      redirect_url: "https://api.puchi.io.vn/auth/callback/tiktok"

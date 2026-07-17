@@ -188,6 +188,11 @@ func (uc *SocialUsecase) Unlink(ctx context.Context, userID uuid.UUID, connectio
 	return uc.socialConnRepo.Delete(ctx, connectionID, userID)
 }
 
+// ListConnections returns all social connections for a user.
+func (uc *SocialUsecase) ListConnections(ctx context.Context, userID uuid.UUID) ([]*SocialConnection, error) {
+	return uc.socialConnRepo.ListByUser(ctx, userID)
+}
+
 // createTokensForUser creates a session and issues access+refresh tokens for the given user.
 func (uc *SocialUsecase) createTokensForUser(ctx context.Context, user *User) (*TokenPair, error) {
 	family := uuid.New()
