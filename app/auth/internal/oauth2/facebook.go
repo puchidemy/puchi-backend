@@ -10,6 +10,8 @@ import (
 )
 
 // FacebookProvider implements OAuth2Provider for Facebook Login (OIDC).
+// Uses standard Authorization Code flow with client_secret (no PKCE),
+// matching how Supertokens implements Facebook OAuth on web.
 type FacebookProvider struct {
 	config  *oauth2.Config
 	jwks    *keyfunc.JWKS
@@ -38,19 +40,17 @@ func NewFacebookProvider(clientID, clientSecret, redirectURL string) (*FacebookP
 // Name returns "facebook".
 func (p *FacebookProvider) Name() string { return "facebook" }
 
-// AuthURL builds the Facebook OAuth2 authorization URL with PKCE.
+// AuthURL builds the Facebook OAuth2 authorization URL.
+// Facebook web uses standard Authorization Code flow (not PKCE for web).
 func (p *FacebookProvider) AuthURL(state string, codeChallenge string) string {
-	return p.config.AuthCodeURL(state,
-		oauth2.SetAuthURLParam("code_challenge", codeChallenge),
-		oauth2.SetAuthURLParam("code_challenge_method", "S256"),
-	)
+	return p.config.AuthCodeURL(state)
 }
 
 // Exchange exchanges the authorization code for an id_token and extracts user info.
-// Facebook requires redirect_uri to be passed again during token exchange (byte-for-byte match).
+// Uses client_secret for authentication (no PKCE code_verifier).
+// Facebook requires redirect_uri to be passed during token exchange (byte-for-byte match).
 func (p *FacebookProvider) Exchange(ctx context.Context, code string, codeVerifier string) (*ProviderUser, error) {
 	token, err := p.config.Exchange(ctx, code,
-		oauth2.SetAuthURLParam("code_verifier", codeVerifier),
 		oauth2.SetAuthURLParam("redirect_uri", p.config.RedirectURL),
 	)
 	if err != nil {
