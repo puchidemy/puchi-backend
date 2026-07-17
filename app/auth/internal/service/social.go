@@ -133,9 +133,10 @@ func (s *SocialService) HandleOAuthCallback(w http.ResponseWriter, r *http.Reque
 	// Set refresh_token as HttpOnly cookie
 	setRefreshTokenCookieOnWriter(w, pair.RefreshToken)
 
-	// Redirect to frontend with access_token in URL
-	redirectURL := fmt.Sprintf("%s/auth/callback/%s?access_token=%s&expires_in=%d",
-		s.frontendURL, oauthData.Provider, pair.AccessToken, pair.ExpiresIn)
+	// Redirect to frontend callback page.
+	// access_token will be obtained client-side via /auth/refresh
+	// using the refresh_token cookie that was just set.
+	redirectURL := fmt.Sprintf("%s/auth/callback/%s", s.frontendURL, oauthData.Provider)
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
