@@ -13,9 +13,10 @@ type Cache struct {
 }
 
 // New creates a new Cache with the given Valkey configuration.
-func New(addr string, db int, poolSize int) *Cache {
+func New(addr string, password string, db int, poolSize int) *Cache {
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
+		Password: password,
 		DB:       db,
 		PoolSize: poolSize,
 	})

@@ -9,13 +9,14 @@ server:
 data:
   database:
     driver: postgres
-    source: "postgres://puchi:puchi-db-prod@pg-puchi-rw.puchi-db.svc.cluster.local:5432/puchi?sslmode=disable&search_path=auth"
+    source: "postgres://puchi:puchi-db-prod@192.168.100.201:30433/puchi?sslmode=disable&search_path=auth"
   valkey:
-    addr: "valkey.platform.svc.cluster.local:6379"
+    addr: "127.0.0.1:6379"
+    password: ""
     db: 0
     pool_size: 10
   nats:
-    url: "nats://nats.platform.svc.cluster.local:4222"
+    url: ""
 
 auth:
   issuer: "https://api.puchi.io.vn"

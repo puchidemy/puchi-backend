@@ -437,8 +437,9 @@ func (x *Data_Database) GetSource() string {
 type Data_Valkey struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Addr          string                 `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
-	Db            int32                  `protobuf:"varint,2,opt,name=db,proto3" json:"db,omitempty"`
-	PoolSize      int32                  `protobuf:"varint,3,opt,name=pool_size,json=poolSize,proto3" json:"pool_size,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Db            int32                  `protobuf:"varint,3,opt,name=db,proto3" json:"db,omitempty"`
+	PoolSize      int32                  `protobuf:"varint,4,opt,name=pool_size,json=poolSize,proto3" json:"pool_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -476,6 +477,13 @@ func (*Data_Valkey) Descriptor() ([]byte, []int) {
 func (x *Data_Valkey) GetAddr() string {
 	if x != nil {
 		return x.Addr
+	}
+	return ""
+}
+
+func (x *Data_Valkey) GetPassword() string {
+	if x != nil {
+		return x.Password
 	}
 	return ""
 }

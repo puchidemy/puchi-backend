@@ -84,14 +84,16 @@ func NewData(cfg *conf.Data) (*Data, func(), error) {
 // NewCache creates a new Valkey cache client from config.
 func NewCache(cfg *conf.Data) (*cache.Cache, func(), error) {
 	addr := "localhost:6379"
+	password := ""
 	db := 0
 	poolSize := 10
 	if cfg.Valkey != nil {
 		addr = cfg.Valkey.Addr
+		password = cfg.Valkey.Password
 		db = int(cfg.Valkey.Db)
 		poolSize = int(cfg.Valkey.PoolSize)
 	}
-	c := cache.New(addr, db, poolSize)
+	c := cache.New(addr, password, db, poolSize)
 	slog.Info("connected to Valkey", slog.String("addr", addr), slog.Int("db", db))
 	cleanup := func() {
 		if err := c.Close(); err != nil {

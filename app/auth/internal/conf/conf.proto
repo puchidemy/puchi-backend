@@ -32,8 +32,9 @@ message Data {
   }
   message Valkey {
     string addr = 1;
-    int32 db = 2;
-    int32 pool_size = 3;
+    string password = 2;
+    int32 db = 3;
+    int32 pool_size = 4;
   }
   message NATS {
     string url = 1;
