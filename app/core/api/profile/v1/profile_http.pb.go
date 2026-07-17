@@ -24,6 +24,9 @@ const OperationProfileServiceGetProfile = "/puchi.core.profile.v1.ProfileService
 const OperationProfileServiceGetProfileByUsername = "/puchi.core.profile.v1.ProfileService/GetProfileByUsername"
 const OperationProfileServiceGetStats = "/puchi.core.profile.v1.ProfileService/GetStats"
 const OperationProfileServiceListAchievements = "/puchi.core.profile.v1.ProfileService/ListAchievements"
+const OperationProfileServiceListDailyActivity = "/puchi.core.profile.v1.ProfileService/ListDailyActivity"
+const OperationProfileServiceListWeeklyXP = "/puchi.core.profile.v1.ProfileService/ListWeeklyXP"
+const OperationProfileServiceUpdateAvatar = "/puchi.core.profile.v1.ProfileService/UpdateAvatar"
 const OperationProfileServiceUpdateProfile = "/puchi.core.profile.v1.ProfileService/UpdateProfile"
 
 type ProfileServiceHTTPServer interface {
@@ -33,6 +36,9 @@ type ProfileServiceHTTPServer interface {
 	GetProfileByUsername(context.Context, *GetProfileByUsernameRequest) (*User, error)
 	GetStats(context.Context, *emptypb.Empty) (*Stats, error)
 	ListAchievements(context.Context, *emptypb.Empty) (*AchievementList, error)
+	ListDailyActivity(context.Context, *ListDailyActivityRequest) (*DailyActivityList, error)
+	ListWeeklyXP(context.Context, *ListWeeklyXPRequest) (*WeeklyXPList, error)
+	UpdateAvatar(context.Context, *UpdateAvatarRequest) (*User, error)
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*User, error)
 }
 
@@ -41,8 +47,11 @@ func RegisterProfileServiceHTTPServer(s *http.Server, srv ProfileServiceHTTPServ
 	r.Handle("GET", "/v1/profile", _ProfileService_GetProfile0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/profile", _ProfileService_UpdateProfile0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/profile/stats", _ProfileService_GetStats0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/profile/stats/daily-activity", _ProfileService_ListDailyActivity0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/profile/stats/weekly-xp", _ProfileService_ListWeeklyXP0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/profile/achievements", _ProfileService_ListAchievements0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/profile/{username}", _ProfileService_GetProfileByUsername0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/profile/avatar", _ProfileService_UpdateAvatar0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/onboarding/complete", _ProfileService_CompleteOnboarding0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/profile/linked-accounts", _ProfileService_GetLinkedAccounts0_HTTP_Handler(srv))
 }
@@ -104,6 +113,44 @@ func _ProfileService_GetStats0_HTTP_Handler(srv ProfileServiceHTTPServer) func(c
 	}
 }
 
+func _ProfileService_ListDailyActivity0_HTTP_Handler(srv ProfileServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListDailyActivityRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationProfileServiceListDailyActivity)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListDailyActivity(ctx, req.(*ListDailyActivityRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DailyActivityList)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ProfileService_ListWeeklyXP0_HTTP_Handler(srv ProfileServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListWeeklyXPRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationProfileServiceListWeeklyXP)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListWeeklyXP(ctx, req.(*ListWeeklyXPRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*WeeklyXPList)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _ProfileService_ListAchievements0_HTTP_Handler(srv ProfileServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in emptypb.Empty
@@ -135,6 +182,25 @@ func _ProfileService_GetProfileByUsername0_HTTP_Handler(srv ProfileServiceHTTPSe
 		http.SetOperation(ctx, OperationProfileServiceGetProfileByUsername)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.GetProfileByUsername(ctx, req.(*GetProfileByUsernameRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*User)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ProfileService_UpdateAvatar0_HTTP_Handler(srv ProfileServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateAvatarRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationProfileServiceUpdateAvatar)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateAvatar(ctx, req.(*UpdateAvatarRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -190,6 +256,9 @@ type ProfileServiceHTTPClient interface {
 	GetProfileByUsername(ctx context.Context, req *GetProfileByUsernameRequest, opts ...http.CallOption) (rsp *User, err error)
 	GetStats(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *Stats, err error)
 	ListAchievements(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *AchievementList, err error)
+	ListDailyActivity(ctx context.Context, req *ListDailyActivityRequest, opts ...http.CallOption) (rsp *DailyActivityList, err error)
+	ListWeeklyXP(ctx context.Context, req *ListWeeklyXPRequest, opts ...http.CallOption) (rsp *WeeklyXPList, err error)
+	UpdateAvatar(ctx context.Context, req *UpdateAvatarRequest, opts ...http.CallOption) (rsp *User, err error)
 	UpdateProfile(ctx context.Context, req *UpdateProfileRequest, opts ...http.CallOption) (rsp *User, err error)
 }
 
@@ -292,6 +361,55 @@ func (c *ProfileServiceHTTPClientImpl) ListAchievements(ctx context.Context, in 
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *ProfileServiceHTTPClientImpl) ListDailyActivity(ctx context.Context, in *ListDailyActivityRequest, opts ...http.CallOption) (*DailyActivityList, error) {
+	var out DailyActivityList
+	pattern := "/v1/profile/stats/daily-activity"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationProfileServiceListDailyActivity),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *ProfileServiceHTTPClientImpl) ListWeeklyXP(ctx context.Context, in *ListWeeklyXPRequest, opts ...http.CallOption) (*WeeklyXPList, error) {
+	var out WeeklyXPList
+	pattern := "/v1/profile/stats/weekly-xp"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationProfileServiceListWeeklyXP),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *ProfileServiceHTTPClientImpl) UpdateAvatar(ctx context.Context, in *UpdateAvatarRequest, opts ...http.CallOption) (*User, error) {
+	var out User
+	pattern := "/v1/profile/avatar"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationProfileServiceUpdateAvatar),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

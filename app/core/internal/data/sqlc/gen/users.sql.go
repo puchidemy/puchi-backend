@@ -126,6 +126,37 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (CoreU
 	return i, err
 }
 
+const updateAvatarKey = `-- name: UpdateAvatarKey :one
+UPDATE core.users
+SET avatar_key = $2, updated_at = now()
+WHERE id = $1
+RETURNING id, username, first_name, last_name, email, avatar_key, bio, created_at, updated_at, age_range, onboarding_completed
+`
+
+type UpdateAvatarKeyParams struct {
+	ID        string  `db:"id"`
+	AvatarKey *string `db:"avatar_key"`
+}
+
+func (q *Queries) UpdateAvatarKey(ctx context.Context, arg UpdateAvatarKeyParams) (CoreUser, error) {
+	row := q.db.QueryRow(ctx, updateAvatarKey, arg.ID, arg.AvatarKey)
+	var i CoreUser
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.AvatarKey,
+		&i.Bio,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.AgeRange,
+		&i.OnboardingCompleted,
+	)
+	return i, err
+}
+
 const updateOnboardingInfo = `-- name: UpdateOnboardingInfo :one
 UPDATE core.users
 SET first_name = $2, last_name = $3, age_range = $4, username = $5,

@@ -11,6 +11,42 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const listWeeklyXPHistory = `-- name: ListWeeklyXPHistory :many
+SELECT id, user_id, week_start, xp_earned FROM core.xp_history
+WHERE user_id = $1 AND week_start >= $2
+ORDER BY week_start ASC
+`
+
+type ListWeeklyXPHistoryParams struct {
+	UserID    string      `db:"user_id"`
+	WeekStart pgtype.Date `db:"week_start"`
+}
+
+func (q *Queries) ListWeeklyXPHistory(ctx context.Context, arg ListWeeklyXPHistoryParams) ([]CoreXpHistory, error) {
+	rows, err := q.db.Query(ctx, listWeeklyXPHistory, arg.UserID, arg.WeekStart)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CoreXpHistory{}
+	for rows.Next() {
+		var i CoreXpHistory
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.WeekStart,
+			&i.XpEarned,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upsertWeeklyXP = `-- name: UpsertWeeklyXP :exec
 INSERT INTO core.xp_history (user_id, week_start, xp_earned)
 VALUES ($1, $2, $3)

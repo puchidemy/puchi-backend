@@ -67,6 +67,18 @@ func (r *UserRepo) UpdateUser(ctx context.Context, id, firstName, lastName, user
 	return &row, nil
 }
 
+// UpdateAvatarKey updates only the avatar_key column.
+func (r *UserRepo) UpdateAvatarKey(ctx context.Context, id, avatarKey string) (*gen.CoreUser, error) {
+	row, err := r.q.UpdateAvatarKey(ctx, gen.UpdateAvatarKeyParams{
+		ID:        id,
+		AvatarKey: &avatarKey,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
 // UsernameExists checks whether a username is already taken.
 func (r *UserRepo) UsernameExists(ctx context.Context, username string) (bool, error) {
 	row, err := r.q.UsernameExists(ctx, username)

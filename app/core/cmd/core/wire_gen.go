@@ -25,21 +25,21 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, sessionValidator *auth.SessionValidator, logger *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, string2 string, sessionValidator *auth.SessionValidator, logger *slog.Logger) (*kratos.App, func(), error) {
 	dataData, cleanup, err := data.NewData(confData)
 	if err != nil {
 		return nil, nil, err
 	}
 	pool := dataData.Pool
 	userRepo := data.NewUserRepo(pool)
-	profileUsecase := biz.NewProfileUsecase(userRepo)
+	statsRepo := data.NewStatsRepo(pool)
+	profileUsecase := biz.NewProfileUsecase(userRepo, statsRepo)
 	achievementRepo := data.NewAchievementRepo(pool)
 	achievementUsecase := biz.NewAchievementUsecase(achievementRepo)
-	statsRepo := data.NewStatsRepo(pool)
 	statsTxManager := data.NewStatsTxManager(pool)
 	statsUsecase := biz.NewStatsUsecase(statsRepo, statsTxManager)
 	statsService := service.NewStatsService(statsUsecase)
-	profileService := service.NewProfileService(profileUsecase, achievementUsecase, statsService)
+	profileService := service.NewProfileService(profileUsecase, achievementUsecase, statsService, string2)
 	socialRepo := data.NewSocialRepo(pool)
 	socialUsecase := biz.NewSocialUsecase(socialRepo)
 	socialService := service.NewSocialService(socialUsecase)

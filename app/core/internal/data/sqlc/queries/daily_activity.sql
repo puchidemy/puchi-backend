@@ -15,3 +15,8 @@ SELECT activity_date FROM core.daily_activities
 WHERE user_id = $1 AND activity_date < $2 AND lessons_completed > 0
 ORDER BY activity_date DESC
 LIMIT 1;
+
+-- name: ListDailyActivityRange :many
+SELECT * FROM core.daily_activities
+WHERE user_id = $1 AND activity_date >= $2 AND activity_date <= $3
+ORDER BY activity_date ASC;

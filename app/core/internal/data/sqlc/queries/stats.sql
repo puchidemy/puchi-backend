@@ -2,7 +2,8 @@
 SELECT * FROM core.user_stats WHERE user_id = $1;
 
 -- name: CreateUserStats :exec
-INSERT INTO core.user_stats (user_id) VALUES ($1);
+INSERT INTO core.user_stats (user_id) VALUES ($1)
+ON CONFLICT (user_id) DO NOTHING;
 
 -- name: UpdateUserStats :one
 UPDATE core.user_stats

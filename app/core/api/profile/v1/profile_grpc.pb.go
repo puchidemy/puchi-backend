@@ -23,8 +23,11 @@ const (
 	ProfileService_GetProfile_FullMethodName           = "/puchi.core.profile.v1.ProfileService/GetProfile"
 	ProfileService_UpdateProfile_FullMethodName        = "/puchi.core.profile.v1.ProfileService/UpdateProfile"
 	ProfileService_GetStats_FullMethodName             = "/puchi.core.profile.v1.ProfileService/GetStats"
+	ProfileService_ListDailyActivity_FullMethodName    = "/puchi.core.profile.v1.ProfileService/ListDailyActivity"
+	ProfileService_ListWeeklyXP_FullMethodName         = "/puchi.core.profile.v1.ProfileService/ListWeeklyXP"
 	ProfileService_ListAchievements_FullMethodName     = "/puchi.core.profile.v1.ProfileService/ListAchievements"
 	ProfileService_GetProfileByUsername_FullMethodName = "/puchi.core.profile.v1.ProfileService/GetProfileByUsername"
+	ProfileService_UpdateAvatar_FullMethodName         = "/puchi.core.profile.v1.ProfileService/UpdateAvatar"
 	ProfileService_CompleteOnboarding_FullMethodName   = "/puchi.core.profile.v1.ProfileService/CompleteOnboarding"
 	ProfileService_GetLinkedAccounts_FullMethodName    = "/puchi.core.profile.v1.ProfileService/GetLinkedAccounts"
 )
@@ -36,8 +39,11 @@ type ProfileServiceClient interface {
 	GetProfile(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*User, error)
 	UpdateProfile(ctx context.Context, in *UpdateProfileRequest, opts ...grpc.CallOption) (*User, error)
 	GetStats(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Stats, error)
+	ListDailyActivity(ctx context.Context, in *ListDailyActivityRequest, opts ...grpc.CallOption) (*DailyActivityList, error)
+	ListWeeklyXP(ctx context.Context, in *ListWeeklyXPRequest, opts ...grpc.CallOption) (*WeeklyXPList, error)
 	ListAchievements(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*AchievementList, error)
 	GetProfileByUsername(ctx context.Context, in *GetProfileByUsernameRequest, opts ...grpc.CallOption) (*User, error)
+	UpdateAvatar(ctx context.Context, in *UpdateAvatarRequest, opts ...grpc.CallOption) (*User, error)
 	CompleteOnboarding(ctx context.Context, in *CompleteOnboardingRequest, opts ...grpc.CallOption) (*User, error)
 	GetLinkedAccounts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*LinkedAccountsResponse, error)
 }
@@ -80,6 +86,26 @@ func (c *profileServiceClient) GetStats(ctx context.Context, in *emptypb.Empty, 
 	return out, nil
 }
 
+func (c *profileServiceClient) ListDailyActivity(ctx context.Context, in *ListDailyActivityRequest, opts ...grpc.CallOption) (*DailyActivityList, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DailyActivityList)
+	err := c.cc.Invoke(ctx, ProfileService_ListDailyActivity_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileServiceClient) ListWeeklyXP(ctx context.Context, in *ListWeeklyXPRequest, opts ...grpc.CallOption) (*WeeklyXPList, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WeeklyXPList)
+	err := c.cc.Invoke(ctx, ProfileService_ListWeeklyXP_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *profileServiceClient) ListAchievements(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*AchievementList, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AchievementList)
@@ -94,6 +120,16 @@ func (c *profileServiceClient) GetProfileByUsername(ctx context.Context, in *Get
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(User)
 	err := c.cc.Invoke(ctx, ProfileService_GetProfileByUsername_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileServiceClient) UpdateAvatar(ctx context.Context, in *UpdateAvatarRequest, opts ...grpc.CallOption) (*User, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(User)
+	err := c.cc.Invoke(ctx, ProfileService_UpdateAvatar_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -127,8 +163,11 @@ type ProfileServiceServer interface {
 	GetProfile(context.Context, *emptypb.Empty) (*User, error)
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*User, error)
 	GetStats(context.Context, *emptypb.Empty) (*Stats, error)
+	ListDailyActivity(context.Context, *ListDailyActivityRequest) (*DailyActivityList, error)
+	ListWeeklyXP(context.Context, *ListWeeklyXPRequest) (*WeeklyXPList, error)
 	ListAchievements(context.Context, *emptypb.Empty) (*AchievementList, error)
 	GetProfileByUsername(context.Context, *GetProfileByUsernameRequest) (*User, error)
+	UpdateAvatar(context.Context, *UpdateAvatarRequest) (*User, error)
 	CompleteOnboarding(context.Context, *CompleteOnboardingRequest) (*User, error)
 	GetLinkedAccounts(context.Context, *emptypb.Empty) (*LinkedAccountsResponse, error)
 	mustEmbedUnimplementedProfileServiceServer()
@@ -150,11 +189,20 @@ func (UnimplementedProfileServiceServer) UpdateProfile(context.Context, *UpdateP
 func (UnimplementedProfileServiceServer) GetStats(context.Context, *emptypb.Empty) (*Stats, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetStats not implemented")
 }
+func (UnimplementedProfileServiceServer) ListDailyActivity(context.Context, *ListDailyActivityRequest) (*DailyActivityList, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListDailyActivity not implemented")
+}
+func (UnimplementedProfileServiceServer) ListWeeklyXP(context.Context, *ListWeeklyXPRequest) (*WeeklyXPList, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListWeeklyXP not implemented")
+}
 func (UnimplementedProfileServiceServer) ListAchievements(context.Context, *emptypb.Empty) (*AchievementList, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAchievements not implemented")
 }
 func (UnimplementedProfileServiceServer) GetProfileByUsername(context.Context, *GetProfileByUsernameRequest) (*User, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetProfileByUsername not implemented")
+}
+func (UnimplementedProfileServiceServer) UpdateAvatar(context.Context, *UpdateAvatarRequest) (*User, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAvatar not implemented")
 }
 func (UnimplementedProfileServiceServer) CompleteOnboarding(context.Context, *CompleteOnboardingRequest) (*User, error) {
 	return nil, status.Error(codes.Unimplemented, "method CompleteOnboarding not implemented")
@@ -237,6 +285,42 @@ func _ProfileService_GetStats_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProfileService_ListDailyActivity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDailyActivityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).ListDailyActivity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfileService_ListDailyActivity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).ListDailyActivity(ctx, req.(*ListDailyActivityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProfileService_ListWeeklyXP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListWeeklyXPRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).ListWeeklyXP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfileService_ListWeeklyXP_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).ListWeeklyXP(ctx, req.(*ListWeeklyXPRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ProfileService_ListAchievements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
@@ -269,6 +353,24 @@ func _ProfileService_GetProfileByUsername_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfileServiceServer).GetProfileByUsername(ctx, req.(*GetProfileByUsernameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProfileService_UpdateAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAvatarRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).UpdateAvatar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfileService_UpdateAvatar_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).UpdateAvatar(ctx, req.(*UpdateAvatarRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -329,12 +431,24 @@ var ProfileService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProfileService_GetStats_Handler,
 		},
 		{
+			MethodName: "ListDailyActivity",
+			Handler:    _ProfileService_ListDailyActivity_Handler,
+		},
+		{
+			MethodName: "ListWeeklyXP",
+			Handler:    _ProfileService_ListWeeklyXP_Handler,
+		},
+		{
 			MethodName: "ListAchievements",
 			Handler:    _ProfileService_ListAchievements_Handler,
 		},
 		{
 			MethodName: "GetProfileByUsername",
 			Handler:    _ProfileService_GetProfileByUsername_Handler,
+		},
+		{
+			MethodName: "UpdateAvatar",
+			Handler:    _ProfileService_UpdateAvatar_Handler,
 		},
 		{
 			MethodName: "CompleteOnboarding",

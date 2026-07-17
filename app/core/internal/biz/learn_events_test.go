@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -166,6 +167,50 @@ func (m *memStatsRepo) UpsertWeeklyXP(_ context.Context, userID string, weekStar
 	key := userID + ":" + weekStart.Time.Format("2006-01-02")
 	m.weeklyXP[key] += xp
 	return nil
+}
+
+func (m *memStatsRepo) ListDailyActivityRange(_ context.Context, userID string, from, to pgtype.Date) ([]gen.CoreDailyActivity, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	out := make([]gen.CoreDailyActivity, 0)
+	for _, row := range m.daily {
+		if row.UserID != userID || !row.ActivityDate.Valid {
+			continue
+		}
+		d := row.ActivityDate.Time
+		if (from.Valid && d.Before(from.Time)) || (to.Valid && d.After(to.Time)) {
+			continue
+		}
+		cp := *row
+		out = append(out, cp)
+	}
+	return out, nil
+}
+
+func (m *memStatsRepo) ListWeeklyXPHistory(_ context.Context, userID string, fromWeek pgtype.Date) ([]gen.CoreXpHistory, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	out := make([]gen.CoreXpHistory, 0)
+	prefix := userID + ":"
+	for key, xp := range m.weeklyXP {
+		if !strings.HasPrefix(key, prefix) {
+			continue
+		}
+		dateStr := strings.TrimPrefix(key, prefix)
+		t, err := time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			continue
+		}
+		if fromWeek.Valid && t.Before(fromWeek.Time) {
+			continue
+		}
+		out = append(out, gen.CoreXpHistory{
+			UserID:    userID,
+			WeekStart: pgtype.Date{Time: t, Valid: true},
+			XpEarned:  xp,
+		})
+	}
+	return out, nil
 }
 
 type passthroughStatsTx struct {

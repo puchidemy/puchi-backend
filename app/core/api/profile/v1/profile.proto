@@ -31,6 +31,18 @@ service ProfileService {
     };
   }
 
+  rpc ListDailyActivity(ListDailyActivityRequest) returns (DailyActivityList) {
+    option (google.api.http) = {
+      get: "/v1/profile/stats/daily-activity"
+    };
+  }
+
+  rpc ListWeeklyXP(ListWeeklyXPRequest) returns (WeeklyXPList) {
+    option (google.api.http) = {
+      get: "/v1/profile/stats/weekly-xp"
+    };
+  }
+
   rpc ListAchievements(google.protobuf.Empty) returns (AchievementList) {
     option (google.api.http) = {
       get: "/v1/profile/achievements"
@@ -40,6 +52,13 @@ service ProfileService {
   rpc GetProfileByUsername(GetProfileByUsernameRequest) returns (User) {
     option (google.api.http) = {
       get: "/v1/profile/{username}"
+    };
+  }
+
+  rpc UpdateAvatar(UpdateAvatarRequest) returns (User) {
+    option (google.api.http) = {
+      put: "/v1/profile/avatar"
+      body: "*"
     };
   }
 
@@ -110,8 +129,44 @@ message UpdateProfileRequest {
   string age_range = 5;
 }
 
+message UpdateAvatarRequest {
+  string avatar_key = 1;
+}
+
 message GetProfileByUsernameRequest {
   string username = 1;
+}
+
+message ListDailyActivityRequest {
+  // YYYY-MM-DD; defaults to 90 days ago when empty.
+  string from = 1;
+  // YYYY-MM-DD; defaults to today (UTC) when empty.
+  string to = 2;
+}
+
+message DailyActivityItem {
+  string date = 1;
+  int32 lessons_completed = 2;
+  int32 xp_earned = 3;
+  int32 minutes_spent = 4;
+}
+
+message DailyActivityList {
+  repeated DailyActivityItem items = 1;
+}
+
+message ListWeeklyXPRequest {
+  // Number of weeks to return; defaults to 12.
+  int32 weeks = 1;
+}
+
+message WeeklyXPItem {
+  string week_label = 1;
+  int32 xp = 2;
+}
+
+message WeeklyXPList {
+  repeated WeeklyXPItem items = 1;
 }
 
 message CompleteOnboardingRequest {

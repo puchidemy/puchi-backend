@@ -19,3 +19,4 @@ auth:
   public_paths:
     - /v1/health
     - /v1/healthz
+cdn_base_url: "https://cdn.puchi.io.vn"

@@ -45,6 +45,7 @@ type UserRepoInterface interface {
 	GetUserByEmail(ctx context.Context, email string) (*gen.CoreUser, error)
 	GetUserByUsername(ctx context.Context, username string) (*gen.CoreUser, error)
 	UpdateUser(ctx context.Context, id, firstName, lastName, username string, bio, avatarKey *string, ageRange string) (*gen.CoreUser, error)
+	UpdateAvatarKey(ctx context.Context, id, avatarKey string) (*gen.CoreUser, error)
 	UpdateOnboardingInfo(ctx context.Context, id, firstName, lastName, ageRange, username string) (*gen.CoreUser, error)
 	UpsertUserOnboarding(ctx context.Context, userID, howHeard, whyLearn, level string) error
 	UsernameExists(ctx context.Context, username string) (bool, error)
@@ -52,18 +53,20 @@ type UserRepoInterface interface {
 
 // Domain errors — business-level sentinel errors
 var (
-	ErrUserNotFound  = errors.New("user not found")
-	ErrUsernameTaken = errors.New("username already taken")
+	ErrUserNotFound     = errors.New("user not found")
+	ErrUsernameTaken    = errors.New("username already taken")
+	ErrInvalidAvatarKey = errors.New("invalid avatar key")
 )
 
 // ProfileUsecase handles user profile operations
 type ProfileUsecase struct {
-	repo UserRepoInterface
+	repo      UserRepoInterface
+	statsRepo StatsRepoInterface
 }
 
 // NewProfileUsecase creates a new ProfileUsecase
-func NewProfileUsecase(repo UserRepoInterface) *ProfileUsecase {
-	return &ProfileUsecase{repo: repo}
+func NewProfileUsecase(repo UserRepoInterface, statsRepo StatsRepoInterface) *ProfileUsecase {
+	return &ProfileUsecase{repo: repo, statsRepo: statsRepo}
 }
 
 // GetProfile returns user by ID
@@ -101,6 +104,10 @@ func (uc *ProfileUsecase) GetOrCreateProfile(ctx context.Context, userID, email 
 	if err != nil {
 		return nil, fmt.Errorf("lazy create user: %w", err)
 	}
+
+	if err := uc.statsRepo.UpsertStats(ctx, userID); err != nil {
+		return nil, fmt.Errorf("create user stats: %w", err)
+	}
 	return user, nil
 }
 
@@ -128,6 +135,27 @@ func (uc *ProfileUsecase) UpdateProfile(ctx context.Context, userID string, inpu
 	user, err := uc.repo.UpdateUser(ctx, userID, input.FirstName, input.LastName, input.Username, bioPtr, nil, input.AgeRange)
 	if err != nil {
 		return nil, fmt.Errorf("update user: %w", err)
+	}
+	return user, nil
+}
+
+// UpdateAvatar validates and stores the media object key for the user's avatar.
+func (uc *ProfileUsecase) UpdateAvatar(ctx context.Context, userID, avatarKey string) (*gen.CoreUser, error) {
+	key := strings.TrimSpace(avatarKey)
+	if key == "" || !strings.HasPrefix(key, "avatar/") {
+		return nil, ErrInvalidAvatarKey
+	}
+	if strings.Contains(key, "..") {
+		return nil, ErrInvalidAvatarKey
+	}
+
+	if _, err := uc.repo.GetUser(ctx, userID); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrUserNotFound, err)
+	}
+
+	user, err := uc.repo.UpdateAvatarKey(ctx, userID, key)
+	if err != nil {
+		return nil, fmt.Errorf("update avatar: %w", err)
 	}
 	return user, nil
 }

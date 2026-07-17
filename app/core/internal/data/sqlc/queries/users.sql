@@ -15,6 +15,12 @@ SET first_name = $2, last_name = $3, username = $4, bio = $5, avatar_key = $6, a
 WHERE id = $1
 RETURNING *;
 
+-- name: UpdateAvatarKey :one
+UPDATE core.users
+SET avatar_key = $2, updated_at = now()
+WHERE id = $1
+RETURNING *;
+
 -- name: UsernameExists :one
 SELECT EXISTS(SELECT 1 FROM core.users WHERE username = $1) AS exists;
 

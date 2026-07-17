@@ -103,3 +103,20 @@ func (r *StatsRepo) UpsertWeeklyXP(ctx context.Context, userID string, weekStart
 		XpEarned:  xp,
 	})
 }
+
+// ListDailyActivityRange returns daily activity rows in an inclusive date range.
+func (r *StatsRepo) ListDailyActivityRange(ctx context.Context, userID string, from, to pgtype.Date) ([]gen.CoreDailyActivity, error) {
+	return r.q.ListDailyActivityRange(ctx, gen.ListDailyActivityRangeParams{
+		UserID:         userID,
+		ActivityDate:   from,
+		ActivityDate_2: to,
+	})
+}
+
+// ListWeeklyXPHistory returns weekly XP rows from fromWeek onward.
+func (r *StatsRepo) ListWeeklyXPHistory(ctx context.Context, userID string, fromWeek pgtype.Date) ([]gen.CoreXpHistory, error) {
+	return r.q.ListWeeklyXPHistory(ctx, gen.ListWeeklyXPHistoryParams{
+		UserID:    userID,
+		WeekStart: fromWeek,
+	})
+}

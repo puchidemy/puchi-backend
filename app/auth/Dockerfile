@@ -1,10 +1,18 @@
 FROM golang:1.26 AS builder
 WORKDIR /src
 
+# Copy pkg module (needed for replace directive)
+COPY pkg/go.mod pkg/go.sum ./pkg/
+
+# Copy service dependency files
 COPY app/auth/go.mod app/auth/go.sum ./app/auth/
 RUN cd app/auth && go mod download
 
+# Copy source
+COPY pkg/ ./pkg/
 COPY app/auth/ ./app/auth/
+
+# Build
 RUN cd app/auth && CGO_ENABLED=0 go build -o /bin/auth ./cmd/auth/
 
 FROM debian:stable-slim

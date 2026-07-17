@@ -53,6 +53,45 @@ func (q *Queries) GetLatestActivityDateBefore(ctx context.Context, arg GetLatest
 	return activity_date, err
 }
 
+const listDailyActivityRange = `-- name: ListDailyActivityRange :many
+SELECT id, user_id, activity_date, lessons_completed, xp_earned, minutes_spent FROM core.daily_activities
+WHERE user_id = $1 AND activity_date >= $2 AND activity_date <= $3
+ORDER BY activity_date ASC
+`
+
+type ListDailyActivityRangeParams struct {
+	UserID         string      `db:"user_id"`
+	ActivityDate   pgtype.Date `db:"activity_date"`
+	ActivityDate_2 pgtype.Date `db:"activity_date_2"`
+}
+
+func (q *Queries) ListDailyActivityRange(ctx context.Context, arg ListDailyActivityRangeParams) ([]CoreDailyActivity, error) {
+	rows, err := q.db.Query(ctx, listDailyActivityRange, arg.UserID, arg.ActivityDate, arg.ActivityDate_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CoreDailyActivity{}
+	for rows.Next() {
+		var i CoreDailyActivity
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.ActivityDate,
+			&i.LessonsCompleted,
+			&i.XpEarned,
+			&i.MinutesSpent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upsertDailyActivity = `-- name: UpsertDailyActivity :one
 INSERT INTO core.daily_activities (user_id, activity_date, lessons_completed, xp_earned)
 VALUES ($1, $2, 1, $3)

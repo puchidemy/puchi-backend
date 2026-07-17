@@ -65,6 +65,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/puchi.core.profile.v1.AchievementList'
+    /v1/profile/avatar:
+        put:
+            tags:
+                - ProfileService
+            operationId: ProfileService_UpdateAvatar
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.core.profile.v1.UpdateAvatarRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.profile.v1.User'
     /v1/profile/linked-accounts:
         get:
             tags:
@@ -89,6 +107,48 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/puchi.core.profile.v1.Stats'
+    /v1/profile/stats/daily-activity:
+        get:
+            tags:
+                - ProfileService
+            operationId: ProfileService_ListDailyActivity
+            parameters:
+                - name: from
+                  in: query
+                  description: YYYY-MM-DD; defaults to 90 days ago when empty.
+                  schema:
+                    type: string
+                - name: to
+                  in: query
+                  description: YYYY-MM-DD; defaults to today (UTC) when empty.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.profile.v1.DailyActivityList'
+    /v1/profile/stats/weekly-xp:
+        get:
+            tags:
+                - ProfileService
+            operationId: ProfileService_ListWeeklyXP
+            parameters:
+                - name: weeks
+                  in: query
+                  description: Number of weeks to return; defaults to 12.
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.profile.v1.WeeklyXPList'
     /v1/profile/{username}:
         get:
             tags:
@@ -478,6 +538,27 @@ components:
                     type: string
                 username:
                     type: string
+        puchi.core.profile.v1.DailyActivityItem:
+            type: object
+            properties:
+                date:
+                    type: string
+                lessonsCompleted:
+                    type: integer
+                    format: int32
+                xpEarned:
+                    type: integer
+                    format: int32
+                minutesSpent:
+                    type: integer
+                    format: int32
+        puchi.core.profile.v1.DailyActivityList:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/puchi.core.profile.v1.DailyActivityItem'
         puchi.core.profile.v1.LinkedAccount:
             type: object
             properties:
@@ -539,6 +620,11 @@ components:
                 gems:
                     type: integer
                     format: int32
+        puchi.core.profile.v1.UpdateAvatarRequest:
+            type: object
+            properties:
+                avatarKey:
+                    type: string
         puchi.core.profile.v1.UpdateProfileRequest:
             type: object
             properties:
@@ -579,6 +665,21 @@ components:
                     type: boolean
                 ageRange:
                     type: string
+        puchi.core.profile.v1.WeeklyXPItem:
+            type: object
+            properties:
+                weekLabel:
+                    type: string
+                xp:
+                    type: integer
+                    format: int32
+        puchi.core.profile.v1.WeeklyXPList:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/puchi.core.profile.v1.WeeklyXPItem'
         puchi.core.social.v1.FollowRequest:
             type: object
             properties:

@@ -11,6 +11,7 @@ import (
 
 const createUserStats = `-- name: CreateUserStats :exec
 INSERT INTO core.user_stats (user_id) VALUES ($1)
+ON CONFLICT (user_id) DO NOTHING
 `
 
 func (q *Queries) CreateUserStats(ctx context.Context, userID string) error {

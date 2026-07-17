@@ -9,6 +9,8 @@ message Bootstrap {
   Server server = 1;
   Data data = 2;
   Auth auth = 3;
+  // CDN base URL for resolving avatar_key → avatar_url (e.g. https://cdn.puchi.io.vn).
+  string cdn_base_url = 4;
 }
 
 message Server {

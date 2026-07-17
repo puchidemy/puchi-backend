@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	pb "github.com/puchidemy/puchi-backend/app/core/api/profile/v1"
 	"github.com/puchidemy/puchi-backend/app/core/internal/biz"
@@ -23,16 +24,32 @@ type ProfileService struct {
 	uc            *biz.ProfileUsecase
 	achievementUC *biz.AchievementUsecase
 	statsSvc      *StatsService
+	cdnBaseURL    string
 }
 
 // NewProfileService creates a new ProfileService.
-func NewProfileService(uc *biz.ProfileUsecase, achievementUC *biz.AchievementUsecase, statsSvc *StatsService) *ProfileService {
-	return &ProfileService{uc: uc, achievementUC: achievementUC, statsSvc: statsSvc}
+func NewProfileService(uc *biz.ProfileUsecase, achievementUC *biz.AchievementUsecase, statsSvc *StatsService, cdnBaseURL string) *ProfileService {
+	return &ProfileService{
+		uc:            uc,
+		achievementUC: achievementUC,
+		statsSvc:      statsSvc,
+		cdnBaseURL:    strings.TrimRight(cdnBaseURL, "/"),
+	}
 }
 
 // GetStats returns the authenticated user's gamification stats.
 func (s *ProfileService) GetStats(ctx context.Context, req *emptypb.Empty) (*pb.Stats, error) {
 	return s.statsSvc.GetStats(ctx, req)
+}
+
+// ListDailyActivity returns daily activity for the authenticated user.
+func (s *ProfileService) ListDailyActivity(ctx context.Context, req *pb.ListDailyActivityRequest) (*pb.DailyActivityList, error) {
+	return s.statsSvc.ListDailyActivity(ctx, req)
+}
+
+// ListWeeklyXP returns weekly XP history for the authenticated user.
+func (s *ProfileService) ListWeeklyXP(ctx context.Context, req *pb.ListWeeklyXPRequest) (*pb.WeeklyXPList, error) {
+	return s.statsSvc.ListWeeklyXP(ctx, req)
 }
 
 // ListAchievements returns the authenticated user's achievements with progress.
@@ -64,7 +81,7 @@ func (s *ProfileService) GetProfile(ctx context.Context, _ *emptypb.Empty) (*pb.
 		return nil, status.Error(codes.Internal, "failed to get or create profile")
 	}
 
-	return userToProto(user), nil
+	return s.userToProto(user), nil
 }
 
 // UpdateProfile updates the authenticated user's profile.
@@ -88,7 +105,28 @@ func (s *ProfileService) UpdateProfile(ctx context.Context, req *pb.UpdateProfil
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return userToProto(user), nil
+	return s.userToProto(user), nil
+}
+
+// UpdateAvatar stores the media object key and returns the profile with CDN avatar_url.
+func (s *ProfileService) UpdateAvatar(ctx context.Context, req *pb.UpdateAvatarRequest) (*pb.User, error) {
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "not authenticated")
+	}
+
+	user, err := s.uc.UpdateAvatar(ctx, userID, req.AvatarKey)
+	if err != nil {
+		if err == biz.ErrInvalidAvatarKey {
+			return nil, status.Error(codes.InvalidArgument, "avatar_key must start with avatar/")
+		}
+		if err == biz.ErrUserNotFound {
+			return nil, status.Error(codes.NotFound, "user not found")
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return s.userToProto(user), nil
 }
 
 // GetProfileByUsername returns a user's public profile by username.
@@ -100,7 +138,7 @@ func (s *ProfileService) GetProfileByUsername(ctx context.Context, req *pb.GetPr
 
 	// If user is logged in and it's their own profile, show email
 	currentUserID, isLoggedIn := auth.UserIDFromContext(ctx)
-	userProto := userToProto(user)
+	userProto := s.userToProto(user)
 	if !isLoggedIn || currentUserID != user.ID {
 		userProto.Email = ""
 	}
@@ -122,12 +160,12 @@ func (s *ProfileService) CompleteOnboarding(ctx context.Context, req *pb.Complet
 		return nil, status.Error(codes.InvalidArgument, "last_name is required")
 	}
 	validAgeRanges := map[string]bool{
-		"13-17":  true,
-		"18-24":  true,
-		"25-34":  true,
-		"35-44":  true,
-		"45-54":  true,
-		"55+":    true,
+		"13-17": true,
+		"18-24": true,
+		"25-34": true,
+		"35-44": true,
+		"45-54": true,
+		"55+":   true,
 	}
 	if !validAgeRanges[req.AgeRange] {
 		return nil, status.Error(codes.InvalidArgument, "invalid age_range value")
@@ -155,7 +193,7 @@ func (s *ProfileService) CompleteOnboarding(ctx context.Context, req *pb.Complet
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return userToProto(user), nil
+	return s.userToProto(user), nil
 }
 
 // GetLinkedAccounts returns linked third-party accounts.
@@ -208,21 +246,34 @@ func (s *ProfileService) HandleMergeGuest(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(map[string]string{"message": "guest progress merged"})
 }
 
-// userToProto converts a gen.CoreUser to a proto User.
-func userToProto(u *gen.CoreUser) *pb.User {
+// userToProto converts a gen.CoreUser to a proto User, resolving avatar CDN URL.
+func (s *ProfileService) userToProto(u *gen.CoreUser) *pb.User {
 	return &pb.User{
 		Id:                  u.ID,
 		Username:            u.Username,
 		FirstName:           u.FirstName,
 		LastName:            u.LastName,
 		Email:               u.Email,
-		AvatarUrl:           safePtr(u.AvatarKey),
+		AvatarUrl:           resolveAvatarURL(s.cdnBaseURL, safePtr(u.AvatarKey)),
 		Bio:                 safePtr(u.Bio),
 		CreatedAt:           timestamppb.New(u.CreatedAt),
 		UpdatedAt:           timestamppb.New(u.UpdatedAt),
 		OnboardingCompleted: u.OnboardingCompleted,
 		AgeRange:            u.AgeRange,
 	}
+}
+
+func resolveAvatarURL(cdnBase, key string) string {
+	if key == "" {
+		return ""
+	}
+	if strings.HasPrefix(key, "http://") || strings.HasPrefix(key, "https://") {
+		return key
+	}
+	if cdnBase == "" {
+		return key
+	}
+	return cdnBase + "/" + strings.TrimLeft(key, "/")
 }
 
 // achievementItemsToProto converts biz achievement items to proto AchievementList.
