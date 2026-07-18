@@ -74,12 +74,24 @@ func newCurriculumTestUsecase(curriculum CurriculumRepoInterface, progress ...Pr
 	})
 }
 
-func TestGetUnit_GuestNonTrial_ReturnsTrialLimit(t *testing.T) {
-	uc := newCurriculumTestUsecase(&mockCurriculumRepo{})
+func TestGetUnit_GuestAnyUnit_BrowseAllowed(t *testing.T) {
+	otherUnitID := "22222222-2222-2222-2222-222222222222"
 
-	_, err := uc.GetUnit(context.Background(), "guest", "guest-1", "22222222-2222-2222-2222-222222222222", testTrialUnitID)
-	if !errors.Is(err, ErrTrialLimit) {
-		t.Fatalf("expected ErrTrialLimit, got %v", err)
+	uc := newCurriculumTestUsecase(&mockCurriculumRepo{
+		getUnit: func(_ context.Context, id string) (*gen.LearnUnit, error) {
+			return &gen.LearnUnit{ID: id, Title: "Other Unit"}, nil
+		},
+		listSkills: func(_ context.Context, _ string) ([]gen.LearnSkill, error) {
+			return nil, nil
+		},
+	})
+
+	unit, err := uc.GetUnit(context.Background(), "guest", "guest-1", otherUnitID, testTrialUnitID)
+	if err != nil {
+		t.Fatalf("GetUnit: %v", err)
+	}
+	if unit.Unit.ID != otherUnitID {
+		t.Fatalf("unit id = %q, want %q", unit.Unit.ID, otherUnitID)
 	}
 }
 
@@ -169,22 +181,28 @@ func TestGetUnit_User_AnyUnitAllowed(t *testing.T) {
 	}
 }
 
-func TestGetLesson_GuestNonTrial_ReturnsTrialLimit(t *testing.T) {
+func TestGetLesson_GuestAnyUnit_BrowseAllowed(t *testing.T) {
 	lessonID := "33333333-3333-3333-3333-333333333399"
 	skillID := "22222222-2222-2222-2222-222222222299"
 
 	uc := newCurriculumTestUsecase(&mockCurriculumRepo{
 		getLesson: func(_ context.Context, id string) (*gen.LearnLesson, error) {
-			return &gen.LearnLesson{ID: id, SkillID: skillID}, nil
+			return &gen.LearnLesson{ID: id, SkillID: skillID, Title: "Beyond Trial"}, nil
 		},
 		getSkill: func(_ context.Context, id string) (*gen.LearnSkill, error) {
 			return &gen.LearnSkill{ID: id, UnitID: "99999999-9999-9999-9999-999999999999"}, nil
 		},
+		listExercises: func(_ context.Context, _ string) ([]gen.LearnExercise, error) {
+			return nil, nil
+		},
 	})
 
-	_, err := uc.GetLesson(context.Background(), "guest", "guest-1", lessonID, testTrialUnitID)
-	if !errors.Is(err, ErrTrialLimit) {
-		t.Fatalf("expected ErrTrialLimit, got %v", err)
+	lesson, err := uc.GetLesson(context.Background(), "guest", "guest-1", lessonID, testTrialUnitID)
+	if err != nil {
+		t.Fatalf("GetLesson: %v", err)
+	}
+	if lesson.Lesson.Title != "Beyond Trial" {
+		t.Fatalf("lesson title = %q, want Beyond Trial", lesson.Lesson.Title)
 	}
 }
 

@@ -180,8 +180,9 @@ func (s *LearnService) trialUnitID() string {
 
 func mapCurriculumError(err error) error {
 	switch {
-	case errors.Is(err, biz.ErrTrialLimit):
-		return status.Error(codes.PermissionDenied, "TRIAL_LIMIT")
+	case errors.Is(err, biz.ErrGuestSoftGate), errors.Is(err, biz.ErrTrialLimit):
+		// Primary code; TRIAL_LIMIT alias kept for FE transition via same sentinel.
+		return status.Error(codes.PermissionDenied, "GUEST_SOFT_GATE")
 	case errors.Is(err, biz.ErrCurriculumNotFound):
 		return status.Error(codes.NotFound, err.Error())
 	default:
@@ -191,8 +192,8 @@ func mapCurriculumError(err error) error {
 
 func mapAttemptError(err error) error {
 	switch {
-	case errors.Is(err, biz.ErrTrialLimit):
-		return status.Error(codes.PermissionDenied, "TRIAL_LIMIT")
+	case errors.Is(err, biz.ErrGuestSoftGate), errors.Is(err, biz.ErrTrialLimit):
+		return status.Error(codes.PermissionDenied, "GUEST_SOFT_GATE")
 	case errors.Is(err, biz.ErrCurriculumNotFound):
 		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, biz.ErrAttemptNotFound):

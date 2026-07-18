@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -111,6 +112,17 @@ func TestGuestCompletesOneLesson(t *testing.T) {
 	}
 
 	progress := &mockProgressRepo{
+		listLessons: func(_ context.Context, ownerType, ownerID string) ([]gen.LearnUserLessonProgress, error) {
+			if lessonStatus == "completed" {
+				return []gen.LearnUserLessonProgress{{
+					OwnerType: ownerType,
+					OwnerID:   ownerID,
+					LessonID:  lessonID,
+					Status:    "completed",
+				}}, nil
+			}
+			return nil, nil
+		},
 		getLesson: func(_ context.Context, ownerType, ownerID, lid string) (*gen.LearnUserLessonProgress, error) {
 			if ownerType == "guest" && ownerID == guestID && lid == lessonID && lessonStatus != "" {
 				return &gen.LearnUserLessonProgress{Status: lessonStatus, XpEarned: lessonXP}, nil
@@ -208,5 +220,165 @@ func TestGuestCompletesOneLesson(t *testing.T) {
 	}
 	if !attemptCompleted {
 		t.Fatal("expected attempt completed")
+	}
+}
+
+func threeCompletedLessons(ownerType, ownerID string) []gen.LearnUserLessonProgress {
+	return []gen.LearnUserLessonProgress{
+		{OwnerType: ownerType, OwnerID: ownerID, LessonID: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1", Status: "completed"},
+		{OwnerType: ownerType, OwnerID: ownerID, LessonID: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2", Status: "completed"},
+		{OwnerType: ownerType, OwnerID: ownerID, LessonID: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3", Status: "completed"},
+	}
+}
+
+func TestStartLesson_GuestSoftGate_BlocksWhenThreeCompleted(t *testing.T) {
+	lessonID := "33333333-3333-3333-3333-333333333399"
+	skillID := "22222222-2222-2222-2222-222222222299"
+	guestID := "guest-1"
+
+	curriculum := &mockCurriculumRepo{
+		getLesson: func(_ context.Context, id string) (*gen.LearnLesson, error) {
+			return &gen.LearnLesson{ID: id, SkillID: skillID}, nil
+		},
+		getSkill: func(_ context.Context, id string) (*gen.LearnSkill, error) {
+			return &gen.LearnSkill{ID: id, UnitID: "99999999-9999-9999-9999-999999999999"}, nil
+		},
+	}
+	progress := &mockProgressRepo{
+		listLessons: func(_ context.Context, ownerType, ownerID string) ([]gen.LearnUserLessonProgress, error) {
+			return threeCompletedLessons(ownerType, ownerID), nil
+		},
+		getLesson: func(_ context.Context, _, _, _ string) (*gen.LearnUserLessonProgress, error) {
+			return nil, pgx.ErrNoRows
+		},
+	}
+	attempts := &mockAttemptRepo{
+		createAttempt: func(_ context.Context, _, _, _ string) (*gen.LearnAttempt, error) {
+			t.Fatal("CreateAttempt must not be called when soft-gate blocks")
+			return nil, nil
+		},
+	}
+
+	uc := newAttemptTestUsecase(curriculum, progress, attempts, nil)
+	_, err := uc.StartLesson(context.Background(), "guest", guestID, lessonID, testTrialUnitID)
+	if !errors.Is(err, ErrGuestSoftGate) {
+		t.Fatalf("expected ErrGuestSoftGate, got %v", err)
+	}
+}
+
+func TestStartLesson_GuestSoftGate_AllowsAlreadyCompleted(t *testing.T) {
+	lessonID := "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1"
+	skillID := "22222222-2222-2222-2222-222222222222"
+	attemptID := "55555555-5555-5555-5555-555555555599"
+	guestID := "guest-1"
+
+	curriculum := &mockCurriculumRepo{
+		getLesson: func(_ context.Context, id string) (*gen.LearnLesson, error) {
+			return &gen.LearnLesson{ID: id, SkillID: skillID}, nil
+		},
+		getSkill: func(_ context.Context, id string) (*gen.LearnSkill, error) {
+			return &gen.LearnSkill{ID: id, UnitID: "99999999-9999-9999-9999-999999999999"}, nil
+		},
+	}
+	progress := &mockProgressRepo{
+		listLessons: func(_ context.Context, ownerType, ownerID string) ([]gen.LearnUserLessonProgress, error) {
+			return threeCompletedLessons(ownerType, ownerID), nil
+		},
+		getLesson: func(_ context.Context, _, _, lid string) (*gen.LearnUserLessonProgress, error) {
+			if lid == lessonID {
+				return &gen.LearnUserLessonProgress{LessonID: lid, Status: "completed"}, nil
+			}
+			return nil, pgx.ErrNoRows
+		},
+		upsertLesson: func(_ context.Context, _, _, _, _ string, _ int32) error {
+			return nil
+		},
+	}
+	attempts := &mockAttemptRepo{
+		createAttempt: func(_ context.Context, ownerType, ownerID, lid string) (*gen.LearnAttempt, error) {
+			return &gen.LearnAttempt{ID: attemptID, OwnerType: ownerType, OwnerID: ownerID, LessonID: lid, Status: "active"}, nil
+		},
+	}
+
+	uc := newAttemptTestUsecase(curriculum, progress, attempts, nil)
+	got, err := uc.StartLesson(context.Background(), "guest", guestID, lessonID, testTrialUnitID)
+	if err != nil {
+		t.Fatalf("StartLesson: %v", err)
+	}
+	if got != uuid.MustParse(attemptID) {
+		t.Fatalf("attempt id = %v", got)
+	}
+}
+
+func TestStartLesson_GuestSoftGate_AllowsWhenUnderThree(t *testing.T) {
+	lessonID := "33333333-3333-3333-3333-333333333399"
+	skillID := "22222222-2222-2222-2222-222222222299"
+	attemptID := "55555555-5555-5555-5555-555555555598"
+	guestID := "guest-1"
+
+	curriculum := &mockCurriculumRepo{
+		getLesson: func(_ context.Context, id string) (*gen.LearnLesson, error) {
+			return &gen.LearnLesson{ID: id, SkillID: skillID}, nil
+		},
+		getSkill: func(_ context.Context, id string) (*gen.LearnSkill, error) {
+			return &gen.LearnSkill{ID: id, UnitID: "99999999-9999-9999-9999-999999999999"}, nil
+		},
+	}
+	progress := &mockProgressRepo{
+		listLessons: func(_ context.Context, ownerType, ownerID string) ([]gen.LearnUserLessonProgress, error) {
+			return []gen.LearnUserLessonProgress{
+				{OwnerType: ownerType, OwnerID: ownerID, LessonID: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1", Status: "completed"},
+				{OwnerType: ownerType, OwnerID: ownerID, LessonID: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2", Status: "completed"},
+			}, nil
+		},
+		getLesson: func(_ context.Context, _, _, _ string) (*gen.LearnUserLessonProgress, error) {
+			return nil, pgx.ErrNoRows
+		},
+		upsertLesson: func(_ context.Context, _, _, _, _ string, _ int32) error {
+			return nil
+		},
+	}
+	attempts := &mockAttemptRepo{
+		createAttempt: func(_ context.Context, ownerType, ownerID, lid string) (*gen.LearnAttempt, error) {
+			return &gen.LearnAttempt{ID: attemptID, OwnerType: ownerType, OwnerID: ownerID, LessonID: lid, Status: "active"}, nil
+		},
+	}
+
+	uc := newAttemptTestUsecase(curriculum, progress, attempts, nil)
+	got, err := uc.StartLesson(context.Background(), "guest", guestID, lessonID, testTrialUnitID)
+	if err != nil {
+		t.Fatalf("StartLesson: %v", err)
+	}
+	if got != uuid.MustParse(attemptID) {
+		t.Fatalf("attempt id = %v", got)
+	}
+}
+
+func TestCompleteLesson_GuestSoftGate_BlocksWhenThreeCompleted(t *testing.T) {
+	lessonID := "33333333-3333-3333-3333-333333333399"
+	skillID := "22222222-2222-2222-2222-222222222299"
+	guestID := "guest-1"
+
+	curriculum := &mockCurriculumRepo{
+		getLesson: func(_ context.Context, id string) (*gen.LearnLesson, error) {
+			return &gen.LearnLesson{ID: id, SkillID: skillID, XpReward: 10}, nil
+		},
+		getSkill: func(_ context.Context, id string) (*gen.LearnSkill, error) {
+			return &gen.LearnSkill{ID: id, UnitID: "99999999-9999-9999-9999-999999999999"}, nil
+		},
+	}
+	progress := &mockProgressRepo{
+		listLessons: func(_ context.Context, ownerType, ownerID string) ([]gen.LearnUserLessonProgress, error) {
+			return threeCompletedLessons(ownerType, ownerID), nil
+		},
+		getLesson: func(_ context.Context, _, _, _ string) (*gen.LearnUserLessonProgress, error) {
+			return nil, pgx.ErrNoRows
+		},
+	}
+
+	uc := newAttemptTestUsecase(curriculum, progress, &mockAttemptRepo{}, nil)
+	_, _, err := uc.CompleteLesson(context.Background(), "guest", guestID, lessonID, testTrialUnitID)
+	if !errors.Is(err, ErrGuestSoftGate) {
+		t.Fatalf("expected ErrGuestSoftGate, got %v", err)
 	}
 }

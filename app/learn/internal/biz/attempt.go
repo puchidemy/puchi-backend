@@ -29,7 +29,7 @@ type AttemptRepoInterface interface {
 	ListAttemptAnswersByAttemptID(ctx context.Context, attemptID string) ([]gen.LearnAttemptAnswer, error)
 }
 
-func (uc *LearnUsecase) lessonTrialScope(ctx context.Context, ownerType, lessonID, trialUnitID string) (*gen.LearnLesson, *gen.LearnSkill, error) {
+func (uc *LearnUsecase) loadLessonSkill(ctx context.Context, lessonID string) (*gen.LearnLesson, *gen.LearnSkill, error) {
 	lesson, err := uc.curriculumRepo.GetLessonByID(ctx, lessonID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -44,9 +44,6 @@ func (uc *LearnUsecase) lessonTrialScope(ctx context.Context, ownerType, lessonI
 		}
 		return nil, nil, err
 	}
-	if err := uc.assertGuestTrialScope(ownerType, skill.UnitID, trialUnitID); err != nil {
-		return nil, nil, err
-	}
 	return lesson, skill, nil
 }
 
@@ -59,7 +56,10 @@ func (uc *LearnUsecase) assertAttemptOwner(attempt *gen.LearnAttempt, ownerType,
 
 // StartLesson creates an attempt and marks lesson progress in_progress.
 func (uc *LearnUsecase) StartLesson(ctx context.Context, ownerType, ownerID, lessonID, trialUnitID string) (uuid.UUID, error) {
-	if _, _, err := uc.lessonTrialScope(ctx, ownerType, lessonID, trialUnitID); err != nil {
+	if _, _, err := uc.loadLessonSkill(ctx, lessonID); err != nil {
+		return uuid.Nil, err
+	}
+	if err := uc.assertGuestSoftGate(ctx, ownerType, ownerID, lessonID, trialUnitID); err != nil {
 		return uuid.Nil, err
 	}
 
@@ -80,7 +80,8 @@ func (uc *LearnUsecase) StartLesson(ctx context.Context, ownerType, ownerID, les
 }
 
 // SubmitAnswer grades a payload and stores the attempt answer.
-func (uc *LearnUsecase) SubmitAnswer(ctx context.Context, ownerType, ownerID, attemptID, exerciseID string, payload json.RawMessage, trialUnitID string) (bool, error) {
+// Soft-gate is not applied here — guests may finish an in-flight attempt.
+func (uc *LearnUsecase) SubmitAnswer(ctx context.Context, ownerType, ownerID, attemptID, exerciseID string, payload json.RawMessage, _ string) (bool, error) {
 	attempt, err := uc.attemptRepo.GetAttemptByID(ctx, attemptID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -95,7 +96,7 @@ func (uc *LearnUsecase) SubmitAnswer(ctx context.Context, ownerType, ownerID, at
 		return false, ErrAttemptNotActive
 	}
 
-	if _, _, err := uc.lessonTrialScope(ctx, ownerType, attempt.LessonID, trialUnitID); err != nil {
+	if _, _, err := uc.loadLessonSkill(ctx, attempt.LessonID); err != nil {
 		return false, err
 	}
 
@@ -122,8 +123,11 @@ func (uc *LearnUsecase) SubmitAnswer(ctx context.Context, ownerType, ownerID, at
 
 // CompleteLesson finalizes the active attempt, updates progress, and publishes for users.
 func (uc *LearnUsecase) CompleteLesson(ctx context.Context, ownerType, ownerID, lessonID, trialUnitID string) (int32, bool, error) {
-	lesson, skill, err := uc.lessonTrialScope(ctx, ownerType, lessonID, trialUnitID)
+	lesson, skill, err := uc.loadLessonSkill(ctx, lessonID)
 	if err != nil {
+		return 0, false, err
+	}
+	if err := uc.assertGuestSoftGate(ctx, ownerType, ownerID, lessonID, trialUnitID); err != nil {
 		return 0, false, err
 	}
 

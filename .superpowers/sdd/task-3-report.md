@@ -1,39 +1,44 @@
-# Task 3 Report: Biz Layer — ProfileUsecase
+# Task 3 Report: Learn soft-gate (replace trial unit lock)
 
-## Completed
+**Status:** DONE  
+**Branch:** `feat/guest-settings-sync`  
+**Commit:** `feat(learn): guest soft-gate by completed lessons, drop trial unit lock`
 
-### Created
-- **`internal/biz/profile.go`** — ProfileUsecase with:
-  - `UserRepoInterface` (dependency inversion contract with flat params)
-  - `UpdateProfileInput` validated input struct
-  - `GetProfile(ctx, userID)` — fetch user by ID
-  - `UpdateProfile(ctx, userID, input)` — validate username uniqueness, update profile
-  - `CreateUserFromAuth(ctx, userID, email)` — create user with unique username from email
-  - `generateUsername(email)` — sanitize email into username
-  - Domain errors: `ErrUserNotFound`, `ErrUsernameTaken`
-- **`internal/biz/biz.go`** — Wire `ProviderSet` with `NewProfileUsecase`
+## What changed
 
-### Updated
-- **`internal/data/user_repo.go`** — Refactored to satisfy `biz.UserRepoInterface`:
-  - `CreateUser` now takes flat params `(id, username, email, firstName, lastName)` instead of `gen.CreateUserParams`
-  - `UpdateUser` now takes flat params `(id, firstName, lastName, username, bio, avatarKey)` instead of `gen.UpdateUserParams`
+- Removed `assertGuestTrialScope` (unit == `trialUnitID`) for guests.
+- Added `assertGuestSoftGate` + `countCompletedLessons`:
+  - Allow `StartLesson` / `CompleteLesson` if lesson already `completed` OR completed count `n < 3`.
+  - Else return `ErrGuestSoftGate`.
+- `GetUnit` / `GetLesson`: browse allowed for any unit/lesson (no soft-gate).
+- `SubmitAnswer`: no soft-gate (in-flight attempts may finish).
+- Service maps `ErrGuestSoftGate` (and alias `ErrTrialLimit`) → `PermissionDenied` / `"GUEST_SOFT_GATE"`.
+- `trialUnitID` params retained unused for API stability.
 
-### Deleted
-- **`internal/biz/todo.go`** — stub Todo model + TodoUsecase (replaced by ProfileUsecase)
-- **`internal/service/todo.go`** — TodoService (depended on deleted biz types)
-- **`internal/service/todo_test.go`** — TodoService tests
+## Tests
 
-### Updated (cleanup)
-- **`internal/service/service.go`** — ProviderSet emptied (todo service removed)
-
-## Build Verification
-```bash
-cd app/core && go build ./...
+```text
+go test ./internal/biz/ -v -count=1
+PASS (all biz tests)
 ```
-Exit code: 0 — all packages compile successfully.
 
-## Notes
-- The `UserRepoInterface` uses `*gen.CoreUser` (actual sqlc model name) instead of `*gen.User` from the original spec
-- Flat-param interface in biz ensures the service layer doesn't need to construct sqlc param structs
-- Data layer `UserRepo` now satisfies the biz interface by wrapping sqlc params internally
-- Todo service was removed because it depended on deleted biz types and is not imported by the main app
+Key cases:
+- Guest browse any unit/lesson OK
+- Soft-gate blocks start/complete when 3 completed and lesson not completed
+- Soft-gate allows already-completed lesson restart
+- Soft-gate allows when `n < 3`
+- Existing guest complete-one-lesson flow still passes
+
+## Files
+
+- `app/learn/internal/biz/curriculum.go`
+- `app/learn/internal/biz/attempt.go`
+- `app/learn/internal/biz/curriculum_test.go`
+- `app/learn/internal/biz/attempt_test.go`
+- `app/learn/internal/service/learn.go`
+
+## Concerns / follow-ups
+
+- FE should migrate from `TRIAL_LIMIT` to `GUEST_SOFT_GATE` (BE now only emits `GUEST_SOFT_GATE`).
+- `trialUnitID` / config can be removed in a later cleanup once callers drop the unused arg.
+- Soft reminder after lesson 1 remains FE-only (not enforced here).

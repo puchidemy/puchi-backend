@@ -9,8 +9,13 @@ import (
 )
 
 var (
-	ErrTrialLimit          = errors.New("trial limit")
-	ErrCurriculumNotFound  = errors.New("curriculum not found")
+	// ErrGuestSoftGate blocks guests from starting/completing new lessons after 3 completions.
+	ErrGuestSoftGate = errors.New("guest soft gate")
+	// ErrTrialLimit is a deprecated alias of ErrGuestSoftGate for transition.
+	ErrTrialLimit         = ErrGuestSoftGate
+	ErrCurriculumNotFound = errors.New("curriculum not found")
+
+	guestSoftGateCompletedLimit = 3
 )
 
 // CurriculumRepoInterface reads curriculum rows.
@@ -49,19 +54,49 @@ type LessonDetail struct {
 	Exercises []gen.LearnExercise
 }
 
-func (uc *LearnUsecase) assertGuestTrialScope(ownerType, resourceUnitID, trialUnitID string) error {
-	if ownerType == "guest" && resourceUnitID != trialUnitID {
-		return ErrTrialLimit
+// countCompletedLessons returns how many lessons the owner has marked completed.
+func (uc *LearnUsecase) countCompletedLessons(ctx context.Context, ownerType, ownerID string) (int, error) {
+	rows, err := uc.progressRepo.ListLessonProgressByOwner(ctx, ownerType, ownerID)
+	if err != nil {
+		return 0, err
 	}
-	return nil
+	n := 0
+	for _, row := range rows {
+		if row.Status == "completed" {
+			n++
+		}
+	}
+	return n, nil
 }
 
-// GetUnit returns a unit with skills and lessons, enforcing guest trial scope.
-func (uc *LearnUsecase) GetUnit(ctx context.Context, ownerType, ownerID, unitID, trialUnitID string) (*UnitDetail, error) {
-	if err := uc.assertGuestTrialScope(ownerType, unitID, trialUnitID); err != nil {
-		return nil, err
+// assertGuestSoftGate allows Start/Complete when the lesson is already completed or
+// the guest has fewer than guestSoftGateCompletedLimit completed lessons.
+// trialUnitID is unused (kept for API stability until callers are cleaned up).
+func (uc *LearnUsecase) assertGuestSoftGate(ctx context.Context, ownerType, ownerID, lessonID, _ string) error {
+	if ownerType != "guest" {
+		return nil
 	}
 
+	progress, err := uc.progressRepo.GetLessonProgress(ctx, ownerType, ownerID, lessonID)
+	if err == nil && progress.Status == "completed" {
+		return nil
+	}
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return err
+	}
+
+	n, err := uc.countCompletedLessons(ctx, ownerType, ownerID)
+	if err != nil {
+		return err
+	}
+	if n < guestSoftGateCompletedLimit {
+		return nil
+	}
+	return ErrGuestSoftGate
+}
+
+// GetUnit returns a unit with skills and lessons. Guests may browse any unit.
+func (uc *LearnUsecase) GetUnit(ctx context.Context, ownerType, ownerID, unitID, _ string) (*UnitDetail, error) {
 	unit, err := uc.curriculumRepo.GetUnitByID(ctx, unitID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -119,8 +154,8 @@ func (uc *LearnUsecase) GetUnit(ctx context.Context, ownerType, ownerID, unitID,
 	return out, nil
 }
 
-// GetLesson returns a lesson with exercises, enforcing guest trial scope via skill unit.
-func (uc *LearnUsecase) GetLesson(ctx context.Context, ownerType, ownerID, lessonID, trialUnitID string) (*LessonDetail, error) {
+// GetLesson returns a lesson with exercises. Guests may browse any lesson.
+func (uc *LearnUsecase) GetLesson(ctx context.Context, ownerType, ownerID, lessonID, _ string) (*LessonDetail, error) {
 	lesson, err := uc.curriculumRepo.GetLessonByID(ctx, lessonID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -129,15 +164,11 @@ func (uc *LearnUsecase) GetLesson(ctx context.Context, ownerType, ownerID, lesso
 		return nil, err
 	}
 
-	skill, err := uc.curriculumRepo.GetSkillByID(ctx, lesson.SkillID)
-	if err != nil {
+	// Resolve skill so missing curriculum links still surface as not found.
+	if _, err := uc.curriculumRepo.GetSkillByID(ctx, lesson.SkillID); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrCurriculumNotFound
 		}
-		return nil, err
-	}
-
-	if err := uc.assertGuestTrialScope(ownerType, skill.UnitID, trialUnitID); err != nil {
 		return nil, err
 	}
 
