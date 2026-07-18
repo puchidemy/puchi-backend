@@ -74,6 +74,19 @@ type CoreUserOnboarding struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
+type CoreUserSetting struct {
+	UserID               string    `db:"user_id"`
+	SoundEffects         bool      `db:"sound_effects"`
+	Animations           bool      `db:"animations"`
+	MotivationalMessages bool      `db:"motivational_messages"`
+	ListeningExercises   bool      `db:"listening_exercises"`
+	Theme                string    `db:"theme"`
+	Locale               string    `db:"locale"`
+	PrivacyJson          []byte    `db:"privacy_json"`
+	CreatedAt            time.Time `db:"created_at"`
+	UpdatedAt            time.Time `db:"updated_at"`
+}
+
 type CoreUserStat struct {
 	UserID           string    `db:"user_id"`
 	CurrentXp        int32     `db:"current_xp"`

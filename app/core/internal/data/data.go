@@ -17,12 +17,14 @@ var ProviderSet = wire.NewSet(
 	NewStatsTxManager,
 	NewAchievementRepo,
 	NewSocialRepo,
+	NewSettingsRepo,
 	wire.FieldsOf(new(*Data), "Pool"),
 	wire.Bind(new(biz.UserRepoInterface), new(*UserRepo)),
 	wire.Bind(new(biz.StatsRepoInterface), new(*StatsRepo)),
 	wire.Bind(new(biz.StatsTxManagerInterface), new(*StatsTxManager)),
 	wire.Bind(new(biz.AchievementRepoInterface), new(*AchievementRepo)),
 	wire.Bind(new(biz.SocialRepoInterface), new(*SocialRepo)),
+	wire.Bind(new(biz.SettingsRepo), new(*SettingsRepo)),
 )
 
 // Data .

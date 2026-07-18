@@ -12,6 +12,7 @@ import (
 
 type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (CoreUser, error)
+	CreateUserSettingsDefaults(ctx context.Context, userID string) (CoreUserSetting, error)
 	CreateUserStats(ctx context.Context, userID string) error
 	DeleteUser(ctx context.Context, id string) error
 	Follow(ctx context.Context, arg FollowParams) error
@@ -24,6 +25,7 @@ type Querier interface {
 	GetUserAchievement(ctx context.Context, arg GetUserAchievementParams) (CoreUserAchievement, error)
 	GetUserByEmail(ctx context.Context, email string) (CoreUser, error)
 	GetUserByUsername(ctx context.Context, username string) (CoreUser, error)
+	GetUserSettings(ctx context.Context, userID string) (CoreUserSetting, error)
 	GetUserStats(ctx context.Context, userID string) (CoreUserStat, error)
 	GetUserWeeklyXP(ctx context.Context, arg GetUserWeeklyXPParams) (int32, error)
 	GetWeeklyLeaderboard(ctx context.Context, limit int32) ([]GetWeeklyLeaderboardRow, error)
@@ -45,6 +47,7 @@ type Querier interface {
 	UpsertSocialWeeklyXP(ctx context.Context, arg UpsertSocialWeeklyXPParams) error
 	UpsertUserAchievement(ctx context.Context, arg UpsertUserAchievementParams) (CoreUserAchievement, error)
 	UpsertUserOnboarding(ctx context.Context, arg UpsertUserOnboardingParams) (CoreUserOnboarding, error)
+	UpsertUserSettings(ctx context.Context, arg UpsertUserSettingsParams) (CoreUserSetting, error)
 	UpsertWeeklyXP(ctx context.Context, arg UpsertWeeklyXPParams) error
 	UsernameExists(ctx context.Context, username string) (bool, error)
 }
