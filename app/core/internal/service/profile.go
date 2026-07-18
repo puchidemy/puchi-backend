@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -242,7 +243,14 @@ func (s *ProfileService) UpdateSettings(ctx context.Context, req *pb.UpdateSetti
 
 	row, err := s.uc.UpdateSettings(ctx, userID, input)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to update settings")
+		switch {
+		case errors.Is(err, biz.ErrInvalidTheme):
+			return nil, status.Error(codes.InvalidArgument, "theme must be system, light, or dark")
+		case errors.Is(err, biz.ErrInvalidLocale):
+			return nil, status.Error(codes.InvalidArgument, "locale must be a supported language code (2-16 characters)")
+		default:
+			return nil, status.Error(codes.Internal, "failed to update settings")
+		}
 	}
 	return settingsToProto(row), nil
 }
@@ -253,21 +261,31 @@ func (s *ProfileService) MergeSettings(ctx context.Context, req *pb.MergeSetting
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "not authenticated")
 	}
-	if req.Guest == nil {
-		return nil, status.Error(codes.InvalidArgument, "guest settings required")
+	var guest *biz.SettingsValues
+	if req.Guest != nil {
+		guest = &biz.SettingsValues{
+			SoundEffects:         req.Guest.SoundEffects,
+			Animations:           req.Guest.Animations,
+			MotivationalMessages: req.Guest.MotivationalMessages,
+			ListeningExercises:   req.Guest.ListeningExercises,
+			Theme:                req.Guest.Theme,
+			Locale:               req.Guest.Locale,
+			PrivacyJSON:          req.Guest.PrivacyJson,
+		}
 	}
 
-	result, err := s.uc.MergeSettings(ctx, userID, biz.SettingsValues{
-		SoundEffects:         req.Guest.SoundEffects,
-		Animations:           req.Guest.Animations,
-		MotivationalMessages: req.Guest.MotivationalMessages,
-		ListeningExercises:   req.Guest.ListeningExercises,
-		Theme:                req.Guest.Theme,
-		Locale:               req.Guest.Locale,
-		PrivacyJSON:          req.Guest.PrivacyJson,
-	})
+	result, err := s.uc.MergeSettings(ctx, userID, guest)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "failed to merge settings")
+		switch {
+		case errors.Is(err, biz.ErrGuestSettingsRequired):
+			return nil, status.Error(codes.InvalidArgument, "guest settings required")
+		case errors.Is(err, biz.ErrInvalidTheme):
+			return nil, status.Error(codes.InvalidArgument, "theme must be system, light, or dark")
+		case errors.Is(err, biz.ErrInvalidLocale):
+			return nil, status.Error(codes.InvalidArgument, "locale must be a supported language code (2-16 characters)")
+		default:
+			return nil, status.Error(codes.Internal, "failed to merge settings")
+		}
 	}
 
 	return &pb.MergeSettingsResponse{

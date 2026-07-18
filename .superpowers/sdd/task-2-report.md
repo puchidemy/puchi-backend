@@ -51,3 +51,28 @@ Not run in this session (no live Bearer against local/core). Routes registered i
 
 - Manual Bearer curl deferred (unit coverage only).
 - `privacy_json` compare is trimmed string equality against `"{}"` (not deep JSON equality).
+
+---
+
+## Review fixes (Important findings)
+
+**Status:** DONE  
+**Commit:** `fix(core): validate settings theme/locale and merge guest payload`
+
+### Changes
+- Biz: validate `theme ∈ {system, light, dark}` and `locale` (non-empty, 2–16 chars, supported codes or BCP47-like pattern) on `UpdateSettings` and `MergeSettings`
+- Biz: `MergeSettings` rejects nil guest with `ErrGuestSettingsRequired`
+- Proto: comment on `MergeSettingsRequest` — clients must send full guest snapshot (bool `false` is meaningful)
+- Service: map validation errors to `InvalidArgument`
+- Test: `TestUpdateSettings_RejectsInvalidTheme`
+
+### Test evidence (post-fix)
+
+```text
+=== RUN   TestMergeSettings_GuestWinsOnlyVsDefaults
+--- PASS: TestMergeSettings_GuestWinsOnlyVsDefaults (0.00s)
+=== RUN   TestUpdateSettings_RejectsInvalidTheme
+--- PASS: TestUpdateSettings_RejectsInvalidTheme (0.00s)
+PASS
+ok  	github.com/puchidemy/puchi-backend/app/core/internal/biz	0.561s
+```

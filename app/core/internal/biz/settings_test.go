@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 
@@ -93,7 +94,7 @@ func TestMergeSettings_GuestWinsOnlyVsDefaults(t *testing.T) {
 		PrivacyJSON:          "{}",
 	}
 
-	result, err := uc.MergeSettings(context.Background(), userID, guest)
+	result, err := uc.MergeSettings(context.Background(), userID, &guest)
 	if err != nil {
 		t.Fatalf("MergeSettings: %v", err)
 	}
@@ -108,5 +109,21 @@ func TestMergeSettings_GuestWinsOnlyVsDefaults(t *testing.T) {
 
 	if len(result.FieldsMerged) != 1 || result.FieldsMerged[0] != "animations" {
 		t.Fatalf("fields_merged = %v, want [animations]", result.FieldsMerged)
+	}
+}
+
+func TestUpdateSettings_RejectsInvalidTheme(t *testing.T) {
+	users := newMemUserRepo()
+	stats := newMemStatsRepo()
+	settings := newMemSettingsRepo()
+	uc := NewProfileUsecase(users, stats, settings)
+
+	userID := "u-theme"
+	invalid := "neon"
+	_, err := uc.UpdateSettings(context.Background(), userID, UpdateSettingsInput{
+		Theme: &invalid,
+	})
+	if !errors.Is(err, ErrInvalidTheme) {
+		t.Fatalf("want ErrInvalidTheme, got %v", err)
 	}
 }

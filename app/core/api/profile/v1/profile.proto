@@ -229,6 +229,8 @@ message UpdateSettingsRequest {
   optional string privacy_json = 7;
 }
 
+// Clients must send a full guest settings snapshot. Unset bool fields default to false
+// and are meaningful for merge (e.g. sound_effects=false is an intentional guest choice).
 message MergeSettingsRequest { UserSettings guest = 1; }
 message MergeSettingsResponse {
   UserSettings settings = 1;

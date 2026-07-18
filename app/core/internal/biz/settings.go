@@ -3,10 +3,58 @@ package biz
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
+	"regexp"
 
 	"github.com/puchidemy/puchi-backend/app/core/internal/data/sqlc/gen"
 )
+
+var (
+	ErrInvalidTheme            = errors.New("invalid theme")
+	ErrInvalidLocale           = errors.New("invalid locale")
+	ErrGuestSettingsRequired   = errors.New("guest settings required")
+)
+
+var (
+	supportedLocales = map[string]struct{}{
+		"en": {}, "zh": {}, "de": {}, "es": {}, "fr": {},
+		"it": {}, "ja": {}, "ko": {}, "ru": {},
+	}
+	localePattern = regexp.MustCompile(`^[a-z]{2}(-[a-zA-Z0-9]{2,8})?$`)
+)
+
+func validateTheme(theme string) error {
+	switch theme {
+	case "system", "light", "dark":
+		return nil
+	default:
+		return ErrInvalidTheme
+	}
+}
+
+func validateLocale(locale string) error {
+	if locale == "" {
+		return ErrInvalidLocale
+	}
+	if len(locale) < 2 || len(locale) > 16 {
+		return ErrInvalidLocale
+	}
+	if _, ok := supportedLocales[locale]; ok {
+		return nil
+	}
+	if localePattern.MatchString(locale) {
+		return nil
+	}
+	return ErrInvalidLocale
+}
+
+func validateSettingsValues(v SettingsValues) error {
+	if err := validateTheme(v.Theme); err != nil {
+		return err
+	}
+	return validateLocale(v.Locale)
+}
 
 // SettingsRepo defines the repository contract for user settings.
 type SettingsRepo interface {
@@ -189,6 +237,16 @@ func (uc *ProfileUsecase) UpdateSettings(ctx context.Context, userID string, inp
 	if input.PrivacyJSON != nil {
 		v.PrivacyJSON = *input.PrivacyJSON
 	}
+	if input.Theme != nil {
+		if err := validateTheme(*input.Theme); err != nil {
+			return nil, err
+		}
+	}
+	if input.Locale != nil {
+		if err := validateLocale(*input.Locale); err != nil {
+			return nil, err
+		}
+	}
 
 	row, err := uc.settings.Upsert(ctx, toUpsertParams(userID, v))
 	if err != nil {
@@ -198,12 +256,19 @@ func (uc *ProfileUsecase) UpdateSettings(ctx context.Context, userID string, inp
 }
 
 // MergeSettings merges guest settings into the authenticated user's settings.
-func (uc *ProfileUsecase) MergeSettings(ctx context.Context, userID string, guest SettingsValues) (*MergeSettingsResult, error) {
+func (uc *ProfileUsecase) MergeSettings(ctx context.Context, userID string, guest *SettingsValues) (*MergeSettingsResult, error) {
+	if guest == nil {
+		return nil, ErrGuestSettingsRequired
+	}
+	if err := validateSettingsValues(*guest); err != nil {
+		return nil, err
+	}
+
 	current, err := uc.settings.EnsureDefaults(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("load settings: %w", err)
 	}
-	merged, fields := MergeSettingsValues(settingsFromRow(current), guest)
+	merged, fields := MergeSettingsValues(settingsFromRow(current), *guest)
 	row, err := uc.settings.Upsert(ctx, toUpsertParams(userID, merged))
 	if err != nil {
 		return nil, fmt.Errorf("merge settings: %w", err)
