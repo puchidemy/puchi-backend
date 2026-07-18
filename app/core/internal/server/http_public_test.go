@@ -19,6 +19,7 @@ func TestIsPublicProfilePath(t *testing.T) {
 		{http.MethodGet, "/v1/profile/linked-accounts", false},
 		{http.MethodGet, "/v1/profile/merge-guest", false},
 		{http.MethodGet, "/v1/profile/avatar", false},
+		{http.MethodGet, "/v1/profile/settings", false},
 		{http.MethodGet, "/v1/profile/stats/daily-activity", false},
 		{http.MethodGet, "/v1/profile", false},
 		{http.MethodPut, "/v1/profile/alice", false},

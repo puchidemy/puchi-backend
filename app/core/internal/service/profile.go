@@ -196,6 +196,102 @@ func (s *ProfileService) CompleteOnboarding(ctx context.Context, req *pb.Complet
 	return s.userToProto(user), nil
 }
 
+// GetSettings returns the authenticated user's settings (defaults if missing).
+func (s *ProfileService) GetSettings(ctx context.Context, _ *emptypb.Empty) (*pb.UserSettings, error) {
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "not authenticated")
+	}
+
+	row, err := s.uc.GetSettings(ctx, userID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get settings")
+	}
+	return settingsToProto(row), nil
+}
+
+// UpdateSettings partially updates the authenticated user's settings.
+func (s *ProfileService) UpdateSettings(ctx context.Context, req *pb.UpdateSettingsRequest) (*pb.UserSettings, error) {
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "not authenticated")
+	}
+
+	input := biz.UpdateSettingsInput{}
+	if req.SoundEffects != nil {
+		input.SoundEffects = req.SoundEffects
+	}
+	if req.Animations != nil {
+		input.Animations = req.Animations
+	}
+	if req.MotivationalMessages != nil {
+		input.MotivationalMessages = req.MotivationalMessages
+	}
+	if req.ListeningExercises != nil {
+		input.ListeningExercises = req.ListeningExercises
+	}
+	if req.Theme != nil {
+		input.Theme = req.Theme
+	}
+	if req.Locale != nil {
+		input.Locale = req.Locale
+	}
+	if req.PrivacyJson != nil {
+		input.PrivacyJSON = req.PrivacyJson
+	}
+
+	row, err := s.uc.UpdateSettings(ctx, userID, input)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to update settings")
+	}
+	return settingsToProto(row), nil
+}
+
+// MergeSettings merges guest settings into the authenticated user's settings.
+func (s *ProfileService) MergeSettings(ctx context.Context, req *pb.MergeSettingsRequest) (*pb.MergeSettingsResponse, error) {
+	userID, ok := auth.UserIDFromContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "not authenticated")
+	}
+	if req.Guest == nil {
+		return nil, status.Error(codes.InvalidArgument, "guest settings required")
+	}
+
+	result, err := s.uc.MergeSettings(ctx, userID, biz.SettingsValues{
+		SoundEffects:         req.Guest.SoundEffects,
+		Animations:           req.Guest.Animations,
+		MotivationalMessages: req.Guest.MotivationalMessages,
+		ListeningExercises:   req.Guest.ListeningExercises,
+		Theme:                req.Guest.Theme,
+		Locale:               req.Guest.Locale,
+		PrivacyJSON:          req.Guest.PrivacyJson,
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to merge settings")
+	}
+
+	return &pb.MergeSettingsResponse{
+		Settings:     settingsToProto(result.Settings),
+		FieldsMerged: result.FieldsMerged,
+	}, nil
+}
+
+func settingsToProto(row *gen.CoreUserSetting) *pb.UserSettings {
+	privacy := "{}"
+	if len(row.PrivacyJson) > 0 {
+		privacy = string(row.PrivacyJson)
+	}
+	return &pb.UserSettings{
+		SoundEffects:         row.SoundEffects,
+		Animations:           row.Animations,
+		MotivationalMessages: row.MotivationalMessages,
+		ListeningExercises:   row.ListeningExercises,
+		Theme:                row.Theme,
+		Locale:               row.Locale,
+		PrivacyJson:          privacy,
+	}
+}
+
 // GetLinkedAccounts returns linked third-party accounts.
 // TODO: Implement via Zitadel user info API when needed.
 func (s *ProfileService) GetLinkedAccounts(ctx context.Context, _ *emptypb.Empty) (*pb.LinkedAccountsResponse, error) {

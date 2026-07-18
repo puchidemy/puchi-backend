@@ -74,6 +74,26 @@ service ProfileService {
       get: "/v1/profile/linked-accounts"
     };
   }
+
+  rpc GetSettings(google.protobuf.Empty) returns (UserSettings) {
+    option (google.api.http) = {
+      get: "/v1/profile/settings"
+    };
+  }
+
+  rpc UpdateSettings(UpdateSettingsRequest) returns (UserSettings) {
+    option (google.api.http) = {
+      patch: "/v1/profile/settings"
+      body: "*"
+    };
+  }
+
+  rpc MergeSettings(MergeSettingsRequest) returns (MergeSettingsResponse) {
+    option (google.api.http) = {
+      post: "/v1/profile/settings/merge"
+      body: "*"
+    };
+  }
 }
 
 message Achievement {
@@ -187,4 +207,30 @@ message LinkedAccount {
 
 message LinkedAccountsResponse {
   repeated LinkedAccount accounts = 1;
+}
+
+message UserSettings {
+  bool sound_effects = 1;
+  bool animations = 2;
+  bool motivational_messages = 3;
+  bool listening_exercises = 4;
+  string theme = 5;
+  string locale = 6;
+  string privacy_json = 7; // JSON string
+}
+
+message UpdateSettingsRequest {
+  optional bool sound_effects = 1;
+  optional bool animations = 2;
+  optional bool motivational_messages = 3;
+  optional bool listening_exercises = 4;
+  optional string theme = 5;
+  optional string locale = 6;
+  optional string privacy_json = 7;
+}
+
+message MergeSettingsRequest { UserSettings guest = 1; }
+message MergeSettingsResponse {
+  UserSettings settings = 1;
+  repeated string fields_merged = 2;
 }

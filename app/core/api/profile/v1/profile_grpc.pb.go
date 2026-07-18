@@ -30,6 +30,9 @@ const (
 	ProfileService_UpdateAvatar_FullMethodName         = "/puchi.core.profile.v1.ProfileService/UpdateAvatar"
 	ProfileService_CompleteOnboarding_FullMethodName   = "/puchi.core.profile.v1.ProfileService/CompleteOnboarding"
 	ProfileService_GetLinkedAccounts_FullMethodName    = "/puchi.core.profile.v1.ProfileService/GetLinkedAccounts"
+	ProfileService_GetSettings_FullMethodName          = "/puchi.core.profile.v1.ProfileService/GetSettings"
+	ProfileService_UpdateSettings_FullMethodName       = "/puchi.core.profile.v1.ProfileService/UpdateSettings"
+	ProfileService_MergeSettings_FullMethodName        = "/puchi.core.profile.v1.ProfileService/MergeSettings"
 )
 
 // ProfileServiceClient is the client API for ProfileService service.
@@ -46,6 +49,9 @@ type ProfileServiceClient interface {
 	UpdateAvatar(ctx context.Context, in *UpdateAvatarRequest, opts ...grpc.CallOption) (*User, error)
 	CompleteOnboarding(ctx context.Context, in *CompleteOnboardingRequest, opts ...grpc.CallOption) (*User, error)
 	GetLinkedAccounts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*LinkedAccountsResponse, error)
+	GetSettings(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UserSettings, error)
+	UpdateSettings(ctx context.Context, in *UpdateSettingsRequest, opts ...grpc.CallOption) (*UserSettings, error)
+	MergeSettings(ctx context.Context, in *MergeSettingsRequest, opts ...grpc.CallOption) (*MergeSettingsResponse, error)
 }
 
 type profileServiceClient struct {
@@ -156,6 +162,36 @@ func (c *profileServiceClient) GetLinkedAccounts(ctx context.Context, in *emptyp
 	return out, nil
 }
 
+func (c *profileServiceClient) GetSettings(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UserSettings, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserSettings)
+	err := c.cc.Invoke(ctx, ProfileService_GetSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileServiceClient) UpdateSettings(ctx context.Context, in *UpdateSettingsRequest, opts ...grpc.CallOption) (*UserSettings, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserSettings)
+	err := c.cc.Invoke(ctx, ProfileService_UpdateSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileServiceClient) MergeSettings(ctx context.Context, in *MergeSettingsRequest, opts ...grpc.CallOption) (*MergeSettingsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MergeSettingsResponse)
+	err := c.cc.Invoke(ctx, ProfileService_MergeSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProfileServiceServer is the server API for ProfileService service.
 // All implementations must embed UnimplementedProfileServiceServer
 // for forward compatibility.
@@ -170,6 +206,9 @@ type ProfileServiceServer interface {
 	UpdateAvatar(context.Context, *UpdateAvatarRequest) (*User, error)
 	CompleteOnboarding(context.Context, *CompleteOnboardingRequest) (*User, error)
 	GetLinkedAccounts(context.Context, *emptypb.Empty) (*LinkedAccountsResponse, error)
+	GetSettings(context.Context, *emptypb.Empty) (*UserSettings, error)
+	UpdateSettings(context.Context, *UpdateSettingsRequest) (*UserSettings, error)
+	MergeSettings(context.Context, *MergeSettingsRequest) (*MergeSettingsResponse, error)
 	mustEmbedUnimplementedProfileServiceServer()
 }
 
@@ -209,6 +248,15 @@ func (UnimplementedProfileServiceServer) CompleteOnboarding(context.Context, *Co
 }
 func (UnimplementedProfileServiceServer) GetLinkedAccounts(context.Context, *emptypb.Empty) (*LinkedAccountsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetLinkedAccounts not implemented")
+}
+func (UnimplementedProfileServiceServer) GetSettings(context.Context, *emptypb.Empty) (*UserSettings, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSettings not implemented")
+}
+func (UnimplementedProfileServiceServer) UpdateSettings(context.Context, *UpdateSettingsRequest) (*UserSettings, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateSettings not implemented")
+}
+func (UnimplementedProfileServiceServer) MergeSettings(context.Context, *MergeSettingsRequest) (*MergeSettingsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MergeSettings not implemented")
 }
 func (UnimplementedProfileServiceServer) mustEmbedUnimplementedProfileServiceServer() {}
 func (UnimplementedProfileServiceServer) testEmbeddedByValue()                        {}
@@ -411,6 +459,60 @@ func _ProfileService_GetLinkedAccounts_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProfileService_GetSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).GetSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfileService_GetSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).GetSettings(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProfileService_UpdateSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).UpdateSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfileService_UpdateSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).UpdateSettings(ctx, req.(*UpdateSettingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProfileService_MergeSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MergeSettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServiceServer).MergeSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfileService_MergeSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServiceServer).MergeSettings(ctx, req.(*MergeSettingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProfileService_ServiceDesc is the grpc.ServiceDesc for ProfileService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -457,6 +559,18 @@ var ProfileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetLinkedAccounts",
 			Handler:    _ProfileService_GetLinkedAccounts_Handler,
+		},
+		{
+			MethodName: "GetSettings",
+			Handler:    _ProfileService_GetSettings_Handler,
+		},
+		{
+			MethodName: "UpdateSettings",
+			Handler:    _ProfileService_UpdateSettings_Handler,
+		},
+		{
+			MethodName: "MergeSettings",
+			Handler:    _ProfileService_MergeSettings_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

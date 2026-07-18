@@ -62,11 +62,12 @@ var (
 type ProfileUsecase struct {
 	repo      UserRepoInterface
 	statsRepo StatsRepoInterface
+	settings  SettingsRepo
 }
 
 // NewProfileUsecase creates a new ProfileUsecase
-func NewProfileUsecase(repo UserRepoInterface, statsRepo StatsRepoInterface) *ProfileUsecase {
-	return &ProfileUsecase{repo: repo, statsRepo: statsRepo}
+func NewProfileUsecase(repo UserRepoInterface, statsRepo StatsRepoInterface, settings SettingsRepo) *ProfileUsecase {
+	return &ProfileUsecase{repo: repo, statsRepo: statsRepo, settings: settings}
 }
 
 // GetProfile returns user by ID

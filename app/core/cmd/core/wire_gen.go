@@ -33,7 +33,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	pool := dataData.Pool
 	userRepo := data.NewUserRepo(pool)
 	statsRepo := data.NewStatsRepo(pool)
-	profileUsecase := biz.NewProfileUsecase(userRepo, statsRepo)
+	settingsRepo := data.NewSettingsRepo(pool)
+	profileUsecase := biz.NewProfileUsecase(userRepo, statsRepo, settingsRepo)
 	achievementRepo := data.NewAchievementRepo(pool)
 	achievementUsecase := biz.NewAchievementUsecase(achievementRepo)
 	statsTxManager := data.NewStatsTxManager(pool)

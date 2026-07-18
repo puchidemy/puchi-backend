@@ -24,6 +24,7 @@ var reservedProfileSegments = map[string]struct{}{
 	"linked-accounts": {},
 	"merge-guest":     {},
 	"avatar":          {},
+	"settings":        {},
 }
 
 // isPublicProfilePath allows unauthenticated GET /v1/profile/{username}

@@ -95,6 +95,53 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/puchi.core.profile.v1.LinkedAccountsResponse'
+    /v1/profile/settings:
+        get:
+            tags:
+                - ProfileService
+            operationId: ProfileService_GetSettings
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.profile.v1.UserSettings'
+        patch:
+            tags:
+                - ProfileService
+            operationId: ProfileService_UpdateSettings
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.core.profile.v1.UpdateSettingsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.profile.v1.UserSettings'
+    /v1/profile/settings/merge:
+        post:
+            tags:
+                - ProfileService
+            operationId: ProfileService_MergeSettings
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.core.profile.v1.MergeSettingsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.core.profile.v1.MergeSettingsResponse'
     /v1/profile/stats:
         get:
             tags:
@@ -575,6 +622,20 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/puchi.core.profile.v1.LinkedAccount'
+        puchi.core.profile.v1.MergeSettingsRequest:
+            type: object
+            properties:
+                guest:
+                    $ref: '#/components/schemas/puchi.core.profile.v1.UserSettings'
+        puchi.core.profile.v1.MergeSettingsResponse:
+            type: object
+            properties:
+                settings:
+                    $ref: '#/components/schemas/puchi.core.profile.v1.UserSettings'
+                fieldsMerged:
+                    type: array
+                    items:
+                        type: string
         puchi.core.profile.v1.Stats:
             type: object
             properties:
@@ -638,6 +699,23 @@ components:
                     type: string
                 ageRange:
                     type: string
+        puchi.core.profile.v1.UpdateSettingsRequest:
+            type: object
+            properties:
+                soundEffects:
+                    type: boolean
+                animations:
+                    type: boolean
+                motivationalMessages:
+                    type: boolean
+                listeningExercises:
+                    type: boolean
+                theme:
+                    type: string
+                locale:
+                    type: string
+                privacyJson:
+                    type: string
         puchi.core.profile.v1.User:
             type: object
             properties:
@@ -664,6 +742,23 @@ components:
                 onboardingCompleted:
                     type: boolean
                 ageRange:
+                    type: string
+        puchi.core.profile.v1.UserSettings:
+            type: object
+            properties:
+                soundEffects:
+                    type: boolean
+                animations:
+                    type: boolean
+                motivationalMessages:
+                    type: boolean
+                listeningExercises:
+                    type: boolean
+                theme:
+                    type: string
+                locale:
+                    type: string
+                privacyJson:
                     type: string
         puchi.core.profile.v1.WeeklyXPItem:
             type: object

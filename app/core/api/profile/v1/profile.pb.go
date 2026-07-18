@@ -1115,6 +1115,286 @@ func (x *LinkedAccountsResponse) GetAccounts() []*LinkedAccount {
 	return nil
 }
 
+type UserSettings struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	SoundEffects         bool                   `protobuf:"varint,1,opt,name=sound_effects,json=soundEffects,proto3" json:"sound_effects,omitempty"`
+	Animations           bool                   `protobuf:"varint,2,opt,name=animations,proto3" json:"animations,omitempty"`
+	MotivationalMessages bool                   `protobuf:"varint,3,opt,name=motivational_messages,json=motivationalMessages,proto3" json:"motivational_messages,omitempty"`
+	ListeningExercises   bool                   `protobuf:"varint,4,opt,name=listening_exercises,json=listeningExercises,proto3" json:"listening_exercises,omitempty"`
+	Theme                string                 `protobuf:"bytes,5,opt,name=theme,proto3" json:"theme,omitempty"`
+	Locale               string                 `protobuf:"bytes,6,opt,name=locale,proto3" json:"locale,omitempty"`
+	PrivacyJson          string                 `protobuf:"bytes,7,opt,name=privacy_json,json=privacyJson,proto3" json:"privacy_json,omitempty"` // JSON string
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *UserSettings) Reset() {
+	*x = UserSettings{}
+	mi := &file_profile_v1_profile_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserSettings) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserSettings) ProtoMessage() {}
+
+func (x *UserSettings) ProtoReflect() protoreflect.Message {
+	mi := &file_profile_v1_profile_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserSettings.ProtoReflect.Descriptor instead.
+func (*UserSettings) Descriptor() ([]byte, []int) {
+	return file_profile_v1_profile_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *UserSettings) GetSoundEffects() bool {
+	if x != nil {
+		return x.SoundEffects
+	}
+	return false
+}
+
+func (x *UserSettings) GetAnimations() bool {
+	if x != nil {
+		return x.Animations
+	}
+	return false
+}
+
+func (x *UserSettings) GetMotivationalMessages() bool {
+	if x != nil {
+		return x.MotivationalMessages
+	}
+	return false
+}
+
+func (x *UserSettings) GetListeningExercises() bool {
+	if x != nil {
+		return x.ListeningExercises
+	}
+	return false
+}
+
+func (x *UserSettings) GetTheme() string {
+	if x != nil {
+		return x.Theme
+	}
+	return ""
+}
+
+func (x *UserSettings) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
+func (x *UserSettings) GetPrivacyJson() string {
+	if x != nil {
+		return x.PrivacyJson
+	}
+	return ""
+}
+
+type UpdateSettingsRequest struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	SoundEffects         *bool                  `protobuf:"varint,1,opt,name=sound_effects,json=soundEffects,proto3,oneof" json:"sound_effects,omitempty"`
+	Animations           *bool                  `protobuf:"varint,2,opt,name=animations,proto3,oneof" json:"animations,omitempty"`
+	MotivationalMessages *bool                  `protobuf:"varint,3,opt,name=motivational_messages,json=motivationalMessages,proto3,oneof" json:"motivational_messages,omitempty"`
+	ListeningExercises   *bool                  `protobuf:"varint,4,opt,name=listening_exercises,json=listeningExercises,proto3,oneof" json:"listening_exercises,omitempty"`
+	Theme                *string                `protobuf:"bytes,5,opt,name=theme,proto3,oneof" json:"theme,omitempty"`
+	Locale               *string                `protobuf:"bytes,6,opt,name=locale,proto3,oneof" json:"locale,omitempty"`
+	PrivacyJson          *string                `protobuf:"bytes,7,opt,name=privacy_json,json=privacyJson,proto3,oneof" json:"privacy_json,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *UpdateSettingsRequest) Reset() {
+	*x = UpdateSettingsRequest{}
+	mi := &file_profile_v1_profile_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSettingsRequest) ProtoMessage() {}
+
+func (x *UpdateSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_profile_v1_profile_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSettingsRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_profile_v1_profile_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *UpdateSettingsRequest) GetSoundEffects() bool {
+	if x != nil && x.SoundEffects != nil {
+		return *x.SoundEffects
+	}
+	return false
+}
+
+func (x *UpdateSettingsRequest) GetAnimations() bool {
+	if x != nil && x.Animations != nil {
+		return *x.Animations
+	}
+	return false
+}
+
+func (x *UpdateSettingsRequest) GetMotivationalMessages() bool {
+	if x != nil && x.MotivationalMessages != nil {
+		return *x.MotivationalMessages
+	}
+	return false
+}
+
+func (x *UpdateSettingsRequest) GetListeningExercises() bool {
+	if x != nil && x.ListeningExercises != nil {
+		return *x.ListeningExercises
+	}
+	return false
+}
+
+func (x *UpdateSettingsRequest) GetTheme() string {
+	if x != nil && x.Theme != nil {
+		return *x.Theme
+	}
+	return ""
+}
+
+func (x *UpdateSettingsRequest) GetLocale() string {
+	if x != nil && x.Locale != nil {
+		return *x.Locale
+	}
+	return ""
+}
+
+func (x *UpdateSettingsRequest) GetPrivacyJson() string {
+	if x != nil && x.PrivacyJson != nil {
+		return *x.PrivacyJson
+	}
+	return ""
+}
+
+type MergeSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Guest         *UserSettings          `protobuf:"bytes,1,opt,name=guest,proto3" json:"guest,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MergeSettingsRequest) Reset() {
+	*x = MergeSettingsRequest{}
+	mi := &file_profile_v1_profile_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MergeSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MergeSettingsRequest) ProtoMessage() {}
+
+func (x *MergeSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_profile_v1_profile_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MergeSettingsRequest.ProtoReflect.Descriptor instead.
+func (*MergeSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_profile_v1_profile_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *MergeSettingsRequest) GetGuest() *UserSettings {
+	if x != nil {
+		return x.Guest
+	}
+	return nil
+}
+
+type MergeSettingsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      *UserSettings          `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	FieldsMerged  []string               `protobuf:"bytes,2,rep,name=fields_merged,json=fieldsMerged,proto3" json:"fields_merged,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MergeSettingsResponse) Reset() {
+	*x = MergeSettingsResponse{}
+	mi := &file_profile_v1_profile_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MergeSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MergeSettingsResponse) ProtoMessage() {}
+
+func (x *MergeSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_profile_v1_profile_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MergeSettingsResponse.ProtoReflect.Descriptor instead.
+func (*MergeSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_profile_v1_profile_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *MergeSettingsResponse) GetSettings() *UserSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
+func (x *MergeSettingsResponse) GetFieldsMerged() []string {
+	if x != nil {
+		return x.FieldsMerged
+	}
+	return nil
+}
+
 var File_profile_v1_profile_proto protoreflect.FileDescriptor
 
 const file_profile_v1_profile_proto_rawDesc = "" +
@@ -1211,7 +1491,39 @@ const file_profile_v1_profile_proto_rawDesc = "" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1b\n" +
 	"\tlinked_at\x18\x03 \x01(\tR\blinkedAt\"Z\n" +
 	"\x16LinkedAccountsResponse\x12@\n" +
-	"\baccounts\x18\x01 \x03(\v2$.puchi.core.profile.v1.LinkedAccountR\baccounts2\xdd\t\n" +
+	"\baccounts\x18\x01 \x03(\v2$.puchi.core.profile.v1.LinkedAccountR\baccounts\"\x8a\x02\n" +
+	"\fUserSettings\x12#\n" +
+	"\rsound_effects\x18\x01 \x01(\bR\fsoundEffects\x12\x1e\n" +
+	"\n" +
+	"animations\x18\x02 \x01(\bR\n" +
+	"animations\x123\n" +
+	"\x15motivational_messages\x18\x03 \x01(\bR\x14motivationalMessages\x12/\n" +
+	"\x13listening_exercises\x18\x04 \x01(\bR\x12listeningExercises\x12\x14\n" +
+	"\x05theme\x18\x05 \x01(\tR\x05theme\x12\x16\n" +
+	"\x06locale\x18\x06 \x01(\tR\x06locale\x12!\n" +
+	"\fprivacy_json\x18\a \x01(\tR\vprivacyJson\"\xaf\x03\n" +
+	"\x15UpdateSettingsRequest\x12(\n" +
+	"\rsound_effects\x18\x01 \x01(\bH\x00R\fsoundEffects\x88\x01\x01\x12#\n" +
+	"\n" +
+	"animations\x18\x02 \x01(\bH\x01R\n" +
+	"animations\x88\x01\x01\x128\n" +
+	"\x15motivational_messages\x18\x03 \x01(\bH\x02R\x14motivationalMessages\x88\x01\x01\x124\n" +
+	"\x13listening_exercises\x18\x04 \x01(\bH\x03R\x12listeningExercises\x88\x01\x01\x12\x19\n" +
+	"\x05theme\x18\x05 \x01(\tH\x04R\x05theme\x88\x01\x01\x12\x1b\n" +
+	"\x06locale\x18\x06 \x01(\tH\x05R\x06locale\x88\x01\x01\x12&\n" +
+	"\fprivacy_json\x18\a \x01(\tH\x06R\vprivacyJson\x88\x01\x01B\x10\n" +
+	"\x0e_sound_effectsB\r\n" +
+	"\v_animationsB\x18\n" +
+	"\x16_motivational_messagesB\x16\n" +
+	"\x14_listening_exercisesB\b\n" +
+	"\x06_themeB\t\n" +
+	"\a_localeB\x0f\n" +
+	"\r_privacy_json\"Q\n" +
+	"\x14MergeSettingsRequest\x129\n" +
+	"\x05guest\x18\x01 \x01(\v2#.puchi.core.profile.v1.UserSettingsR\x05guest\"}\n" +
+	"\x15MergeSettingsResponse\x12?\n" +
+	"\bsettings\x18\x01 \x01(\v2#.puchi.core.profile.v1.UserSettingsR\bsettings\x12#\n" +
+	"\rfields_merged\x18\x02 \x03(\tR\ffieldsMerged2\xe2\f\n" +
 	"\x0eProfileService\x12V\n" +
 	"\n" +
 	"GetProfile\x12\x16.google.protobuf.Empty\x1a\x1b.puchi.core.profile.v1.User\"\x13\x82\xd3\xe4\x93\x02\r\x12\v/v1/profile\x12q\n" +
@@ -1223,7 +1535,10 @@ const file_profile_v1_profile_proto_rawDesc = "" +
 	"\x14GetProfileByUsername\x122.puchi.core.profile.v1.GetProfileByUsernameRequest\x1a\x1b.puchi.core.profile.v1.User\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/v1/profile/{username}\x12v\n" +
 	"\fUpdateAvatar\x12*.puchi.core.profile.v1.UpdateAvatarRequest\x1a\x1b.puchi.core.profile.v1.User\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\x1a\x12/v1/profile/avatar\x12\x87\x01\n" +
 	"\x12CompleteOnboarding\x120.puchi.core.profile.v1.CompleteOnboardingRequest\x1a\x1b.puchi.core.profile.v1.User\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/v1/onboarding/complete\x12\x7f\n" +
-	"\x11GetLinkedAccounts\x12\x16.google.protobuf.Empty\x1a-.puchi.core.profile.v1.LinkedAccountsResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/v1/profile/linked-accountsBl\n" +
+	"\x11GetLinkedAccounts\x12\x16.google.protobuf.Empty\x1a-.puchi.core.profile.v1.LinkedAccountsResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/v1/profile/linked-accounts\x12h\n" +
+	"\vGetSettings\x12\x16.google.protobuf.Empty\x1a#.puchi.core.profile.v1.UserSettings\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/profile/settings\x12\x84\x01\n" +
+	"\x0eUpdateSettings\x12,.puchi.core.profile.v1.UpdateSettingsRequest\x1a#.puchi.core.profile.v1.UserSettings\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*2\x14/v1/profile/settings\x12\x91\x01\n" +
+	"\rMergeSettings\x12+.puchi.core.profile.v1.MergeSettingsRequest\x1a,.puchi.core.profile.v1.MergeSettingsResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/v1/profile/settings/mergeBl\n" +
 	"\x1bio.grpc.examples.profile.v1B\fProfileProtoP\x01Z=github.com/puchidemy/puchi-backend/app/core/api/profile/v1;v1b\x06proto3"
 
 var (
@@ -1238,7 +1553,7 @@ func file_profile_v1_profile_proto_rawDescGZIP() []byte {
 	return file_profile_v1_profile_proto_rawDescData
 }
 
-var file_profile_v1_profile_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_profile_v1_profile_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_profile_v1_profile_proto_goTypes = []any{
 	(*Achievement)(nil),                 // 0: puchi.core.profile.v1.Achievement
 	(*AchievementList)(nil),             // 1: puchi.core.profile.v1.AchievementList
@@ -1256,42 +1571,54 @@ var file_profile_v1_profile_proto_goTypes = []any{
 	(*CompleteOnboardingRequest)(nil),   // 13: puchi.core.profile.v1.CompleteOnboardingRequest
 	(*LinkedAccount)(nil),               // 14: puchi.core.profile.v1.LinkedAccount
 	(*LinkedAccountsResponse)(nil),      // 15: puchi.core.profile.v1.LinkedAccountsResponse
-	(*timestamppb.Timestamp)(nil),       // 16: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),               // 17: google.protobuf.Empty
+	(*UserSettings)(nil),                // 16: puchi.core.profile.v1.UserSettings
+	(*UpdateSettingsRequest)(nil),       // 17: puchi.core.profile.v1.UpdateSettingsRequest
+	(*MergeSettingsRequest)(nil),        // 18: puchi.core.profile.v1.MergeSettingsRequest
+	(*MergeSettingsResponse)(nil),       // 19: puchi.core.profile.v1.MergeSettingsResponse
+	(*timestamppb.Timestamp)(nil),       // 20: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),               // 21: google.protobuf.Empty
 }
 var file_profile_v1_profile_proto_depIdxs = []int32{
-	16, // 0: puchi.core.profile.v1.Achievement.unlocked_at:type_name -> google.protobuf.Timestamp
+	20, // 0: puchi.core.profile.v1.Achievement.unlocked_at:type_name -> google.protobuf.Timestamp
 	0,  // 1: puchi.core.profile.v1.AchievementList.items:type_name -> puchi.core.profile.v1.Achievement
-	16, // 2: puchi.core.profile.v1.User.created_at:type_name -> google.protobuf.Timestamp
-	16, // 3: puchi.core.profile.v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	20, // 2: puchi.core.profile.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	20, // 3: puchi.core.profile.v1.User.updated_at:type_name -> google.protobuf.Timestamp
 	8,  // 4: puchi.core.profile.v1.DailyActivityList.items:type_name -> puchi.core.profile.v1.DailyActivityItem
 	11, // 5: puchi.core.profile.v1.WeeklyXPList.items:type_name -> puchi.core.profile.v1.WeeklyXPItem
 	14, // 6: puchi.core.profile.v1.LinkedAccountsResponse.accounts:type_name -> puchi.core.profile.v1.LinkedAccount
-	17, // 7: puchi.core.profile.v1.ProfileService.GetProfile:input_type -> google.protobuf.Empty
-	4,  // 8: puchi.core.profile.v1.ProfileService.UpdateProfile:input_type -> puchi.core.profile.v1.UpdateProfileRequest
-	17, // 9: puchi.core.profile.v1.ProfileService.GetStats:input_type -> google.protobuf.Empty
-	7,  // 10: puchi.core.profile.v1.ProfileService.ListDailyActivity:input_type -> puchi.core.profile.v1.ListDailyActivityRequest
-	10, // 11: puchi.core.profile.v1.ProfileService.ListWeeklyXP:input_type -> puchi.core.profile.v1.ListWeeklyXPRequest
-	17, // 12: puchi.core.profile.v1.ProfileService.ListAchievements:input_type -> google.protobuf.Empty
-	6,  // 13: puchi.core.profile.v1.ProfileService.GetProfileByUsername:input_type -> puchi.core.profile.v1.GetProfileByUsernameRequest
-	5,  // 14: puchi.core.profile.v1.ProfileService.UpdateAvatar:input_type -> puchi.core.profile.v1.UpdateAvatarRequest
-	13, // 15: puchi.core.profile.v1.ProfileService.CompleteOnboarding:input_type -> puchi.core.profile.v1.CompleteOnboardingRequest
-	17, // 16: puchi.core.profile.v1.ProfileService.GetLinkedAccounts:input_type -> google.protobuf.Empty
-	3,  // 17: puchi.core.profile.v1.ProfileService.GetProfile:output_type -> puchi.core.profile.v1.User
-	3,  // 18: puchi.core.profile.v1.ProfileService.UpdateProfile:output_type -> puchi.core.profile.v1.User
-	2,  // 19: puchi.core.profile.v1.ProfileService.GetStats:output_type -> puchi.core.profile.v1.Stats
-	9,  // 20: puchi.core.profile.v1.ProfileService.ListDailyActivity:output_type -> puchi.core.profile.v1.DailyActivityList
-	12, // 21: puchi.core.profile.v1.ProfileService.ListWeeklyXP:output_type -> puchi.core.profile.v1.WeeklyXPList
-	1,  // 22: puchi.core.profile.v1.ProfileService.ListAchievements:output_type -> puchi.core.profile.v1.AchievementList
-	3,  // 23: puchi.core.profile.v1.ProfileService.GetProfileByUsername:output_type -> puchi.core.profile.v1.User
-	3,  // 24: puchi.core.profile.v1.ProfileService.UpdateAvatar:output_type -> puchi.core.profile.v1.User
-	3,  // 25: puchi.core.profile.v1.ProfileService.CompleteOnboarding:output_type -> puchi.core.profile.v1.User
-	15, // 26: puchi.core.profile.v1.ProfileService.GetLinkedAccounts:output_type -> puchi.core.profile.v1.LinkedAccountsResponse
-	17, // [17:27] is the sub-list for method output_type
-	7,  // [7:17] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	16, // 7: puchi.core.profile.v1.MergeSettingsRequest.guest:type_name -> puchi.core.profile.v1.UserSettings
+	16, // 8: puchi.core.profile.v1.MergeSettingsResponse.settings:type_name -> puchi.core.profile.v1.UserSettings
+	21, // 9: puchi.core.profile.v1.ProfileService.GetProfile:input_type -> google.protobuf.Empty
+	4,  // 10: puchi.core.profile.v1.ProfileService.UpdateProfile:input_type -> puchi.core.profile.v1.UpdateProfileRequest
+	21, // 11: puchi.core.profile.v1.ProfileService.GetStats:input_type -> google.protobuf.Empty
+	7,  // 12: puchi.core.profile.v1.ProfileService.ListDailyActivity:input_type -> puchi.core.profile.v1.ListDailyActivityRequest
+	10, // 13: puchi.core.profile.v1.ProfileService.ListWeeklyXP:input_type -> puchi.core.profile.v1.ListWeeklyXPRequest
+	21, // 14: puchi.core.profile.v1.ProfileService.ListAchievements:input_type -> google.protobuf.Empty
+	6,  // 15: puchi.core.profile.v1.ProfileService.GetProfileByUsername:input_type -> puchi.core.profile.v1.GetProfileByUsernameRequest
+	5,  // 16: puchi.core.profile.v1.ProfileService.UpdateAvatar:input_type -> puchi.core.profile.v1.UpdateAvatarRequest
+	13, // 17: puchi.core.profile.v1.ProfileService.CompleteOnboarding:input_type -> puchi.core.profile.v1.CompleteOnboardingRequest
+	21, // 18: puchi.core.profile.v1.ProfileService.GetLinkedAccounts:input_type -> google.protobuf.Empty
+	21, // 19: puchi.core.profile.v1.ProfileService.GetSettings:input_type -> google.protobuf.Empty
+	17, // 20: puchi.core.profile.v1.ProfileService.UpdateSettings:input_type -> puchi.core.profile.v1.UpdateSettingsRequest
+	18, // 21: puchi.core.profile.v1.ProfileService.MergeSettings:input_type -> puchi.core.profile.v1.MergeSettingsRequest
+	3,  // 22: puchi.core.profile.v1.ProfileService.GetProfile:output_type -> puchi.core.profile.v1.User
+	3,  // 23: puchi.core.profile.v1.ProfileService.UpdateProfile:output_type -> puchi.core.profile.v1.User
+	2,  // 24: puchi.core.profile.v1.ProfileService.GetStats:output_type -> puchi.core.profile.v1.Stats
+	9,  // 25: puchi.core.profile.v1.ProfileService.ListDailyActivity:output_type -> puchi.core.profile.v1.DailyActivityList
+	12, // 26: puchi.core.profile.v1.ProfileService.ListWeeklyXP:output_type -> puchi.core.profile.v1.WeeklyXPList
+	1,  // 27: puchi.core.profile.v1.ProfileService.ListAchievements:output_type -> puchi.core.profile.v1.AchievementList
+	3,  // 28: puchi.core.profile.v1.ProfileService.GetProfileByUsername:output_type -> puchi.core.profile.v1.User
+	3,  // 29: puchi.core.profile.v1.ProfileService.UpdateAvatar:output_type -> puchi.core.profile.v1.User
+	3,  // 30: puchi.core.profile.v1.ProfileService.CompleteOnboarding:output_type -> puchi.core.profile.v1.User
+	15, // 31: puchi.core.profile.v1.ProfileService.GetLinkedAccounts:output_type -> puchi.core.profile.v1.LinkedAccountsResponse
+	16, // 32: puchi.core.profile.v1.ProfileService.GetSettings:output_type -> puchi.core.profile.v1.UserSettings
+	16, // 33: puchi.core.profile.v1.ProfileService.UpdateSettings:output_type -> puchi.core.profile.v1.UserSettings
+	19, // 34: puchi.core.profile.v1.ProfileService.MergeSettings:output_type -> puchi.core.profile.v1.MergeSettingsResponse
+	22, // [22:35] is the sub-list for method output_type
+	9,  // [9:22] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_profile_v1_profile_proto_init() }
@@ -1299,13 +1626,14 @@ func file_profile_v1_profile_proto_init() {
 	if File_profile_v1_profile_proto != nil {
 		return
 	}
+	file_profile_v1_profile_proto_msgTypes[17].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_profile_v1_profile_proto_rawDesc), len(file_profile_v1_profile_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

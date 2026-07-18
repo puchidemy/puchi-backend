@@ -22,24 +22,30 @@ const OperationProfileServiceCompleteOnboarding = "/puchi.core.profile.v1.Profil
 const OperationProfileServiceGetLinkedAccounts = "/puchi.core.profile.v1.ProfileService/GetLinkedAccounts"
 const OperationProfileServiceGetProfile = "/puchi.core.profile.v1.ProfileService/GetProfile"
 const OperationProfileServiceGetProfileByUsername = "/puchi.core.profile.v1.ProfileService/GetProfileByUsername"
+const OperationProfileServiceGetSettings = "/puchi.core.profile.v1.ProfileService/GetSettings"
 const OperationProfileServiceGetStats = "/puchi.core.profile.v1.ProfileService/GetStats"
 const OperationProfileServiceListAchievements = "/puchi.core.profile.v1.ProfileService/ListAchievements"
 const OperationProfileServiceListDailyActivity = "/puchi.core.profile.v1.ProfileService/ListDailyActivity"
 const OperationProfileServiceListWeeklyXP = "/puchi.core.profile.v1.ProfileService/ListWeeklyXP"
+const OperationProfileServiceMergeSettings = "/puchi.core.profile.v1.ProfileService/MergeSettings"
 const OperationProfileServiceUpdateAvatar = "/puchi.core.profile.v1.ProfileService/UpdateAvatar"
 const OperationProfileServiceUpdateProfile = "/puchi.core.profile.v1.ProfileService/UpdateProfile"
+const OperationProfileServiceUpdateSettings = "/puchi.core.profile.v1.ProfileService/UpdateSettings"
 
 type ProfileServiceHTTPServer interface {
 	CompleteOnboarding(context.Context, *CompleteOnboardingRequest) (*User, error)
 	GetLinkedAccounts(context.Context, *emptypb.Empty) (*LinkedAccountsResponse, error)
 	GetProfile(context.Context, *emptypb.Empty) (*User, error)
 	GetProfileByUsername(context.Context, *GetProfileByUsernameRequest) (*User, error)
+	GetSettings(context.Context, *emptypb.Empty) (*UserSettings, error)
 	GetStats(context.Context, *emptypb.Empty) (*Stats, error)
 	ListAchievements(context.Context, *emptypb.Empty) (*AchievementList, error)
 	ListDailyActivity(context.Context, *ListDailyActivityRequest) (*DailyActivityList, error)
 	ListWeeklyXP(context.Context, *ListWeeklyXPRequest) (*WeeklyXPList, error)
+	MergeSettings(context.Context, *MergeSettingsRequest) (*MergeSettingsResponse, error)
 	UpdateAvatar(context.Context, *UpdateAvatarRequest) (*User, error)
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*User, error)
+	UpdateSettings(context.Context, *UpdateSettingsRequest) (*UserSettings, error)
 }
 
 func RegisterProfileServiceHTTPServer(s *http.Server, srv ProfileServiceHTTPServer) {
@@ -54,6 +60,9 @@ func RegisterProfileServiceHTTPServer(s *http.Server, srv ProfileServiceHTTPServ
 	r.Handle("PUT", "/v1/profile/avatar", _ProfileService_UpdateAvatar0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/onboarding/complete", _ProfileService_CompleteOnboarding0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/profile/linked-accounts", _ProfileService_GetLinkedAccounts0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/profile/settings", _ProfileService_GetSettings0_HTTP_Handler(srv))
+	r.Handle("PATCH", "/v1/profile/settings", _ProfileService_UpdateSettings0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/profile/settings/merge", _ProfileService_MergeSettings0_HTTP_Handler(srv))
 }
 
 func _ProfileService_GetProfile0_HTTP_Handler(srv ProfileServiceHTTPServer) func(ctx http.Context) error {
@@ -249,17 +258,77 @@ func _ProfileService_GetLinkedAccounts0_HTTP_Handler(srv ProfileServiceHTTPServe
 	}
 }
 
+func _ProfileService_GetSettings0_HTTP_Handler(srv ProfileServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in emptypb.Empty
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationProfileServiceGetSettings)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetSettings(ctx, req.(*emptypb.Empty))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UserSettings)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ProfileService_UpdateSettings0_HTTP_Handler(srv ProfileServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateSettingsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationProfileServiceUpdateSettings)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateSettings(ctx, req.(*UpdateSettingsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UserSettings)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ProfileService_MergeSettings0_HTTP_Handler(srv ProfileServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in MergeSettingsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationProfileServiceMergeSettings)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.MergeSettings(ctx, req.(*MergeSettingsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*MergeSettingsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type ProfileServiceHTTPClient interface {
 	CompleteOnboarding(ctx context.Context, req *CompleteOnboardingRequest, opts ...http.CallOption) (rsp *User, err error)
 	GetLinkedAccounts(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *LinkedAccountsResponse, err error)
 	GetProfile(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *User, err error)
 	GetProfileByUsername(ctx context.Context, req *GetProfileByUsernameRequest, opts ...http.CallOption) (rsp *User, err error)
+	GetSettings(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *UserSettings, err error)
 	GetStats(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *Stats, err error)
 	ListAchievements(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *AchievementList, err error)
 	ListDailyActivity(ctx context.Context, req *ListDailyActivityRequest, opts ...http.CallOption) (rsp *DailyActivityList, err error)
 	ListWeeklyXP(ctx context.Context, req *ListWeeklyXPRequest, opts ...http.CallOption) (rsp *WeeklyXPList, err error)
+	MergeSettings(ctx context.Context, req *MergeSettingsRequest, opts ...http.CallOption) (rsp *MergeSettingsResponse, err error)
 	UpdateAvatar(ctx context.Context, req *UpdateAvatarRequest, opts ...http.CallOption) (rsp *User, err error)
 	UpdateProfile(ctx context.Context, req *UpdateProfileRequest, opts ...http.CallOption) (rsp *User, err error)
+	UpdateSettings(ctx context.Context, req *UpdateSettingsRequest, opts ...http.CallOption) (rsp *UserSettings, err error)
 }
 
 type ProfileServiceHTTPClientImpl struct {
@@ -335,6 +404,22 @@ func (c *ProfileServiceHTTPClientImpl) GetProfileByUsername(ctx context.Context,
 	return &out, nil
 }
 
+func (c *ProfileServiceHTTPClientImpl) GetSettings(ctx context.Context, in *emptypb.Empty, opts ...http.CallOption) (*UserSettings, error) {
+	var out UserSettings
+	pattern := "/v1/profile/settings"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationProfileServiceGetSettings),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *ProfileServiceHTTPClientImpl) GetStats(ctx context.Context, in *emptypb.Empty, opts ...http.CallOption) (*Stats, error) {
 	var out Stats
 	pattern := "/v1/profile/stats"
@@ -399,6 +484,23 @@ func (c *ProfileServiceHTTPClientImpl) ListWeeklyXP(ctx context.Context, in *Lis
 	return &out, nil
 }
 
+func (c *ProfileServiceHTTPClientImpl) MergeSettings(ctx context.Context, in *MergeSettingsRequest, opts ...http.CallOption) (*MergeSettingsResponse, error) {
+	var out MergeSettingsResponse
+	pattern := "/v1/profile/settings/merge"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationProfileServiceMergeSettings),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *ProfileServiceHTTPClientImpl) UpdateAvatar(ctx context.Context, in *UpdateAvatarRequest, opts ...http.CallOption) (*User, error) {
 	var out User
 	pattern := "/v1/profile/avatar"
@@ -427,6 +529,23 @@ func (c *ProfileServiceHTTPClientImpl) UpdateProfile(ctx context.Context, in *Up
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *ProfileServiceHTTPClientImpl) UpdateSettings(ctx context.Context, in *UpdateSettingsRequest, opts ...http.CallOption) (*UserSettings, error) {
+	var out UserSettings
+	pattern := "/v1/profile/settings"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationProfileServiceUpdateSettings),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PATCH", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

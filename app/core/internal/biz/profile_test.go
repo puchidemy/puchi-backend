@@ -128,7 +128,7 @@ func (m *memUserRepo) UsernameExists(_ context.Context, username string) (bool, 
 func TestUpdateAvatar_ValidatesPrefix(t *testing.T) {
 	users := newMemUserRepo()
 	stats := newMemStatsRepo()
-	uc := NewProfileUsecase(users, stats)
+	uc := NewProfileUsecase(users, stats, newMemSettingsRepo())
 
 	_, _ = users.CreateUser(context.Background(), "u1", "alice", "a@x.com", "", "")
 
@@ -149,7 +149,7 @@ func TestUpdateAvatar_ValidatesPrefix(t *testing.T) {
 func TestGetOrCreateProfile_CreatesStats(t *testing.T) {
 	users := newMemUserRepo()
 	stats := newMemStatsRepo()
-	uc := NewProfileUsecase(users, stats)
+	uc := NewProfileUsecase(users, stats, newMemSettingsRepo())
 
 	user, err := uc.GetOrCreateProfile(context.Background(), "u-new", "newbie@puchi.io.vn")
 	if err != nil {
