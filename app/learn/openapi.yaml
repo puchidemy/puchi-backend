@@ -6,6 +6,30 @@ info:
     title: LearnService API
     version: 0.0.1
 paths:
+    /v1/learn/activity-attempts/{attemptId}/answer:
+        post:
+            tags:
+                - LearnService
+            operationId: LearnService_SubmitActivityAnswer
+            parameters:
+                - name: attemptId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.learn.v1.SubmitActivityAnswerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.SubmitActivityAnswerResponse'
     /v1/learn/attempts/{attemptId}/answer:
         post:
             tags:
@@ -30,6 +54,37 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/puchi.learn.v1.SubmitAnswerResponse'
+    /v1/learn/cities:
+        get:
+            tags:
+                - LearnService
+            description: Story-first path
+            operationId: LearnService_ListCities
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.ListCitiesResponse'
+    /v1/learn/cities/{slug}:
+        get:
+            tags:
+                - LearnService
+            operationId: LearnService_GetCity
+            parameters:
+                - name: slug
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.GetCityResponse'
     /v1/learn/guest/claim:
         post:
             tags:
@@ -139,6 +194,96 @@ paths:
                 "200":
                     description: OK
                     content: {}
+    /v1/learn/scenes/{id}/complete:
+        post:
+            tags:
+                - LearnService
+            operationId: LearnService_CompleteScene
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.learn.v1.CompleteSceneRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.CompleteSceneResponse'
+    /v1/learn/scenes/{sceneId}/activities/start:
+        post:
+            tags:
+                - LearnService
+            operationId: LearnService_StartActivity
+            parameters:
+                - name: sceneId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.learn.v1.StartActivityRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.StartActivityResponse'
+    /v1/learn/stories/{id}:
+        get:
+            tags:
+                - LearnService
+            operationId: LearnService_GetStory
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.GetStoryResponse'
+    /v1/learn/stories/{id}/complete:
+        post:
+            tags:
+                - LearnService
+            operationId: LearnService_CompleteStory
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/puchi.learn.v1.CompleteStoryRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/puchi.learn.v1.CompleteStoryResponse'
     /v1/learn/units/{id}:
         get:
             tags:
@@ -159,6 +304,46 @@ paths:
                                 $ref: '#/components/schemas/puchi.learn.v1.GetUnitResponse'
 components:
     schemas:
+        puchi.learn.v1.Activity:
+            type: object
+            properties:
+                id:
+                    type: string
+                position:
+                    type: integer
+                    format: int32
+                type:
+                    type: string
+                promptJson:
+                    type: string
+        puchi.learn.v1.City:
+            type: object
+            properties:
+                id:
+                    type: string
+                slug:
+                    type: string
+                name:
+                    type: string
+                position:
+                    type: integer
+                    format: int32
+                mapX:
+                    type: number
+                    format: float
+                mapY:
+                    type: number
+                    format: float
+                coverUrl:
+                    type: string
+                blurb:
+                    type: string
+                storyCount:
+                    type: integer
+                    format: int32
+                completedStoryCount:
+                    type: integer
+                    format: int32
         puchi.learn.v1.ClaimGuestRequest:
             type: object
             properties: {}
@@ -183,6 +368,42 @@ components:
                     format: int32
                 unitCompleted:
                     type: boolean
+        puchi.learn.v1.CompleteSceneRequest:
+            required:
+                - id
+            type: object
+            properties:
+                id:
+                    type: string
+        puchi.learn.v1.CompleteSceneResponse:
+            type: object
+            properties:
+                sceneCompleted:
+                    type: boolean
+                storyCompleted:
+                    type: boolean
+                completedSceneCount:
+                    type: integer
+                    format: int32
+                softGate:
+                    type: boolean
+        puchi.learn.v1.CompleteStoryRequest:
+            required:
+                - id
+            type: object
+            properties:
+                id:
+                    type: string
+        puchi.learn.v1.CompleteStoryResponse:
+            type: object
+            properties:
+                xp:
+                    type: integer
+                    format: int32
+                storyCompleted:
+                    type: boolean
+                summary:
+                    $ref: '#/components/schemas/puchi.learn.v1.StoryCompletionSummary'
         puchi.learn.v1.Exercise:
             type: object
             properties:
@@ -199,6 +420,21 @@ components:
                     type: string
                 answerJson:
                     type: string
+        puchi.learn.v1.GetCityResponse:
+            type: object
+            properties:
+                city:
+                    $ref: '#/components/schemas/puchi.learn.v1.City'
+                stories:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/puchi.learn.v1.StorySummary'
+                continueStoryId:
+                    type: string
+                recommendedStoryIds:
+                    type: array
+                    items:
+                        type: string
         puchi.learn.v1.GetLessonResponse:
             type: object
             properties:
@@ -208,6 +444,17 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/puchi.learn.v1.Exercise'
+        puchi.learn.v1.GetStoryResponse:
+            type: object
+            properties:
+                story:
+                    $ref: '#/components/schemas/puchi.learn.v1.Story'
+                scenes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/puchi.learn.v1.Scene'
+                progressStatus:
+                    type: string
         puchi.learn.v1.GetUnitResponse:
             type: object
             properties:
@@ -243,6 +490,37 @@ components:
                     type: boolean
                 status:
                     type: string
+        puchi.learn.v1.ListCitiesResponse:
+            type: object
+            properties:
+                cities:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/puchi.learn.v1.City'
+        puchi.learn.v1.Scene:
+            type: object
+            properties:
+                id:
+                    type: string
+                position:
+                    type: integer
+                    format: int32
+                title:
+                    type: string
+                narration:
+                    type: string
+                dialogueJson:
+                    type: string
+                illustrationUrl:
+                    type: string
+                audioUrl:
+                    type: string
+                progressStatus:
+                    type: string
+                activities:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/puchi.learn.v1.Activity'
         puchi.learn.v1.Skill:
             type: object
             properties:
@@ -259,6 +537,18 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/puchi.learn.v1.Lesson'
+        puchi.learn.v1.StartActivityRequest:
+            required:
+                - sceneId
+            type: object
+            properties:
+                sceneId:
+                    type: string
+        puchi.learn.v1.StartActivityResponse:
+            type: object
+            properties:
+                attemptId:
+                    type: string
         puchi.learn.v1.StartLessonRequest:
             required:
                 - id
@@ -271,6 +561,102 @@ components:
             properties:
                 attemptId:
                     type: string
+        puchi.learn.v1.Story:
+            type: object
+            properties:
+                id:
+                    type: string
+                cityId:
+                    type: string
+                citySlug:
+                    type: string
+                slug:
+                    type: string
+                title:
+                    type: string
+                summary:
+                    type: string
+                coverUrl:
+                    type: string
+                cefr:
+                    type: string
+                tags:
+                    type: array
+                    items:
+                        type: string
+                audioUrl:
+                    type: string
+                vocabFocus:
+                    type: array
+                    items:
+                        type: string
+                grammarFocus:
+                    type: array
+                    items:
+                        type: string
+                estMinutes:
+                    type: integer
+                    format: int32
+        puchi.learn.v1.StoryCompletionSummary:
+            type: object
+            properties:
+                vocabFocus:
+                    type: array
+                    items:
+                        type: string
+                grammarFocus:
+                    type: array
+                    items:
+                        type: string
+                listeningSeconds:
+                    type: integer
+                    format: int32
+                culturalFact:
+                    type: string
+        puchi.learn.v1.StorySummary:
+            type: object
+            properties:
+                id:
+                    type: string
+                slug:
+                    type: string
+                title:
+                    type: string
+                summary:
+                    type: string
+                coverUrl:
+                    type: string
+                cefr:
+                    type: string
+                tags:
+                    type: array
+                    items:
+                        type: string
+                estMinutes:
+                    type: integer
+                    format: int32
+                status:
+                    type: string
+                progressStatus:
+                    type: string
+        puchi.learn.v1.SubmitActivityAnswerRequest:
+            required:
+                - attemptId
+                - activityId
+                - payloadJson
+            type: object
+            properties:
+                attemptId:
+                    type: string
+                activityId:
+                    type: string
+                payloadJson:
+                    type: string
+        puchi.learn.v1.SubmitActivityAnswerResponse:
+            type: object
+            properties:
+                correct:
+                    type: boolean
         puchi.learn.v1.SubmitAnswerRequest:
             required:
                 - attemptId

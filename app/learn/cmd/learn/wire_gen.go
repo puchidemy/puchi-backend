@@ -24,7 +24,7 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, learn *conf.Learn, arg *auth.JWTValidator, logger *slog.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, learn *conf.Learn, sessionValidator *auth.SessionValidator, logger *slog.Logger) (*kratos.App, func(), error) {
 	dataData, cleanup, err := data.NewData(confData)
 	if err != nil {
 		return nil, nil, err
@@ -33,6 +33,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 	guestRepo := data.NewGuestRepo(pool)
 	progressRepo := data.NewProgressRepo(pool)
 	curriculumRepo := data.NewCurriculumRepo(pool)
+	storyRepo := data.NewStoryRepo(pool)
 	attemptRepo := data.NewAttemptRepo(pool)
 	natsLessonEventPublisher, cleanup2, err := data.NewNATSLessonEventPublisher(confData, logger)
 	if err != nil {
@@ -40,10 +41,10 @@ func wireApp(confServer *conf.Server, confData *conf.Data, confAuth *conf.Auth, 
 		return nil, nil, err
 	}
 	transactionManager := data.NewTransactionManager(pool)
-	learnUsecase := biz.NewLearnUsecase(guestRepo, progressRepo, curriculumRepo, attemptRepo, natsLessonEventPublisher, transactionManager)
+	learnUsecase := biz.NewLearnUsecase(guestRepo, progressRepo, curriculumRepo, storyRepo, attemptRepo, natsLessonEventPublisher, transactionManager)
 	learnService := service.NewLearnService(learnUsecase, learn)
 	grpcServer := server.NewGRPCServer(confServer, learnService)
-	httpServer := server.NewHTTPServer(confServer, confAuth, learn, arg, learnService)
+	httpServer := server.NewHTTPServer(confServer, confAuth, learn, sessionValidator, learnService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup2()

@@ -24,7 +24,7 @@ type GuestRepoInterface interface {
 	ClaimGuest(ctx context.Context, guestID, userID string) error
 }
 
-// ProgressRepoInterface persists lesson/unit progress and guest reassignment.
+// ProgressRepoInterface persists lesson/unit/story/scene progress and guest reassignment.
 type ProgressRepoInterface interface {
 	ListLessonProgressByOwner(ctx context.Context, ownerType, ownerID string) ([]gen.LearnUserLessonProgress, error)
 	ListUnitProgressByOwner(ctx context.Context, ownerType, ownerID string) ([]gen.LearnUserUnitProgress, error)
@@ -37,6 +37,20 @@ type ProgressRepoInterface interface {
 	ReassignGuestLessonProgress(ctx context.Context, guestID, userID string) error
 	ReassignGuestUnitProgress(ctx context.Context, guestID, userID string) error
 	ReassignGuestAttempts(ctx context.Context, guestID, userID string) error
+
+	ListStoryProgressByOwner(ctx context.Context, ownerType, ownerID string) ([]gen.LearnUserStoryProgress, error)
+	GetStoryProgress(ctx context.Context, ownerType, ownerID, storyID string) (*gen.LearnUserStoryProgress, error)
+	UpsertStoryProgress(ctx context.Context, ownerType, ownerID, storyID, status string, xp int32) error
+	DeleteGuestStoryProgress(ctx context.Context, guestID, storyID string) error
+	ReassignGuestStoryProgress(ctx context.Context, guestID, userID string) error
+
+	ListSceneProgressByOwner(ctx context.Context, ownerType, ownerID string) ([]gen.LearnUserSceneProgress, error)
+	GetSceneProgress(ctx context.Context, ownerType, ownerID, sceneID string) (*gen.LearnUserSceneProgress, error)
+	UpsertSceneProgress(ctx context.Context, ownerType, ownerID, sceneID, status string) error
+	CountCompletedScenesByOwner(ctx context.Context, ownerType, ownerID string) (int32, error)
+	DeleteGuestSceneProgress(ctx context.Context, guestID, sceneID string) error
+	ReassignGuestSceneProgress(ctx context.Context, guestID, userID string) error
+	ReassignGuestActivityAttempts(ctx context.Context, guestID, userID string) error
 }
 
 var statusRank = map[string]int{
@@ -152,6 +166,49 @@ func (uc *LearnUsecase) ClaimGuest(ctx context.Context, userID string, guestID u
 			}
 		}
 
+		guestStories, err := progressRepo.ListStoryProgressByOwner(ctx, "guest", guestIDStr)
+		if err != nil {
+			return err
+		}
+		for _, gp := range guestStories {
+			userStory, err := progressRepo.GetStoryProgress(ctx, "user", userID, gp.StoryID)
+			if err != nil {
+				if !errors.Is(err, pgx.ErrNoRows) {
+					return err
+				}
+				continue
+			}
+			mergedStatus := higherStatus(gp.Status, userStory.Status)
+			mergedXP := maxInt32(gp.XpEarned, userStory.XpEarned)
+			if err := progressRepo.UpsertStoryProgress(ctx, "user", userID, gp.StoryID, mergedStatus, mergedXP); err != nil {
+				return err
+			}
+			if err := progressRepo.DeleteGuestStoryProgress(ctx, guestIDStr, gp.StoryID); err != nil {
+				return err
+			}
+		}
+
+		guestScenes, err := progressRepo.ListSceneProgressByOwner(ctx, "guest", guestIDStr)
+		if err != nil {
+			return err
+		}
+		for _, gp := range guestScenes {
+			userScene, err := progressRepo.GetSceneProgress(ctx, "user", userID, gp.SceneID)
+			if err != nil {
+				if !errors.Is(err, pgx.ErrNoRows) {
+					return err
+				}
+				continue
+			}
+			mergedStatus := higherStatus(gp.Status, userScene.Status)
+			if err := progressRepo.UpsertSceneProgress(ctx, "user", userID, gp.SceneID, mergedStatus); err != nil {
+				return err
+			}
+			if err := progressRepo.DeleteGuestSceneProgress(ctx, guestIDStr, gp.SceneID); err != nil {
+				return err
+			}
+		}
+
 		if err := progressRepo.ReassignGuestLessonProgress(ctx, guestIDStr, userID); err != nil {
 			return err
 		}
@@ -159,6 +216,15 @@ func (uc *LearnUsecase) ClaimGuest(ctx context.Context, userID string, guestID u
 			return err
 		}
 		if err := progressRepo.ReassignGuestAttempts(ctx, guestIDStr, userID); err != nil {
+			return err
+		}
+		if err := progressRepo.ReassignGuestStoryProgress(ctx, guestIDStr, userID); err != nil {
+			return err
+		}
+		if err := progressRepo.ReassignGuestSceneProgress(ctx, guestIDStr, userID); err != nil {
+			return err
+		}
+		if err := progressRepo.ReassignGuestActivityAttempts(ctx, guestIDStr, userID); err != nil {
 			return err
 		}
 		return nil

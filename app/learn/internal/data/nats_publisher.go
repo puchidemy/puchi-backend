@@ -28,6 +28,21 @@ type unitCompletedPayload struct {
 	CompletedAt string `json:"completed_at"`
 }
 
+type sceneCompletedPayload struct {
+	UserID      string `json:"user_id"`
+	SceneID     string `json:"scene_id"`
+	StoryID     string `json:"story_id"`
+	CompletedAt string `json:"completed_at"`
+}
+
+type storyCompletedPayload struct {
+	UserID      string `json:"user_id"`
+	StoryID     string `json:"story_id"`
+	CityID      string `json:"city_id"`
+	XP          int32  `json:"xp"`
+	CompletedAt string `json:"completed_at"`
+}
+
 // NATSLessonEventPublisher publishes learn completion events to NATS.
 type NATSLessonEventPublisher struct {
 	nc  *nats.Conn
@@ -65,6 +80,25 @@ func (p *NATSLessonEventPublisher) PublishUnitCompleted(_ context.Context, ev bi
 	return p.publish(pnats.SubjectUnitCompleted, unitCompletedPayload{
 		UserID:      ev.UserID,
 		UnitID:      ev.UnitID,
+		XP:          ev.XP,
+		CompletedAt: formatCompletedAt(ev.CompletedAt),
+	})
+}
+
+func (p *NATSLessonEventPublisher) PublishSceneCompleted(_ context.Context, ev biz.SceneCompletedEvent) error {
+	return p.publish(pnats.SubjectSceneCompleted, sceneCompletedPayload{
+		UserID:      ev.UserID,
+		SceneID:     ev.SceneID,
+		StoryID:     ev.StoryID,
+		CompletedAt: formatCompletedAt(ev.CompletedAt),
+	})
+}
+
+func (p *NATSLessonEventPublisher) PublishStoryCompleted(_ context.Context, ev biz.StoryCompletedEvent) error {
+	return p.publish(pnats.SubjectStoryCompleted, storyCompletedPayload{
+		UserID:      ev.UserID,
+		StoryID:     ev.StoryID,
+		CityID:      ev.CityID,
 		XP:          ev.XP,
 		CompletedAt: formatCompletedAt(ev.CompletedAt),
 	})

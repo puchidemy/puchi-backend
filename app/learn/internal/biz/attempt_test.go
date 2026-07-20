@@ -44,6 +44,25 @@ func (m *mockAttemptRepo) ListAttemptAnswersByAttemptID(ctx context.Context, att
 	return m.listAnswers(ctx, attemptID)
 }
 
+func (m *mockAttemptRepo) CreateActivityAttempt(context.Context, string, string, string, string) (*gen.LearnActivityAttempt, error) {
+	return nil, pgx.ErrNoRows
+}
+func (m *mockAttemptRepo) GetActivityAttemptByID(context.Context, string) (*gen.LearnActivityAttempt, error) {
+	return nil, pgx.ErrNoRows
+}
+func (m *mockAttemptRepo) GetActiveActivityAttemptByOwnerScene(context.Context, string, string, string) (*gen.LearnActivityAttempt, error) {
+	return nil, pgx.ErrNoRows
+}
+func (m *mockAttemptRepo) InsertActivityAttemptAnswer(context.Context, string, string, json.RawMessage, bool) error {
+	return nil
+}
+func (m *mockAttemptRepo) CompleteActivityAttempt(context.Context, string, int32) error {
+	return nil
+}
+func (m *mockAttemptRepo) ListActivityAttemptAnswersByAttemptID(context.Context, string) ([]gen.LearnActivityAttemptAnswer, error) {
+	return nil, nil
+}
+
 type mockPublisher struct {
 	lessonCompleted func(ctx context.Context, ev LessonCompletedEvent) error
 	unitCompleted   func(ctx context.Context, ev UnitCompletedEvent) error
@@ -63,11 +82,18 @@ func (m *mockPublisher) PublishUnitCompleted(ctx context.Context, ev UnitComplet
 	return nil
 }
 
+func (m *mockPublisher) PublishSceneCompleted(context.Context, SceneCompletedEvent) error {
+	return nil
+}
+func (m *mockPublisher) PublishStoryCompleted(context.Context, StoryCompletedEvent) error {
+	return nil
+}
+
 func newAttemptTestUsecase(curriculum CurriculumRepoInterface, progress ProgressRepoInterface, attempts AttemptRepoInterface, publisher LessonEventPublisher) *LearnUsecase {
 	if publisher == nil {
 		publisher = NoOpLessonEventPublisher{}
 	}
-	return NewLearnUsecase(&mockGuestRepo{}, progress, curriculum, attempts, publisher, &mockTxManager{
+	return NewLearnUsecase(&mockGuestRepo{}, progress, curriculum, &mockStoryRepo{}, attempts, publisher, &mockTxManager{
 		guest:    &mockGuestRepo{},
 		progress: progress,
 	})

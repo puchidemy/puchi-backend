@@ -10,6 +10,22 @@ import (
 	"encoding/json"
 )
 
+const completeActivityAttempt = `-- name: CompleteActivityAttempt :exec
+UPDATE learn.activity_attempts
+SET status = 'completed', completed_at = now(), session_xp = $2
+WHERE id = $1
+`
+
+type CompleteActivityAttemptParams struct {
+	ID        string `db:"id"`
+	SessionXp int32  `db:"session_xp"`
+}
+
+func (q *Queries) CompleteActivityAttempt(ctx context.Context, arg CompleteActivityAttemptParams) error {
+	_, err := q.db.Exec(ctx, completeActivityAttempt, arg.ID, arg.SessionXp)
+	return err
+}
+
 const completeAttempt = `-- name: CompleteAttempt :exec
 UPDATE learn.attempts
 SET status = 'completed', completed_at = now(), session_xp = $2
@@ -24,6 +40,41 @@ type CompleteAttemptParams struct {
 func (q *Queries) CompleteAttempt(ctx context.Context, arg CompleteAttemptParams) error {
 	_, err := q.db.Exec(ctx, completeAttempt, arg.ID, arg.SessionXp)
 	return err
+}
+
+const createActivityAttempt = `-- name: CreateActivityAttempt :one
+INSERT INTO learn.activity_attempts (owner_type, owner_id, story_id, scene_id)
+VALUES ($1, $2, $3, $4)
+RETURNING id, owner_type, owner_id, story_id, scene_id, status, session_xp, created_at, completed_at
+`
+
+type CreateActivityAttemptParams struct {
+	OwnerType string `db:"owner_type"`
+	OwnerID   string `db:"owner_id"`
+	StoryID   string `db:"story_id"`
+	SceneID   string `db:"scene_id"`
+}
+
+func (q *Queries) CreateActivityAttempt(ctx context.Context, arg CreateActivityAttemptParams) (LearnActivityAttempt, error) {
+	row := q.db.QueryRow(ctx, createActivityAttempt,
+		arg.OwnerType,
+		arg.OwnerID,
+		arg.StoryID,
+		arg.SceneID,
+	)
+	var i LearnActivityAttempt
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerType,
+		&i.OwnerID,
+		&i.StoryID,
+		&i.SceneID,
+		&i.Status,
+		&i.SessionXp,
+		&i.CreatedAt,
+		&i.CompletedAt,
+	)
+	return i, err
 }
 
 const createAttempt = `-- name: CreateAttempt :one
@@ -46,6 +97,36 @@ func (q *Queries) CreateAttempt(ctx context.Context, arg CreateAttemptParams) (L
 		&i.OwnerType,
 		&i.OwnerID,
 		&i.LessonID,
+		&i.Status,
+		&i.SessionXp,
+		&i.CreatedAt,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
+const getActiveActivityAttemptByOwnerScene = `-- name: GetActiveActivityAttemptByOwnerScene :one
+SELECT id, owner_type, owner_id, story_id, scene_id, status, session_xp, created_at, completed_at FROM learn.activity_attempts
+WHERE owner_type = $1 AND owner_id = $2 AND scene_id = $3 AND status = 'active'
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+type GetActiveActivityAttemptByOwnerSceneParams struct {
+	OwnerType string `db:"owner_type"`
+	OwnerID   string `db:"owner_id"`
+	SceneID   string `db:"scene_id"`
+}
+
+func (q *Queries) GetActiveActivityAttemptByOwnerScene(ctx context.Context, arg GetActiveActivityAttemptByOwnerSceneParams) (LearnActivityAttempt, error) {
+	row := q.db.QueryRow(ctx, getActiveActivityAttemptByOwnerScene, arg.OwnerType, arg.OwnerID, arg.SceneID)
+	var i LearnActivityAttempt
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerType,
+		&i.OwnerID,
+		&i.StoryID,
+		&i.SceneID,
 		&i.Status,
 		&i.SessionXp,
 		&i.CreatedAt,
@@ -83,6 +164,27 @@ func (q *Queries) GetActiveAttemptByOwnerLesson(ctx context.Context, arg GetActi
 	return i, err
 }
 
+const getActivityAttemptByID = `-- name: GetActivityAttemptByID :one
+SELECT id, owner_type, owner_id, story_id, scene_id, status, session_xp, created_at, completed_at FROM learn.activity_attempts WHERE id = $1
+`
+
+func (q *Queries) GetActivityAttemptByID(ctx context.Context, id string) (LearnActivityAttempt, error) {
+	row := q.db.QueryRow(ctx, getActivityAttemptByID, id)
+	var i LearnActivityAttempt
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerType,
+		&i.OwnerID,
+		&i.StoryID,
+		&i.SceneID,
+		&i.Status,
+		&i.SessionXp,
+		&i.CreatedAt,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
 const getAttemptByID = `-- name: GetAttemptByID :one
 SELECT id, owner_type, owner_id, lesson_id, status, session_xp, created_at, completed_at FROM learn.attempts WHERE id = $1
 `
@@ -99,6 +201,38 @@ func (q *Queries) GetAttemptByID(ctx context.Context, id string) (LearnAttempt, 
 		&i.SessionXp,
 		&i.CreatedAt,
 		&i.CompletedAt,
+	)
+	return i, err
+}
+
+const insertActivityAttemptAnswer = `-- name: InsertActivityAttemptAnswer :one
+INSERT INTO learn.activity_attempt_answers (attempt_id, activity_id, payload, correct)
+VALUES ($1, $2, $3, $4)
+RETURNING id, attempt_id, activity_id, payload, correct, created_at
+`
+
+type InsertActivityAttemptAnswerParams struct {
+	AttemptID  string          `db:"attempt_id"`
+	ActivityID string          `db:"activity_id"`
+	Payload    json.RawMessage `db:"payload"`
+	Correct    bool            `db:"correct"`
+}
+
+func (q *Queries) InsertActivityAttemptAnswer(ctx context.Context, arg InsertActivityAttemptAnswerParams) (LearnActivityAttemptAnswer, error) {
+	row := q.db.QueryRow(ctx, insertActivityAttemptAnswer,
+		arg.AttemptID,
+		arg.ActivityID,
+		arg.Payload,
+		arg.Correct,
+	)
+	var i LearnActivityAttemptAnswer
+	err := row.Scan(
+		&i.ID,
+		&i.AttemptID,
+		&i.ActivityID,
+		&i.Payload,
+		&i.Correct,
+		&i.CreatedAt,
 	)
 	return i, err
 }
@@ -133,6 +267,37 @@ func (q *Queries) InsertAttemptAnswer(ctx context.Context, arg InsertAttemptAnsw
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const listActivityAttemptAnswersByAttemptID = `-- name: ListActivityAttemptAnswersByAttemptID :many
+SELECT id, attempt_id, activity_id, payload, correct, created_at FROM learn.activity_attempt_answers WHERE attempt_id = $1 ORDER BY created_at
+`
+
+func (q *Queries) ListActivityAttemptAnswersByAttemptID(ctx context.Context, attemptID string) ([]LearnActivityAttemptAnswer, error) {
+	rows, err := q.db.Query(ctx, listActivityAttemptAnswersByAttemptID, attemptID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []LearnActivityAttemptAnswer{}
+	for rows.Next() {
+		var i LearnActivityAttemptAnswer
+		if err := rows.Scan(
+			&i.ID,
+			&i.AttemptID,
+			&i.ActivityID,
+			&i.Payload,
+			&i.Correct,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listAttemptAnswersByAttemptID = `-- name: ListAttemptAnswersByAttemptID :many

@@ -159,6 +159,115 @@ func (s *LearnService) CompleteLesson(ctx context.Context, req *pb.CompleteLesso
 	return &pb.CompleteLessonResponse{Xp: xp, UnitCompleted: unitCompleted}, nil
 }
 
+// ListCities returns journey-map cities (all unlocked).
+func (s *LearnService) ListCities(ctx context.Context, _ *pb.ListCitiesRequest) (*pb.ListCitiesResponse, error) {
+	ownerType, ownerID, err := s.resolveOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cities, err := s.uc.ListCities(ctx, ownerType, ownerID)
+	if err != nil {
+		return nil, mapCurriculumError(err)
+	}
+	resp := &pb.ListCitiesResponse{}
+	for _, c := range cities {
+		resp.Cities = append(resp.Cities, cityListItemToProto(c))
+	}
+	return resp, nil
+}
+
+// GetCity returns a city hub with published stories.
+func (s *LearnService) GetCity(ctx context.Context, req *pb.GetCityRequest) (*pb.GetCityResponse, error) {
+	ownerType, ownerID, err := s.resolveOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+	detail, err := s.uc.GetCity(ctx, ownerType, ownerID, req.GetSlug())
+	if err != nil {
+		return nil, mapCurriculumError(err)
+	}
+	return cityDetailToProto(detail), nil
+}
+
+// GetStory returns a story with scenes and activity prompts (answers withheld).
+func (s *LearnService) GetStory(ctx context.Context, req *pb.GetStoryRequest) (*pb.GetStoryResponse, error) {
+	ownerType, ownerID, err := s.resolveOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+	detail, err := s.uc.GetStory(ctx, ownerType, ownerID, req.GetId())
+	if err != nil {
+		return nil, mapCurriculumError(err)
+	}
+	return storyDetailToProto(detail), nil
+}
+
+// StartActivity creates or resumes a scene activity attempt.
+func (s *LearnService) StartActivity(ctx context.Context, req *pb.StartActivityRequest) (*pb.StartActivityResponse, error) {
+	ownerType, ownerID, err := s.resolveOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+	attemptID, err := s.uc.StartActivity(ctx, ownerType, ownerID, req.GetSceneId())
+	if err != nil {
+		return nil, mapAttemptError(err)
+	}
+	return &pb.StartActivityResponse{AttemptId: attemptID.String()}, nil
+}
+
+// SubmitActivityAnswer grades and stores an activity answer.
+func (s *LearnService) SubmitActivityAnswer(ctx context.Context, req *pb.SubmitActivityAnswerRequest) (*pb.SubmitActivityAnswerResponse, error) {
+	ownerType, ownerID, err := s.resolveOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+	correct, err := s.uc.SubmitActivityAnswer(ctx, ownerType, ownerID, req.GetAttemptId(), req.GetActivityId(), json.RawMessage(req.GetPayloadJson()))
+	if err != nil {
+		return nil, mapAttemptError(err)
+	}
+	return &pb.SubmitActivityAnswerResponse{Correct: correct}, nil
+}
+
+// CompleteScene marks a scene completed and may trip the guest soft-gate.
+func (s *LearnService) CompleteScene(ctx context.Context, req *pb.CompleteSceneRequest) (*pb.CompleteSceneResponse, error) {
+	ownerType, ownerID, err := s.resolveOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.uc.CompleteScene(ctx, ownerType, ownerID, req.GetId())
+	if err != nil {
+		return nil, mapAttemptError(err)
+	}
+	return &pb.CompleteSceneResponse{
+		SceneCompleted:      result.SceneCompleted,
+		StoryCompleted:      result.StoryCompleted,
+		CompletedSceneCount: result.CompletedSceneCount,
+		SoftGate:            result.SoftGate,
+	}, nil
+}
+
+// CompleteStory finalizes a story and returns the completion summary.
+func (s *LearnService) CompleteStory(ctx context.Context, req *pb.CompleteStoryRequest) (*pb.CompleteStoryResponse, error) {
+	ownerType, ownerID, err := s.resolveOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.uc.CompleteStory(ctx, ownerType, ownerID, req.GetId())
+	if err != nil {
+		return nil, mapAttemptError(err)
+	}
+	return &pb.CompleteStoryResponse{
+		Xp:             result.XP,
+		StoryCompleted: result.StoryCompleted,
+		Summary: &pb.StoryCompletionSummary{
+			VocabFocus:       result.Summary.VocabFocus,
+			GrammarFocus:     result.Summary.GrammarFocus,
+			ListeningSeconds: result.Summary.ListeningSeconds,
+			CulturalFact:     result.Summary.CulturalFact,
+		},
+	}, nil
+}
+
 // resolveOwner prefers an authenticated user from context, else guest cookie.
 func (s *LearnService) resolveOwner(ctx context.Context) (ownerType, ownerID string, err error) {
 	if userID, ok := authpkg.UserIDFromContext(ctx); ok {
@@ -198,15 +307,110 @@ func mapAttemptError(err error) error {
 		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, biz.ErrAttemptNotFound):
 		return status.Error(codes.NotFound, err.Error())
-	case errors.Is(err, biz.ErrAttemptForbidden), errors.Is(err, biz.ErrExerciseForbidden):
+	case errors.Is(err, biz.ErrAttemptForbidden), errors.Is(err, biz.ErrExerciseForbidden), errors.Is(err, biz.ErrActivityForbidden):
 		return status.Error(codes.PermissionDenied, err.Error())
-	case errors.Is(err, biz.ErrAttemptNotActive):
+	case errors.Is(err, biz.ErrAttemptNotActive), errors.Is(err, biz.ErrSceneIncomplete):
 		return status.Error(codes.FailedPrecondition, err.Error())
-	case errors.Is(err, biz.ErrExerciseNotFound):
+	case errors.Is(err, biz.ErrExerciseNotFound), errors.Is(err, biz.ErrActivityNotFound):
 		return status.Error(codes.NotFound, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())
 	}
+}
+
+func cityListItemToProto(item biz.CityListItem) *pb.City {
+	return &pb.City{
+		Id:                  item.City.ID,
+		Slug:                item.City.Slug,
+		Name:                item.City.Name,
+		Position:            item.City.Position,
+		MapX:                item.City.MapX,
+		MapY:                item.City.MapY,
+		CoverUrl:            derefString(item.City.CoverUrl),
+		Blurb:               derefString(item.City.Blurb),
+		StoryCount:          item.StoryCount,
+		CompletedStoryCount: item.CompletedStoryCount,
+	}
+}
+
+func cityDetailToProto(detail *biz.CityDetail) *pb.GetCityResponse {
+	resp := &pb.GetCityResponse{
+		City:                cityListItemToProto(detail.City),
+		ContinueStoryId:     detail.ContinueStoryID,
+		RecommendedStoryIds: detail.RecommendedStoryIDs,
+	}
+	for _, s := range detail.Stories {
+		resp.Stories = append(resp.Stories, &pb.StorySummary{
+			Id:             s.Story.ID,
+			Slug:           s.Story.Slug,
+			Title:          s.Story.Title,
+			Summary:        s.Story.Summary,
+			CoverUrl:       derefString(s.Story.CoverUrl),
+			Cefr:           s.Story.Cefr,
+			Tags:           append([]string(nil), s.Story.Tags...),
+			EstMinutes:     derefInt32(s.Story.EstMinutes),
+			Status:         s.Story.Status,
+			ProgressStatus: s.ProgressStatus,
+		})
+	}
+	return resp
+}
+
+func storyDetailToProto(detail *biz.StoryDetail) *pb.GetStoryResponse {
+	resp := &pb.GetStoryResponse{
+		Story: &pb.Story{
+			Id:           detail.Story.ID,
+			CityId:       detail.Story.CityID,
+			CitySlug:     detail.CitySlug,
+			Slug:         detail.Story.Slug,
+			Title:        detail.Story.Title,
+			Summary:      detail.Story.Summary,
+			CoverUrl:     derefString(detail.Story.CoverUrl),
+			Cefr:         detail.Story.Cefr,
+			Tags:         append([]string(nil), detail.Story.Tags...),
+			AudioUrl:     derefString(detail.Story.AudioUrl),
+			VocabFocus:   append([]string(nil), detail.Story.VocabFocus...),
+			GrammarFocus: append([]string(nil), detail.Story.GrammarFocus...),
+			EstMinutes:   derefInt32(detail.Story.EstMinutes),
+		},
+		ProgressStatus: detail.ProgressStatus,
+	}
+	for _, scene := range detail.Scenes {
+		pbScene := &pb.Scene{
+			Id:              scene.Scene.ID,
+			Position:        scene.Scene.Position,
+			Title:           derefString(scene.Scene.Title),
+			Narration:       scene.Scene.Narration,
+			DialogueJson:    string(scene.Scene.DialogueJson),
+			IllustrationUrl: derefString(scene.Scene.IllustrationUrl),
+			AudioUrl:        derefString(scene.Scene.AudioUrl),
+			ProgressStatus:  scene.ProgressStatus,
+		}
+		for _, a := range scene.Activities {
+			pbScene.Activities = append(pbScene.Activities, &pb.Activity{
+				Id:         a.Activity.ID,
+				Position:   a.Activity.Position,
+				Type:       a.Activity.Type,
+				PromptJson: string(a.Activity.Prompt),
+			})
+		}
+		resp.Scenes = append(resp.Scenes, pbScene)
+	}
+	return resp
+}
+
+func derefString(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
+}
+
+func derefInt32(p *int32) int32 {
+	if p == nil {
+		return 0
+	}
+	return *p
 }
 
 func unitDetailToProto(unit *biz.UnitDetail) *pb.GetUnitResponse {

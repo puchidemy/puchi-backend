@@ -28,3 +28,30 @@ WHERE id = $1;
 -- name: ReassignGuestAttempts :exec
 UPDATE learn.attempts SET owner_type = 'user', owner_id = $2
 WHERE owner_type = 'guest' AND owner_id = $1;
+
+-- name: CreateActivityAttempt :one
+INSERT INTO learn.activity_attempts (owner_type, owner_id, story_id, scene_id)
+VALUES ($1, $2, $3, $4)
+RETURNING *;
+
+-- name: GetActivityAttemptByID :one
+SELECT * FROM learn.activity_attempts WHERE id = $1;
+
+-- name: GetActiveActivityAttemptByOwnerScene :one
+SELECT * FROM learn.activity_attempts
+WHERE owner_type = $1 AND owner_id = $2 AND scene_id = $3 AND status = 'active'
+ORDER BY created_at DESC
+LIMIT 1;
+
+-- name: ListActivityAttemptAnswersByAttemptID :many
+SELECT * FROM learn.activity_attempt_answers WHERE attempt_id = $1 ORDER BY created_at;
+
+-- name: InsertActivityAttemptAnswer :one
+INSERT INTO learn.activity_attempt_answers (attempt_id, activity_id, payload, correct)
+VALUES ($1, $2, $3, $4)
+RETURNING *;
+
+-- name: CompleteActivityAttempt :exec
+UPDATE learn.activity_attempts
+SET status = 'completed', completed_at = now(), session_xp = $2
+WHERE id = $1;

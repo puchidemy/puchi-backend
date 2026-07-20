@@ -10,33 +10,63 @@ import (
 
 type Querier interface {
 	ClaimGuest(ctx context.Context, arg ClaimGuestParams) (int64, error)
+	CompleteActivityAttempt(ctx context.Context, arg CompleteActivityAttemptParams) error
 	CompleteAttempt(ctx context.Context, arg CompleteAttemptParams) error
+	CountCompletedScenesByOwner(ctx context.Context, arg CountCompletedScenesByOwnerParams) (int32, error)
+	CountCompletedStoriesByOwnerCity(ctx context.Context, arg CountCompletedStoriesByOwnerCityParams) (int32, error)
+	CountPublishedStoriesByCity(ctx context.Context, cityID string) (int32, error)
+	CreateActivityAttempt(ctx context.Context, arg CreateActivityAttemptParams) (LearnActivityAttempt, error)
 	CreateAttempt(ctx context.Context, arg CreateAttemptParams) (LearnAttempt, error)
 	CreateGuest(ctx context.Context, id string) error
 	DeleteGuestLessonProgress(ctx context.Context, arg DeleteGuestLessonProgressParams) error
+	DeleteGuestSceneProgress(ctx context.Context, arg DeleteGuestSceneProgressParams) error
+	DeleteGuestStoryProgress(ctx context.Context, arg DeleteGuestStoryProgressParams) error
 	DeleteGuestUnitProgress(ctx context.Context, arg DeleteGuestUnitProgressParams) error
+	GetActiveActivityAttemptByOwnerScene(ctx context.Context, arg GetActiveActivityAttemptByOwnerSceneParams) (LearnActivityAttempt, error)
 	GetActiveAttemptByOwnerLesson(ctx context.Context, arg GetActiveAttemptByOwnerLessonParams) (LearnAttempt, error)
+	GetActivityAttemptByID(ctx context.Context, id string) (LearnActivityAttempt, error)
+	GetActivityByID(ctx context.Context, id string) (LearnActivity, error)
 	GetAttemptByID(ctx context.Context, id string) (LearnAttempt, error)
+	GetCityByID(ctx context.Context, id string) (LearnCity, error)
+	GetCityBySlug(ctx context.Context, slug string) (LearnCity, error)
 	GetExerciseByID(ctx context.Context, id string) (LearnExercise, error)
 	GetGuestByID(ctx context.Context, id string) (LearnGuest, error)
 	GetGuestByIDForUpdate(ctx context.Context, id string) (LearnGuest, error)
 	GetLessonByID(ctx context.Context, id string) (LearnLesson, error)
 	GetLessonProgress(ctx context.Context, arg GetLessonProgressParams) (LearnUserLessonProgress, error)
+	GetSceneByID(ctx context.Context, id string) (LearnScene, error)
+	GetSceneProgress(ctx context.Context, arg GetSceneProgressParams) (LearnUserSceneProgress, error)
 	GetSkillByID(ctx context.Context, id string) (LearnSkill, error)
+	GetStoryByID(ctx context.Context, id string) (LearnStory, error)
+	GetStoryProgress(ctx context.Context, arg GetStoryProgressParams) (LearnUserStoryProgress, error)
 	GetUnitByID(ctx context.Context, id string) (LearnUnit, error)
 	GetUnitProgress(ctx context.Context, arg GetUnitProgressParams) (LearnUserUnitProgress, error)
+	InsertActivityAttemptAnswer(ctx context.Context, arg InsertActivityAttemptAnswerParams) (LearnActivityAttemptAnswer, error)
 	InsertAttemptAnswer(ctx context.Context, arg InsertAttemptAnswerParams) (LearnAttemptAnswer, error)
+	ListActivitiesBySceneID(ctx context.Context, sceneID string) ([]LearnActivity, error)
+	ListActivitiesByStoryID(ctx context.Context, storyID string) ([]LearnActivity, error)
+	ListActivityAttemptAnswersByAttemptID(ctx context.Context, attemptID string) ([]LearnActivityAttemptAnswer, error)
 	ListAttemptAnswersByAttemptID(ctx context.Context, attemptID string) ([]LearnAttemptAnswer, error)
+	ListCities(ctx context.Context) ([]LearnCity, error)
 	ListExercisesByLessonID(ctx context.Context, lessonID string) ([]LearnExercise, error)
 	ListLessonProgressByOwner(ctx context.Context, arg ListLessonProgressByOwnerParams) ([]LearnUserLessonProgress, error)
 	ListLessonsBySkillID(ctx context.Context, skillID string) ([]LearnLesson, error)
+	ListPublishedStoriesByCity(ctx context.Context, cityID string) ([]LearnStory, error)
+	ListSceneProgressByOwner(ctx context.Context, arg ListSceneProgressByOwnerParams) ([]LearnUserSceneProgress, error)
+	ListScenesByStoryID(ctx context.Context, storyID string) ([]LearnScene, error)
 	ListSkillsByUnitID(ctx context.Context, unitID string) ([]LearnSkill, error)
+	ListStoryProgressByOwner(ctx context.Context, arg ListStoryProgressByOwnerParams) ([]LearnUserStoryProgress, error)
 	ListUnitProgressByOwner(ctx context.Context, arg ListUnitProgressByOwnerParams) ([]LearnUserUnitProgress, error)
+	ReassignGuestActivityAttempts(ctx context.Context, arg ReassignGuestActivityAttemptsParams) error
 	ReassignGuestAttempts(ctx context.Context, arg ReassignGuestAttemptsParams) error
 	ReassignGuestLessonProgress(ctx context.Context, arg ReassignGuestLessonProgressParams) error
+	ReassignGuestSceneProgress(ctx context.Context, arg ReassignGuestSceneProgressParams) error
+	ReassignGuestStoryProgress(ctx context.Context, arg ReassignGuestStoryProgressParams) error
 	ReassignGuestUnitProgress(ctx context.Context, arg ReassignGuestUnitProgressParams) error
 	TouchGuest(ctx context.Context, id string) error
 	UpsertLessonProgress(ctx context.Context, arg UpsertLessonProgressParams) error
+	UpsertSceneProgress(ctx context.Context, arg UpsertSceneProgressParams) error
+	UpsertStoryProgress(ctx context.Context, arg UpsertStoryProgressParams) error
 	UpsertUnitProgress(ctx context.Context, arg UpsertUnitProgressParams) error
 }
 

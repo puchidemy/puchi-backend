@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/puchidemy/puchi-backend/app/learn/internal/data/sqlc/gen"
 )
@@ -49,7 +50,44 @@ func newTestUsecase(guest GuestRepoInterface, progress ProgressRepoInterface, cu
 	if curriculum == nil {
 		curriculum = &mockCurriculumRepo{}
 	}
-	return NewLearnUsecase(guest, progress, curriculum, &mockAttemptRepo{}, NoOpLessonEventPublisher{}, &mockTxManager{guest: guest, progress: progress})
+	return NewLearnUsecase(guest, progress, curriculum, &mockStoryRepo{}, &mockAttemptRepo{}, NoOpLessonEventPublisher{}, &mockTxManager{guest: guest, progress: progress})
+}
+
+type mockStoryRepo struct{}
+
+func (m *mockStoryRepo) ListCities(context.Context) ([]gen.LearnCity, error) { return nil, nil }
+func (m *mockStoryRepo) GetCityBySlug(context.Context, string) (*gen.LearnCity, error) {
+	return nil, pgx.ErrNoRows
+}
+func (m *mockStoryRepo) GetCityByID(context.Context, string) (*gen.LearnCity, error) {
+	return nil, pgx.ErrNoRows
+}
+func (m *mockStoryRepo) CountPublishedStoriesByCity(context.Context, string) (int32, error) {
+	return 0, nil
+}
+func (m *mockStoryRepo) CountCompletedStoriesByOwnerCity(context.Context, string, string, string) (int32, error) {
+	return 0, nil
+}
+func (m *mockStoryRepo) ListPublishedStoriesByCity(context.Context, string) ([]gen.LearnStory, error) {
+	return nil, nil
+}
+func (m *mockStoryRepo) GetStoryByID(context.Context, string) (*gen.LearnStory, error) {
+	return nil, pgx.ErrNoRows
+}
+func (m *mockStoryRepo) ListScenesByStoryID(context.Context, string) ([]gen.LearnScene, error) {
+	return nil, nil
+}
+func (m *mockStoryRepo) GetSceneByID(context.Context, string) (*gen.LearnScene, error) {
+	return nil, pgx.ErrNoRows
+}
+func (m *mockStoryRepo) ListActivitiesBySceneID(context.Context, string) ([]gen.LearnActivity, error) {
+	return nil, nil
+}
+func (m *mockStoryRepo) GetActivityByID(context.Context, string) (*gen.LearnActivity, error) {
+	return nil, pgx.ErrNoRows
+}
+func (m *mockStoryRepo) ListActivitiesByStoryID(context.Context, string) ([]gen.LearnActivity, error) {
+	return nil, nil
 }
 
 type mockProgressRepo struct {
@@ -108,6 +146,43 @@ func (m *mockProgressRepo) ReassignGuestUnitProgress(ctx context.Context, guestI
 
 func (m *mockProgressRepo) ReassignGuestAttempts(ctx context.Context, guestID, userID string) error {
 	return m.reassignGuestAttempts(ctx, guestID, userID)
+}
+
+func (m *mockProgressRepo) ListStoryProgressByOwner(context.Context, string, string) ([]gen.LearnUserStoryProgress, error) {
+	return nil, nil
+}
+func (m *mockProgressRepo) GetStoryProgress(context.Context, string, string, string) (*gen.LearnUserStoryProgress, error) {
+	return nil, pgx.ErrNoRows
+}
+func (m *mockProgressRepo) UpsertStoryProgress(context.Context, string, string, string, string, int32) error {
+	return nil
+}
+func (m *mockProgressRepo) DeleteGuestStoryProgress(context.Context, string, string) error {
+	return nil
+}
+func (m *mockProgressRepo) ReassignGuestStoryProgress(context.Context, string, string) error {
+	return nil
+}
+func (m *mockProgressRepo) ListSceneProgressByOwner(context.Context, string, string) ([]gen.LearnUserSceneProgress, error) {
+	return nil, nil
+}
+func (m *mockProgressRepo) GetSceneProgress(context.Context, string, string, string) (*gen.LearnUserSceneProgress, error) {
+	return nil, pgx.ErrNoRows
+}
+func (m *mockProgressRepo) UpsertSceneProgress(context.Context, string, string, string, string) error {
+	return nil
+}
+func (m *mockProgressRepo) CountCompletedScenesByOwner(context.Context, string, string) (int32, error) {
+	return 0, nil
+}
+func (m *mockProgressRepo) DeleteGuestSceneProgress(context.Context, string, string) error {
+	return nil
+}
+func (m *mockProgressRepo) ReassignGuestSceneProgress(context.Context, string, string) error {
+	return nil
+}
+func (m *mockProgressRepo) ReassignGuestActivityAttempts(context.Context, string, string) error {
+	return nil
 }
 
 func TestCreateGuestSession_InsertsGuest(t *testing.T) {

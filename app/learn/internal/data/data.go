@@ -16,6 +16,7 @@ var ProviderSet = wire.NewSet(
 	NewGuestRepo,
 	NewProgressRepo,
 	NewCurriculumRepo,
+	NewStoryRepo,
 	NewAttemptRepo,
 	NewTransactionManager,
 	wire.FieldsOf(new(*Data), "Pool"),
@@ -23,6 +24,7 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(biz.GuestRepoInterface), new(*GuestRepo)),
 	wire.Bind(new(biz.ProgressRepoInterface), new(*ProgressRepo)),
 	wire.Bind(new(biz.CurriculumRepoInterface), new(*CurriculumRepo)),
+	wire.Bind(new(biz.StoryRepoInterface), new(*StoryRepo)),
 	wire.Bind(new(biz.AttemptRepoInterface), new(*AttemptRepo)),
 	wire.Bind(new(biz.TransactionManager), new(*TransactionManager)),
 )

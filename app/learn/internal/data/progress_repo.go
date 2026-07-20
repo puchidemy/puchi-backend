@@ -113,3 +113,108 @@ func (r *ProgressRepo) ReassignGuestAttempts(ctx context.Context, guestID, userI
 		OwnerID_2: userID,
 	})
 }
+
+// GetStoryProgress returns story progress for an owner.
+func (r *ProgressRepo) GetStoryProgress(ctx context.Context, ownerType, ownerID, storyID string) (*gen.LearnUserStoryProgress, error) {
+	row, err := r.q.GetStoryProgress(ctx, gen.GetStoryProgressParams{
+		OwnerType: ownerType,
+		OwnerID:   ownerID,
+		StoryID:   storyID,
+	})
+	return mapNoRows(row, err)
+}
+
+// UpsertStoryProgress upserts story progress for an owner.
+func (r *ProgressRepo) UpsertStoryProgress(ctx context.Context, ownerType, ownerID, storyID, status string, xp int32) error {
+	return r.q.UpsertStoryProgress(ctx, gen.UpsertStoryProgressParams{
+		OwnerType: ownerType,
+		OwnerID:   ownerID,
+		StoryID:   storyID,
+		Status:    status,
+		XpEarned:  xp,
+	})
+}
+
+// ListStoryProgressByOwner lists story progress rows for an owner.
+func (r *ProgressRepo) ListStoryProgressByOwner(ctx context.Context, ownerType, ownerID string) ([]gen.LearnUserStoryProgress, error) {
+	return r.q.ListStoryProgressByOwner(ctx, gen.ListStoryProgressByOwnerParams{
+		OwnerType: ownerType,
+		OwnerID:   ownerID,
+	})
+}
+
+// DeleteGuestStoryProgress removes a guest story progress row.
+func (r *ProgressRepo) DeleteGuestStoryProgress(ctx context.Context, guestID, storyID string) error {
+	return r.q.DeleteGuestStoryProgress(ctx, gen.DeleteGuestStoryProgressParams{
+		OwnerID: guestID,
+		StoryID: storyID,
+	})
+}
+
+// ReassignGuestStoryProgress moves remaining guest story rows to the user.
+func (r *ProgressRepo) ReassignGuestStoryProgress(ctx context.Context, guestID, userID string) error {
+	return r.q.ReassignGuestStoryProgress(ctx, gen.ReassignGuestStoryProgressParams{
+		OwnerID:   guestID,
+		OwnerID_2: userID,
+	})
+}
+
+// GetSceneProgress returns scene progress for an owner.
+func (r *ProgressRepo) GetSceneProgress(ctx context.Context, ownerType, ownerID, sceneID string) (*gen.LearnUserSceneProgress, error) {
+	row, err := r.q.GetSceneProgress(ctx, gen.GetSceneProgressParams{
+		OwnerType: ownerType,
+		OwnerID:   ownerID,
+		SceneID:   sceneID,
+	})
+	return mapNoRows(row, err)
+}
+
+// UpsertSceneProgress upserts scene progress for an owner.
+func (r *ProgressRepo) UpsertSceneProgress(ctx context.Context, ownerType, ownerID, sceneID, status string) error {
+	return r.q.UpsertSceneProgress(ctx, gen.UpsertSceneProgressParams{
+		OwnerType: ownerType,
+		OwnerID:   ownerID,
+		SceneID:   sceneID,
+		Status:    status,
+	})
+}
+
+// ListSceneProgressByOwner lists scene progress rows for an owner.
+func (r *ProgressRepo) ListSceneProgressByOwner(ctx context.Context, ownerType, ownerID string) ([]gen.LearnUserSceneProgress, error) {
+	return r.q.ListSceneProgressByOwner(ctx, gen.ListSceneProgressByOwnerParams{
+		OwnerType: ownerType,
+		OwnerID:   ownerID,
+	})
+}
+
+// CountCompletedScenesByOwner returns completed scene count for an owner.
+func (r *ProgressRepo) CountCompletedScenesByOwner(ctx context.Context, ownerType, ownerID string) (int32, error) {
+	return r.q.CountCompletedScenesByOwner(ctx, gen.CountCompletedScenesByOwnerParams{
+		OwnerType: ownerType,
+		OwnerID:   ownerID,
+	})
+}
+
+// DeleteGuestSceneProgress removes a guest scene progress row.
+func (r *ProgressRepo) DeleteGuestSceneProgress(ctx context.Context, guestID, sceneID string) error {
+	return r.q.DeleteGuestSceneProgress(ctx, gen.DeleteGuestSceneProgressParams{
+		OwnerID: guestID,
+		SceneID: sceneID,
+	})
+}
+
+// ReassignGuestSceneProgress moves remaining guest scene rows to the user.
+func (r *ProgressRepo) ReassignGuestSceneProgress(ctx context.Context, guestID, userID string) error {
+	return r.q.ReassignGuestSceneProgress(ctx, gen.ReassignGuestSceneProgressParams{
+		OwnerID:   guestID,
+		OwnerID_2: userID,
+	})
+}
+
+// ReassignGuestActivityAttempts moves guest activity attempt rows to the user.
+func (r *ProgressRepo) ReassignGuestActivityAttempts(ctx context.Context, guestID, userID string) error {
+	return r.q.ReassignGuestActivityAttempts(ctx, gen.ReassignGuestActivityAttemptsParams{
+		OwnerID:   guestID,
+		OwnerID_2: userID,
+	})
+}

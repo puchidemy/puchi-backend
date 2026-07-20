@@ -19,7 +19,7 @@ var (
 	ErrExerciseForbidden = errors.New("exercise forbidden")
 )
 
-// AttemptRepoInterface persists lesson attempts and answers.
+// AttemptRepoInterface persists lesson/activity attempts and answers.
 type AttemptRepoInterface interface {
 	CreateAttempt(ctx context.Context, ownerType, ownerID, lessonID string) (*gen.LearnAttempt, error)
 	GetAttemptByID(ctx context.Context, id string) (*gen.LearnAttempt, error)
@@ -27,6 +27,13 @@ type AttemptRepoInterface interface {
 	InsertAttemptAnswer(ctx context.Context, attemptID, exerciseID string, payload json.RawMessage, correct bool) error
 	CompleteAttempt(ctx context.Context, attemptID string, sessionXP int32) error
 	ListAttemptAnswersByAttemptID(ctx context.Context, attemptID string) ([]gen.LearnAttemptAnswer, error)
+
+	CreateActivityAttempt(ctx context.Context, ownerType, ownerID, storyID, sceneID string) (*gen.LearnActivityAttempt, error)
+	GetActivityAttemptByID(ctx context.Context, id string) (*gen.LearnActivityAttempt, error)
+	GetActiveActivityAttemptByOwnerScene(ctx context.Context, ownerType, ownerID, sceneID string) (*gen.LearnActivityAttempt, error)
+	InsertActivityAttemptAnswer(ctx context.Context, attemptID, activityID string, payload json.RawMessage, correct bool) error
+	CompleteActivityAttempt(ctx context.Context, attemptID string, sessionXP int32) error
+	ListActivityAttemptAnswersByAttemptID(ctx context.Context, attemptID string) ([]gen.LearnActivityAttemptAnswer, error)
 }
 
 func (uc *LearnUsecase) loadLessonSkill(ctx context.Context, lessonID string) (*gen.LearnLesson, *gen.LearnSkill, error) {

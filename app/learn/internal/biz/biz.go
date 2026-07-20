@@ -14,6 +14,7 @@ type LearnUsecase struct {
 	guestRepo      GuestRepoInterface
 	progressRepo   ProgressRepoInterface
 	curriculumRepo CurriculumRepoInterface
+	storyRepo      StoryRepoInterface
 	attemptRepo    AttemptRepoInterface
 	publisher      LessonEventPublisher
 	tx             TransactionManager
@@ -24,6 +25,7 @@ func NewLearnUsecase(
 	guestRepo GuestRepoInterface,
 	progressRepo ProgressRepoInterface,
 	curriculumRepo CurriculumRepoInterface,
+	storyRepo StoryRepoInterface,
 	attemptRepo AttemptRepoInterface,
 	publisher LessonEventPublisher,
 	tx TransactionManager,
@@ -32,6 +34,7 @@ func NewLearnUsecase(
 		guestRepo:      guestRepo,
 		progressRepo:   progressRepo,
 		curriculumRepo: curriculumRepo,
+		storyRepo:      storyRepo,
 		attemptRepo:    attemptRepo,
 		publisher:      publisher,
 		tx:             tx,

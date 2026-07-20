@@ -36,6 +36,41 @@ service LearnService {
   rpc CompleteLesson(CompleteLessonRequest) returns (CompleteLessonResponse) {
     option (google.api.http) = { post: "/v1/learn/lessons/{id}/complete" body: "*" };
   }
+
+  // Story-first path
+  rpc ListCities(ListCitiesRequest) returns (ListCitiesResponse) {
+    option (google.api.http) = { get: "/v1/learn/cities" };
+  }
+  rpc GetCity(GetCityRequest) returns (GetCityResponse) {
+    option (google.api.http) = { get: "/v1/learn/cities/{slug}" };
+  }
+  rpc GetStory(GetStoryRequest) returns (GetStoryResponse) {
+    option (google.api.http) = { get: "/v1/learn/stories/{id}" };
+  }
+  rpc StartActivity(StartActivityRequest) returns (StartActivityResponse) {
+    option (google.api.http) = {
+      post: "/v1/learn/scenes/{scene_id}/activities/start"
+      body: "*"
+    };
+  }
+  rpc SubmitActivityAnswer(SubmitActivityAnswerRequest) returns (SubmitActivityAnswerResponse) {
+    option (google.api.http) = {
+      post: "/v1/learn/activity-attempts/{attempt_id}/answer"
+      body: "*"
+    };
+  }
+  rpc CompleteScene(CompleteSceneRequest) returns (CompleteSceneResponse) {
+    option (google.api.http) = {
+      post: "/v1/learn/scenes/{id}/complete"
+      body: "*"
+    };
+  }
+  rpc CompleteStory(CompleteStoryRequest) returns (CompleteStoryResponse) {
+    option (google.api.http) = {
+      post: "/v1/learn/stories/{id}/complete"
+      body: "*"
+    };
+  }
 }
 
 message GuestSession {
@@ -126,4 +161,140 @@ message CompleteLessonRequest {
 message CompleteLessonResponse {
   int32 xp = 1;
   bool unit_completed = 2;
+}
+
+// --- Story-first messages ---
+
+message ListCitiesRequest {}
+
+message City {
+  string id = 1;
+  string slug = 2;
+  string name = 3;
+  int32 position = 4;
+  float map_x = 5;
+  float map_y = 6;
+  string cover_url = 7;
+  string blurb = 8;
+  int32 story_count = 9;
+  int32 completed_story_count = 10;
+}
+
+message ListCitiesResponse {
+  repeated City cities = 1;
+}
+
+message GetCityRequest {
+  string slug = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message StorySummary {
+  string id = 1;
+  string slug = 2;
+  string title = 3;
+  string summary = 4;
+  string cover_url = 5;
+  string cefr = 6;
+  repeated string tags = 7;
+  int32 est_minutes = 8;
+  string status = 9;
+  string progress_status = 10;
+}
+
+message GetCityResponse {
+  City city = 1;
+  repeated StorySummary stories = 2;
+  string continue_story_id = 3;
+  repeated string recommended_story_ids = 4;
+}
+
+message GetStoryRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message Story {
+  string id = 1;
+  string city_id = 2;
+  string city_slug = 3;
+  string slug = 4;
+  string title = 5;
+  string summary = 6;
+  string cover_url = 7;
+  string cefr = 8;
+  repeated string tags = 9;
+  string audio_url = 10;
+  repeated string vocab_focus = 11;
+  repeated string grammar_focus = 12;
+  int32 est_minutes = 13;
+}
+
+message Activity {
+  string id = 1;
+  int32 position = 2;
+  string type = 3;
+  string prompt_json = 4;
+}
+
+message Scene {
+  string id = 1;
+  int32 position = 2;
+  string title = 3;
+  string narration = 4;
+  string dialogue_json = 5;
+  string illustration_url = 6;
+  string audio_url = 7;
+  string progress_status = 8;
+  repeated Activity activities = 9;
+}
+
+message GetStoryResponse {
+  Story story = 1;
+  repeated Scene scenes = 2;
+  string progress_status = 3;
+}
+
+message StartActivityRequest {
+  string scene_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message StartActivityResponse {
+  string attempt_id = 1;
+}
+
+message SubmitActivityAnswerRequest {
+  string attempt_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string activity_id = 2 [(google.api.field_behavior) = REQUIRED];
+  string payload_json = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message SubmitActivityAnswerResponse {
+  bool correct = 1;
+}
+
+message CompleteSceneRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message CompleteSceneResponse {
+  bool scene_completed = 1;
+  bool story_completed = 2;
+  int32 completed_scene_count = 3;
+  bool soft_gate = 4;
+}
+
+message CompleteStoryRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message StoryCompletionSummary {
+  repeated string vocab_focus = 1;
+  repeated string grammar_focus = 2;
+  int32 listening_seconds = 3;
+  string cultural_fact = 4;
+}
+
+message CompleteStoryResponse {
+  int32 xp = 1;
+  bool story_completed = 2;
+  StoryCompletionSummary summary = 3;
 }

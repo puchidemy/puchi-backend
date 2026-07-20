@@ -20,14 +20,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LearnService_Ping_FullMethodName               = "/puchi.learn.v1.LearnService/Ping"
-	LearnService_CreateGuestSession_FullMethodName = "/puchi.learn.v1.LearnService/CreateGuestSession"
-	LearnService_ClaimGuest_FullMethodName         = "/puchi.learn.v1.LearnService/ClaimGuest"
-	LearnService_GetUnit_FullMethodName            = "/puchi.learn.v1.LearnService/GetUnit"
-	LearnService_GetLesson_FullMethodName          = "/puchi.learn.v1.LearnService/GetLesson"
-	LearnService_StartLesson_FullMethodName        = "/puchi.learn.v1.LearnService/StartLesson"
-	LearnService_SubmitAnswer_FullMethodName       = "/puchi.learn.v1.LearnService/SubmitAnswer"
-	LearnService_CompleteLesson_FullMethodName     = "/puchi.learn.v1.LearnService/CompleteLesson"
+	LearnService_Ping_FullMethodName                 = "/puchi.learn.v1.LearnService/Ping"
+	LearnService_CreateGuestSession_FullMethodName   = "/puchi.learn.v1.LearnService/CreateGuestSession"
+	LearnService_ClaimGuest_FullMethodName           = "/puchi.learn.v1.LearnService/ClaimGuest"
+	LearnService_GetUnit_FullMethodName              = "/puchi.learn.v1.LearnService/GetUnit"
+	LearnService_GetLesson_FullMethodName            = "/puchi.learn.v1.LearnService/GetLesson"
+	LearnService_StartLesson_FullMethodName          = "/puchi.learn.v1.LearnService/StartLesson"
+	LearnService_SubmitAnswer_FullMethodName         = "/puchi.learn.v1.LearnService/SubmitAnswer"
+	LearnService_CompleteLesson_FullMethodName       = "/puchi.learn.v1.LearnService/CompleteLesson"
+	LearnService_ListCities_FullMethodName           = "/puchi.learn.v1.LearnService/ListCities"
+	LearnService_GetCity_FullMethodName              = "/puchi.learn.v1.LearnService/GetCity"
+	LearnService_GetStory_FullMethodName             = "/puchi.learn.v1.LearnService/GetStory"
+	LearnService_StartActivity_FullMethodName        = "/puchi.learn.v1.LearnService/StartActivity"
+	LearnService_SubmitActivityAnswer_FullMethodName = "/puchi.learn.v1.LearnService/SubmitActivityAnswer"
+	LearnService_CompleteScene_FullMethodName        = "/puchi.learn.v1.LearnService/CompleteScene"
+	LearnService_CompleteStory_FullMethodName        = "/puchi.learn.v1.LearnService/CompleteStory"
 )
 
 // LearnServiceClient is the client API for LearnService service.
@@ -42,6 +49,14 @@ type LearnServiceClient interface {
 	StartLesson(ctx context.Context, in *StartLessonRequest, opts ...grpc.CallOption) (*StartLessonResponse, error)
 	SubmitAnswer(ctx context.Context, in *SubmitAnswerRequest, opts ...grpc.CallOption) (*SubmitAnswerResponse, error)
 	CompleteLesson(ctx context.Context, in *CompleteLessonRequest, opts ...grpc.CallOption) (*CompleteLessonResponse, error)
+	// Story-first path
+	ListCities(ctx context.Context, in *ListCitiesRequest, opts ...grpc.CallOption) (*ListCitiesResponse, error)
+	GetCity(ctx context.Context, in *GetCityRequest, opts ...grpc.CallOption) (*GetCityResponse, error)
+	GetStory(ctx context.Context, in *GetStoryRequest, opts ...grpc.CallOption) (*GetStoryResponse, error)
+	StartActivity(ctx context.Context, in *StartActivityRequest, opts ...grpc.CallOption) (*StartActivityResponse, error)
+	SubmitActivityAnswer(ctx context.Context, in *SubmitActivityAnswerRequest, opts ...grpc.CallOption) (*SubmitActivityAnswerResponse, error)
+	CompleteScene(ctx context.Context, in *CompleteSceneRequest, opts ...grpc.CallOption) (*CompleteSceneResponse, error)
+	CompleteStory(ctx context.Context, in *CompleteStoryRequest, opts ...grpc.CallOption) (*CompleteStoryResponse, error)
 }
 
 type learnServiceClient struct {
@@ -132,6 +147,76 @@ func (c *learnServiceClient) CompleteLesson(ctx context.Context, in *CompleteLes
 	return out, nil
 }
 
+func (c *learnServiceClient) ListCities(ctx context.Context, in *ListCitiesRequest, opts ...grpc.CallOption) (*ListCitiesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCitiesResponse)
+	err := c.cc.Invoke(ctx, LearnService_ListCities_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learnServiceClient) GetCity(ctx context.Context, in *GetCityRequest, opts ...grpc.CallOption) (*GetCityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCityResponse)
+	err := c.cc.Invoke(ctx, LearnService_GetCity_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learnServiceClient) GetStory(ctx context.Context, in *GetStoryRequest, opts ...grpc.CallOption) (*GetStoryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetStoryResponse)
+	err := c.cc.Invoke(ctx, LearnService_GetStory_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learnServiceClient) StartActivity(ctx context.Context, in *StartActivityRequest, opts ...grpc.CallOption) (*StartActivityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartActivityResponse)
+	err := c.cc.Invoke(ctx, LearnService_StartActivity_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learnServiceClient) SubmitActivityAnswer(ctx context.Context, in *SubmitActivityAnswerRequest, opts ...grpc.CallOption) (*SubmitActivityAnswerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SubmitActivityAnswerResponse)
+	err := c.cc.Invoke(ctx, LearnService_SubmitActivityAnswer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learnServiceClient) CompleteScene(ctx context.Context, in *CompleteSceneRequest, opts ...grpc.CallOption) (*CompleteSceneResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompleteSceneResponse)
+	err := c.cc.Invoke(ctx, LearnService_CompleteScene_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *learnServiceClient) CompleteStory(ctx context.Context, in *CompleteStoryRequest, opts ...grpc.CallOption) (*CompleteStoryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompleteStoryResponse)
+	err := c.cc.Invoke(ctx, LearnService_CompleteStory_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LearnServiceServer is the server API for LearnService service.
 // All implementations must embed UnimplementedLearnServiceServer
 // for forward compatibility.
@@ -144,6 +229,14 @@ type LearnServiceServer interface {
 	StartLesson(context.Context, *StartLessonRequest) (*StartLessonResponse, error)
 	SubmitAnswer(context.Context, *SubmitAnswerRequest) (*SubmitAnswerResponse, error)
 	CompleteLesson(context.Context, *CompleteLessonRequest) (*CompleteLessonResponse, error)
+	// Story-first path
+	ListCities(context.Context, *ListCitiesRequest) (*ListCitiesResponse, error)
+	GetCity(context.Context, *GetCityRequest) (*GetCityResponse, error)
+	GetStory(context.Context, *GetStoryRequest) (*GetStoryResponse, error)
+	StartActivity(context.Context, *StartActivityRequest) (*StartActivityResponse, error)
+	SubmitActivityAnswer(context.Context, *SubmitActivityAnswerRequest) (*SubmitActivityAnswerResponse, error)
+	CompleteScene(context.Context, *CompleteSceneRequest) (*CompleteSceneResponse, error)
+	CompleteStory(context.Context, *CompleteStoryRequest) (*CompleteStoryResponse, error)
 	mustEmbedUnimplementedLearnServiceServer()
 }
 
@@ -177,6 +270,27 @@ func (UnimplementedLearnServiceServer) SubmitAnswer(context.Context, *SubmitAnsw
 }
 func (UnimplementedLearnServiceServer) CompleteLesson(context.Context, *CompleteLessonRequest) (*CompleteLessonResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CompleteLesson not implemented")
+}
+func (UnimplementedLearnServiceServer) ListCities(context.Context, *ListCitiesRequest) (*ListCitiesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCities not implemented")
+}
+func (UnimplementedLearnServiceServer) GetCity(context.Context, *GetCityRequest) (*GetCityResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCity not implemented")
+}
+func (UnimplementedLearnServiceServer) GetStory(context.Context, *GetStoryRequest) (*GetStoryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetStory not implemented")
+}
+func (UnimplementedLearnServiceServer) StartActivity(context.Context, *StartActivityRequest) (*StartActivityResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartActivity not implemented")
+}
+func (UnimplementedLearnServiceServer) SubmitActivityAnswer(context.Context, *SubmitActivityAnswerRequest) (*SubmitActivityAnswerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SubmitActivityAnswer not implemented")
+}
+func (UnimplementedLearnServiceServer) CompleteScene(context.Context, *CompleteSceneRequest) (*CompleteSceneResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteScene not implemented")
+}
+func (UnimplementedLearnServiceServer) CompleteStory(context.Context, *CompleteStoryRequest) (*CompleteStoryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteStory not implemented")
 }
 func (UnimplementedLearnServiceServer) mustEmbedUnimplementedLearnServiceServer() {}
 func (UnimplementedLearnServiceServer) testEmbeddedByValue()                      {}
@@ -343,6 +457,132 @@ func _LearnService_CompleteLesson_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LearnService_ListCities_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCitiesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearnServiceServer).ListCities(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearnService_ListCities_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearnServiceServer).ListCities(ctx, req.(*ListCitiesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearnService_GetCity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearnServiceServer).GetCity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearnService_GetCity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearnServiceServer).GetCity(ctx, req.(*GetCityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearnService_GetStory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearnServiceServer).GetStory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearnService_GetStory_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearnServiceServer).GetStory(ctx, req.(*GetStoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearnService_StartActivity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartActivityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearnServiceServer).StartActivity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearnService_StartActivity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearnServiceServer).StartActivity(ctx, req.(*StartActivityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearnService_SubmitActivityAnswer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubmitActivityAnswerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearnServiceServer).SubmitActivityAnswer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearnService_SubmitActivityAnswer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearnServiceServer).SubmitActivityAnswer(ctx, req.(*SubmitActivityAnswerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearnService_CompleteScene_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteSceneRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearnServiceServer).CompleteScene(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearnService_CompleteScene_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearnServiceServer).CompleteScene(ctx, req.(*CompleteSceneRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LearnService_CompleteStory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteStoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LearnServiceServer).CompleteStory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LearnService_CompleteStory_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LearnServiceServer).CompleteStory(ctx, req.(*CompleteStoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LearnService_ServiceDesc is the grpc.ServiceDesc for LearnService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -381,6 +621,34 @@ var LearnService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CompleteLesson",
 			Handler:    _LearnService_CompleteLesson_Handler,
+		},
+		{
+			MethodName: "ListCities",
+			Handler:    _LearnService_ListCities_Handler,
+		},
+		{
+			MethodName: "GetCity",
+			Handler:    _LearnService_GetCity_Handler,
+		},
+		{
+			MethodName: "GetStory",
+			Handler:    _LearnService_GetStory_Handler,
+		},
+		{
+			MethodName: "StartActivity",
+			Handler:    _LearnService_StartActivity_Handler,
+		},
+		{
+			MethodName: "SubmitActivityAnswer",
+			Handler:    _LearnService_SubmitActivityAnswer_Handler,
+		},
+		{
+			MethodName: "CompleteScene",
+			Handler:    _LearnService_CompleteScene_Handler,
+		},
+		{
+			MethodName: "CompleteStory",
+			Handler:    _LearnService_CompleteStory_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

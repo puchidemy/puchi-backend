@@ -9,6 +9,24 @@ import (
 	"context"
 )
 
+const countCompletedScenesByOwner = `-- name: CountCompletedScenesByOwner :one
+SELECT COUNT(*)::int AS count
+FROM learn.user_scene_progress
+WHERE owner_type = $1 AND owner_id = $2 AND status = 'completed'
+`
+
+type CountCompletedScenesByOwnerParams struct {
+	OwnerType string `db:"owner_type"`
+	OwnerID   string `db:"owner_id"`
+}
+
+func (q *Queries) CountCompletedScenesByOwner(ctx context.Context, arg CountCompletedScenesByOwnerParams) (int32, error) {
+	row := q.db.QueryRow(ctx, countCompletedScenesByOwner, arg.OwnerType, arg.OwnerID)
+	var count int32
+	err := row.Scan(&count)
+	return count, err
+}
+
 const deleteGuestLessonProgress = `-- name: DeleteGuestLessonProgress :exec
 DELETE FROM learn.user_lesson_progress
 WHERE owner_type = 'guest' AND owner_id = $1 AND lesson_id = $2
@@ -21,6 +39,36 @@ type DeleteGuestLessonProgressParams struct {
 
 func (q *Queries) DeleteGuestLessonProgress(ctx context.Context, arg DeleteGuestLessonProgressParams) error {
 	_, err := q.db.Exec(ctx, deleteGuestLessonProgress, arg.OwnerID, arg.LessonID)
+	return err
+}
+
+const deleteGuestSceneProgress = `-- name: DeleteGuestSceneProgress :exec
+DELETE FROM learn.user_scene_progress
+WHERE owner_type = 'guest' AND owner_id = $1 AND scene_id = $2
+`
+
+type DeleteGuestSceneProgressParams struct {
+	OwnerID string `db:"owner_id"`
+	SceneID string `db:"scene_id"`
+}
+
+func (q *Queries) DeleteGuestSceneProgress(ctx context.Context, arg DeleteGuestSceneProgressParams) error {
+	_, err := q.db.Exec(ctx, deleteGuestSceneProgress, arg.OwnerID, arg.SceneID)
+	return err
+}
+
+const deleteGuestStoryProgress = `-- name: DeleteGuestStoryProgress :exec
+DELETE FROM learn.user_story_progress
+WHERE owner_type = 'guest' AND owner_id = $1 AND story_id = $2
+`
+
+type DeleteGuestStoryProgressParams struct {
+	OwnerID string `db:"owner_id"`
+	StoryID string `db:"story_id"`
+}
+
+func (q *Queries) DeleteGuestStoryProgress(ctx context.Context, arg DeleteGuestStoryProgressParams) error {
+	_, err := q.db.Exec(ctx, deleteGuestStoryProgress, arg.OwnerID, arg.StoryID)
 	return err
 }
 
@@ -57,6 +105,55 @@ func (q *Queries) GetLessonProgress(ctx context.Context, arg GetLessonProgressPa
 		&i.OwnerType,
 		&i.OwnerID,
 		&i.LessonID,
+		&i.Status,
+		&i.XpEarned,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getSceneProgress = `-- name: GetSceneProgress :one
+SELECT owner_type, owner_id, scene_id, status, updated_at FROM learn.user_scene_progress
+WHERE owner_type = $1 AND owner_id = $2 AND scene_id = $3
+`
+
+type GetSceneProgressParams struct {
+	OwnerType string `db:"owner_type"`
+	OwnerID   string `db:"owner_id"`
+	SceneID   string `db:"scene_id"`
+}
+
+func (q *Queries) GetSceneProgress(ctx context.Context, arg GetSceneProgressParams) (LearnUserSceneProgress, error) {
+	row := q.db.QueryRow(ctx, getSceneProgress, arg.OwnerType, arg.OwnerID, arg.SceneID)
+	var i LearnUserSceneProgress
+	err := row.Scan(
+		&i.OwnerType,
+		&i.OwnerID,
+		&i.SceneID,
+		&i.Status,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getStoryProgress = `-- name: GetStoryProgress :one
+SELECT owner_type, owner_id, story_id, status, xp_earned, updated_at FROM learn.user_story_progress
+WHERE owner_type = $1 AND owner_id = $2 AND story_id = $3
+`
+
+type GetStoryProgressParams struct {
+	OwnerType string `db:"owner_type"`
+	OwnerID   string `db:"owner_id"`
+	StoryID   string `db:"story_id"`
+}
+
+func (q *Queries) GetStoryProgress(ctx context.Context, arg GetStoryProgressParams) (LearnUserStoryProgress, error) {
+	row := q.db.QueryRow(ctx, getStoryProgress, arg.OwnerType, arg.OwnerID, arg.StoryID)
+	var i LearnUserStoryProgress
+	err := row.Scan(
+		&i.OwnerType,
+		&i.OwnerID,
+		&i.StoryID,
 		&i.Status,
 		&i.XpEarned,
 		&i.UpdatedAt,
@@ -125,6 +222,79 @@ func (q *Queries) ListLessonProgressByOwner(ctx context.Context, arg ListLessonP
 	return items, nil
 }
 
+const listSceneProgressByOwner = `-- name: ListSceneProgressByOwner :many
+SELECT owner_type, owner_id, scene_id, status, updated_at FROM learn.user_scene_progress
+WHERE owner_type = $1 AND owner_id = $2
+`
+
+type ListSceneProgressByOwnerParams struct {
+	OwnerType string `db:"owner_type"`
+	OwnerID   string `db:"owner_id"`
+}
+
+func (q *Queries) ListSceneProgressByOwner(ctx context.Context, arg ListSceneProgressByOwnerParams) ([]LearnUserSceneProgress, error) {
+	rows, err := q.db.Query(ctx, listSceneProgressByOwner, arg.OwnerType, arg.OwnerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []LearnUserSceneProgress{}
+	for rows.Next() {
+		var i LearnUserSceneProgress
+		if err := rows.Scan(
+			&i.OwnerType,
+			&i.OwnerID,
+			&i.SceneID,
+			&i.Status,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStoryProgressByOwner = `-- name: ListStoryProgressByOwner :many
+SELECT owner_type, owner_id, story_id, status, xp_earned, updated_at FROM learn.user_story_progress
+WHERE owner_type = $1 AND owner_id = $2
+`
+
+type ListStoryProgressByOwnerParams struct {
+	OwnerType string `db:"owner_type"`
+	OwnerID   string `db:"owner_id"`
+}
+
+func (q *Queries) ListStoryProgressByOwner(ctx context.Context, arg ListStoryProgressByOwnerParams) ([]LearnUserStoryProgress, error) {
+	rows, err := q.db.Query(ctx, listStoryProgressByOwner, arg.OwnerType, arg.OwnerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []LearnUserStoryProgress{}
+	for rows.Next() {
+		var i LearnUserStoryProgress
+		if err := rows.Scan(
+			&i.OwnerType,
+			&i.OwnerID,
+			&i.StoryID,
+			&i.Status,
+			&i.XpEarned,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUnitProgressByOwner = `-- name: ListUnitProgressByOwner :many
 SELECT owner_type, owner_id, unit_id, status, updated_at FROM learn.user_unit_progress
 WHERE owner_type = $1 AND owner_id = $2
@@ -161,6 +331,21 @@ func (q *Queries) ListUnitProgressByOwner(ctx context.Context, arg ListUnitProgr
 	return items, nil
 }
 
+const reassignGuestActivityAttempts = `-- name: ReassignGuestActivityAttempts :exec
+UPDATE learn.activity_attempts SET owner_type = 'user', owner_id = $2
+WHERE owner_type = 'guest' AND owner_id = $1
+`
+
+type ReassignGuestActivityAttemptsParams struct {
+	OwnerID   string `db:"owner_id"`
+	OwnerID_2 string `db:"owner_id_2"`
+}
+
+func (q *Queries) ReassignGuestActivityAttempts(ctx context.Context, arg ReassignGuestActivityAttemptsParams) error {
+	_, err := q.db.Exec(ctx, reassignGuestActivityAttempts, arg.OwnerID, arg.OwnerID_2)
+	return err
+}
+
 const reassignGuestLessonProgress = `-- name: ReassignGuestLessonProgress :exec
 UPDATE learn.user_lesson_progress SET owner_type = 'user', owner_id = $2
 WHERE owner_type = 'guest' AND owner_id = $1
@@ -173,6 +358,36 @@ type ReassignGuestLessonProgressParams struct {
 
 func (q *Queries) ReassignGuestLessonProgress(ctx context.Context, arg ReassignGuestLessonProgressParams) error {
 	_, err := q.db.Exec(ctx, reassignGuestLessonProgress, arg.OwnerID, arg.OwnerID_2)
+	return err
+}
+
+const reassignGuestSceneProgress = `-- name: ReassignGuestSceneProgress :exec
+UPDATE learn.user_scene_progress SET owner_type = 'user', owner_id = $2
+WHERE owner_type = 'guest' AND owner_id = $1
+`
+
+type ReassignGuestSceneProgressParams struct {
+	OwnerID   string `db:"owner_id"`
+	OwnerID_2 string `db:"owner_id_2"`
+}
+
+func (q *Queries) ReassignGuestSceneProgress(ctx context.Context, arg ReassignGuestSceneProgressParams) error {
+	_, err := q.db.Exec(ctx, reassignGuestSceneProgress, arg.OwnerID, arg.OwnerID_2)
+	return err
+}
+
+const reassignGuestStoryProgress = `-- name: ReassignGuestStoryProgress :exec
+UPDATE learn.user_story_progress SET owner_type = 'user', owner_id = $2
+WHERE owner_type = 'guest' AND owner_id = $1
+`
+
+type ReassignGuestStoryProgressParams struct {
+	OwnerID   string `db:"owner_id"`
+	OwnerID_2 string `db:"owner_id_2"`
+}
+
+func (q *Queries) ReassignGuestStoryProgress(ctx context.Context, arg ReassignGuestStoryProgressParams) error {
+	_, err := q.db.Exec(ctx, reassignGuestStoryProgress, arg.OwnerID, arg.OwnerID_2)
 	return err
 }
 
@@ -213,6 +428,59 @@ func (q *Queries) UpsertLessonProgress(ctx context.Context, arg UpsertLessonProg
 		arg.OwnerType,
 		arg.OwnerID,
 		arg.LessonID,
+		arg.Status,
+		arg.XpEarned,
+	)
+	return err
+}
+
+const upsertSceneProgress = `-- name: UpsertSceneProgress :exec
+INSERT INTO learn.user_scene_progress (owner_type, owner_id, scene_id, status)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (owner_type, owner_id, scene_id) DO UPDATE SET
+  status = EXCLUDED.status,
+  updated_at = now()
+`
+
+type UpsertSceneProgressParams struct {
+	OwnerType string `db:"owner_type"`
+	OwnerID   string `db:"owner_id"`
+	SceneID   string `db:"scene_id"`
+	Status    string `db:"status"`
+}
+
+func (q *Queries) UpsertSceneProgress(ctx context.Context, arg UpsertSceneProgressParams) error {
+	_, err := q.db.Exec(ctx, upsertSceneProgress,
+		arg.OwnerType,
+		arg.OwnerID,
+		arg.SceneID,
+		arg.Status,
+	)
+	return err
+}
+
+const upsertStoryProgress = `-- name: UpsertStoryProgress :exec
+INSERT INTO learn.user_story_progress (owner_type, owner_id, story_id, status, xp_earned)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (owner_type, owner_id, story_id) DO UPDATE SET
+  status = EXCLUDED.status,
+  xp_earned = GREATEST(learn.user_story_progress.xp_earned, EXCLUDED.xp_earned),
+  updated_at = now()
+`
+
+type UpsertStoryProgressParams struct {
+	OwnerType string `db:"owner_type"`
+	OwnerID   string `db:"owner_id"`
+	StoryID   string `db:"story_id"`
+	Status    string `db:"status"`
+	XpEarned  int32  `db:"xp_earned"`
+}
+
+func (q *Queries) UpsertStoryProgress(ctx context.Context, arg UpsertStoryProgressParams) error {
+	_, err := q.db.Exec(ctx, upsertStoryProgress,
+		arg.OwnerType,
+		arg.OwnerID,
+		arg.StoryID,
 		arg.Status,
 		arg.XpEarned,
 	)

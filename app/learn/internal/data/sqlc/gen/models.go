@@ -11,6 +11,37 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type LearnActivity struct {
+	ID        string          `db:"id"`
+	SceneID   string          `db:"scene_id"`
+	Position  int32           `db:"position"`
+	Type      string          `db:"type"`
+	Prompt    json.RawMessage `db:"prompt"`
+	Answer    json.RawMessage `db:"answer"`
+	CreatedAt time.Time       `db:"created_at"`
+}
+
+type LearnActivityAttempt struct {
+	ID          string             `db:"id"`
+	OwnerType   string             `db:"owner_type"`
+	OwnerID     string             `db:"owner_id"`
+	StoryID     string             `db:"story_id"`
+	SceneID     string             `db:"scene_id"`
+	Status      string             `db:"status"`
+	SessionXp   int32              `db:"session_xp"`
+	CreatedAt   time.Time          `db:"created_at"`
+	CompletedAt pgtype.Timestamptz `db:"completed_at"`
+}
+
+type LearnActivityAttemptAnswer struct {
+	ID         int64           `db:"id"`
+	AttemptID  string          `db:"attempt_id"`
+	ActivityID string          `db:"activity_id"`
+	Payload    json.RawMessage `db:"payload"`
+	Correct    bool            `db:"correct"`
+	CreatedAt  time.Time       `db:"created_at"`
+}
+
 type LearnAttempt struct {
 	ID          string             `db:"id"`
 	OwnerType   string             `db:"owner_type"`
@@ -29,6 +60,18 @@ type LearnAttemptAnswer struct {
 	Payload    json.RawMessage `db:"payload"`
 	Correct    bool            `db:"correct"`
 	CreatedAt  time.Time       `db:"created_at"`
+}
+
+type LearnCity struct {
+	ID        string    `db:"id"`
+	Slug      string    `db:"slug"`
+	Name      string    `db:"name"`
+	Position  int32     `db:"position"`
+	MapX      float32   `db:"map_x"`
+	MapY      float32   `db:"map_y"`
+	CoverUrl  *string   `db:"cover_url"`
+	Blurb     *string   `db:"blurb"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
 type LearnCourse struct {
@@ -72,11 +115,42 @@ type LearnLesson struct {
 	Required bool   `db:"required"`
 }
 
+type LearnScene struct {
+	ID              string    `db:"id"`
+	StoryID         string    `db:"story_id"`
+	Position        int32     `db:"position"`
+	Title           *string   `db:"title"`
+	Narration       string    `db:"narration"`
+	DialogueJson    []byte    `db:"dialogue_json"`
+	IllustrationUrl *string   `db:"illustration_url"`
+	AudioUrl        *string   `db:"audio_url"`
+	CreatedAt       time.Time `db:"created_at"`
+}
+
 type LearnSkill struct {
 	ID       string `db:"id"`
 	UnitID   string `db:"unit_id"`
 	Position int32  `db:"position"`
 	Title    string `db:"title"`
+}
+
+type LearnStory struct {
+	ID           string    `db:"id"`
+	CityID       string    `db:"city_id"`
+	Slug         string    `db:"slug"`
+	Title        string    `db:"title"`
+	Summary      string    `db:"summary"`
+	CoverUrl     *string   `db:"cover_url"`
+	Cefr         string    `db:"cefr"`
+	Tags         []string  `db:"tags"`
+	AudioUrl     *string   `db:"audio_url"`
+	VocabFocus   []string  `db:"vocab_focus"`
+	GrammarFocus []string  `db:"grammar_focus"`
+	CulturalFact *string   `db:"cultural_fact"`
+	EstMinutes   *int32    `db:"est_minutes"`
+	Position     int32     `db:"position"`
+	Status       string    `db:"status"`
+	CreatedAt    time.Time `db:"created_at"`
 }
 
 type LearnUnit struct {
@@ -90,6 +164,23 @@ type LearnUserLessonProgress struct {
 	OwnerType string    `db:"owner_type"`
 	OwnerID   string    `db:"owner_id"`
 	LessonID  string    `db:"lesson_id"`
+	Status    string    `db:"status"`
+	XpEarned  int32     `db:"xp_earned"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+type LearnUserSceneProgress struct {
+	OwnerType string    `db:"owner_type"`
+	OwnerID   string    `db:"owner_id"`
+	SceneID   string    `db:"scene_id"`
+	Status    string    `db:"status"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+type LearnUserStoryProgress struct {
+	OwnerType string    `db:"owner_type"`
+	OwnerID   string    `db:"owner_id"`
+	StoryID   string    `db:"story_id"`
 	Status    string    `db:"status"`
 	XpEarned  int32     `db:"xp_earned"`
 	UpdatedAt time.Time `db:"updated_at"`

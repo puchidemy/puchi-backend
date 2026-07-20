@@ -22,13 +22,32 @@ type UnitCompletedEvent struct {
 	CompletedAt time.Time
 }
 
+// SceneCompletedEvent is emitted when a user completes a story scene.
+type SceneCompletedEvent struct {
+	UserID      string
+	SceneID     string
+	StoryID     string
+	CompletedAt time.Time
+}
+
+// StoryCompletedEvent is emitted when a user completes a story.
+type StoryCompletedEvent struct {
+	UserID      string
+	StoryID     string
+	CityID      string
+	XP          int32
+	CompletedAt time.Time
+}
+
 // LessonEventPublisher publishes learn completion events (user-only at call sites).
 type LessonEventPublisher interface {
 	PublishLessonCompleted(ctx context.Context, ev LessonCompletedEvent) error
 	PublishUnitCompleted(ctx context.Context, ev UnitCompletedEvent) error
+	PublishSceneCompleted(ctx context.Context, ev SceneCompletedEvent) error
+	PublishStoryCompleted(ctx context.Context, ev StoryCompletedEvent) error
 }
 
-// NoOpLessonEventPublisher discards events (Task 6 wires real NATS).
+// NoOpLessonEventPublisher discards events.
 type NoOpLessonEventPublisher struct{}
 
 func (NoOpLessonEventPublisher) PublishLessonCompleted(_ context.Context, _ LessonCompletedEvent) error {
@@ -36,6 +55,14 @@ func (NoOpLessonEventPublisher) PublishLessonCompleted(_ context.Context, _ Less
 }
 
 func (NoOpLessonEventPublisher) PublishUnitCompleted(_ context.Context, _ UnitCompletedEvent) error {
+	return nil
+}
+
+func (NoOpLessonEventPublisher) PublishSceneCompleted(_ context.Context, _ SceneCompletedEvent) error {
+	return nil
+}
+
+func (NoOpLessonEventPublisher) PublishStoryCompleted(_ context.Context, _ StoryCompletedEvent) error {
 	return nil
 }
 

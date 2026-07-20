@@ -12,6 +12,8 @@ const (
 	SubjectEmailSend       = "email.send"
 	SubjectLessonCompleted = "learn.lesson.completed"
 	SubjectUnitCompleted   = "learn.unit.completed"
+	SubjectSceneCompleted  = "learn.scene.completed"
+	SubjectStoryCompleted  = "learn.story.completed"
 )
 
 // Queue groups for competing consumers.

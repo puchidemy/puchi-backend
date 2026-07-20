@@ -955,6 +955,1326 @@ func (x *CompleteLessonResponse) GetUnitCompleted() bool {
 	return false
 }
 
+type ListCitiesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListCitiesRequest) Reset() {
+	*x = ListCitiesRequest{}
+	mi := &file_learn_v1_learn_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListCitiesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCitiesRequest) ProtoMessage() {}
+
+func (x *ListCitiesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListCitiesRequest.ProtoReflect.Descriptor instead.
+func (*ListCitiesRequest) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{17}
+}
+
+type City struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Slug                string                 `protobuf:"bytes,2,opt,name=slug,proto3" json:"slug,omitempty"`
+	Name                string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Position            int32                  `protobuf:"varint,4,opt,name=position,proto3" json:"position,omitempty"`
+	MapX                float32                `protobuf:"fixed32,5,opt,name=map_x,json=mapX,proto3" json:"map_x,omitempty"`
+	MapY                float32                `protobuf:"fixed32,6,opt,name=map_y,json=mapY,proto3" json:"map_y,omitempty"`
+	CoverUrl            string                 `protobuf:"bytes,7,opt,name=cover_url,json=coverUrl,proto3" json:"cover_url,omitempty"`
+	Blurb               string                 `protobuf:"bytes,8,opt,name=blurb,proto3" json:"blurb,omitempty"`
+	StoryCount          int32                  `protobuf:"varint,9,opt,name=story_count,json=storyCount,proto3" json:"story_count,omitempty"`
+	CompletedStoryCount int32                  `protobuf:"varint,10,opt,name=completed_story_count,json=completedStoryCount,proto3" json:"completed_story_count,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *City) Reset() {
+	*x = City{}
+	mi := &file_learn_v1_learn_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *City) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*City) ProtoMessage() {}
+
+func (x *City) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use City.ProtoReflect.Descriptor instead.
+func (*City) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *City) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *City) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *City) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *City) GetPosition() int32 {
+	if x != nil {
+		return x.Position
+	}
+	return 0
+}
+
+func (x *City) GetMapX() float32 {
+	if x != nil {
+		return x.MapX
+	}
+	return 0
+}
+
+func (x *City) GetMapY() float32 {
+	if x != nil {
+		return x.MapY
+	}
+	return 0
+}
+
+func (x *City) GetCoverUrl() string {
+	if x != nil {
+		return x.CoverUrl
+	}
+	return ""
+}
+
+func (x *City) GetBlurb() string {
+	if x != nil {
+		return x.Blurb
+	}
+	return ""
+}
+
+func (x *City) GetStoryCount() int32 {
+	if x != nil {
+		return x.StoryCount
+	}
+	return 0
+}
+
+func (x *City) GetCompletedStoryCount() int32 {
+	if x != nil {
+		return x.CompletedStoryCount
+	}
+	return 0
+}
+
+type ListCitiesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Cities        []*City                `protobuf:"bytes,1,rep,name=cities,proto3" json:"cities,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListCitiesResponse) Reset() {
+	*x = ListCitiesResponse{}
+	mi := &file_learn_v1_learn_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListCitiesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCitiesResponse) ProtoMessage() {}
+
+func (x *ListCitiesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListCitiesResponse.ProtoReflect.Descriptor instead.
+func (*ListCitiesResponse) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ListCitiesResponse) GetCities() []*City {
+	if x != nil {
+		return x.Cities
+	}
+	return nil
+}
+
+type GetCityRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Slug          string                 `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCityRequest) Reset() {
+	*x = GetCityRequest{}
+	mi := &file_learn_v1_learn_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCityRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCityRequest) ProtoMessage() {}
+
+func (x *GetCityRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCityRequest.ProtoReflect.Descriptor instead.
+func (*GetCityRequest) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetCityRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+type StorySummary struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Slug           string                 `protobuf:"bytes,2,opt,name=slug,proto3" json:"slug,omitempty"`
+	Title          string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Summary        string                 `protobuf:"bytes,4,opt,name=summary,proto3" json:"summary,omitempty"`
+	CoverUrl       string                 `protobuf:"bytes,5,opt,name=cover_url,json=coverUrl,proto3" json:"cover_url,omitempty"`
+	Cefr           string                 `protobuf:"bytes,6,opt,name=cefr,proto3" json:"cefr,omitempty"`
+	Tags           []string               `protobuf:"bytes,7,rep,name=tags,proto3" json:"tags,omitempty"`
+	EstMinutes     int32                  `protobuf:"varint,8,opt,name=est_minutes,json=estMinutes,proto3" json:"est_minutes,omitempty"`
+	Status         string                 `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
+	ProgressStatus string                 `protobuf:"bytes,10,opt,name=progress_status,json=progressStatus,proto3" json:"progress_status,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *StorySummary) Reset() {
+	*x = StorySummary{}
+	mi := &file_learn_v1_learn_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StorySummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StorySummary) ProtoMessage() {}
+
+func (x *StorySummary) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StorySummary.ProtoReflect.Descriptor instead.
+func (*StorySummary) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *StorySummary) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *StorySummary) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *StorySummary) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *StorySummary) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *StorySummary) GetCoverUrl() string {
+	if x != nil {
+		return x.CoverUrl
+	}
+	return ""
+}
+
+func (x *StorySummary) GetCefr() string {
+	if x != nil {
+		return x.Cefr
+	}
+	return ""
+}
+
+func (x *StorySummary) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *StorySummary) GetEstMinutes() int32 {
+	if x != nil {
+		return x.EstMinutes
+	}
+	return 0
+}
+
+func (x *StorySummary) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *StorySummary) GetProgressStatus() string {
+	if x != nil {
+		return x.ProgressStatus
+	}
+	return ""
+}
+
+type GetCityResponse struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	City                *City                  `protobuf:"bytes,1,opt,name=city,proto3" json:"city,omitempty"`
+	Stories             []*StorySummary        `protobuf:"bytes,2,rep,name=stories,proto3" json:"stories,omitempty"`
+	ContinueStoryId     string                 `protobuf:"bytes,3,opt,name=continue_story_id,json=continueStoryId,proto3" json:"continue_story_id,omitempty"`
+	RecommendedStoryIds []string               `protobuf:"bytes,4,rep,name=recommended_story_ids,json=recommendedStoryIds,proto3" json:"recommended_story_ids,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *GetCityResponse) Reset() {
+	*x = GetCityResponse{}
+	mi := &file_learn_v1_learn_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCityResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCityResponse) ProtoMessage() {}
+
+func (x *GetCityResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCityResponse.ProtoReflect.Descriptor instead.
+func (*GetCityResponse) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *GetCityResponse) GetCity() *City {
+	if x != nil {
+		return x.City
+	}
+	return nil
+}
+
+func (x *GetCityResponse) GetStories() []*StorySummary {
+	if x != nil {
+		return x.Stories
+	}
+	return nil
+}
+
+func (x *GetCityResponse) GetContinueStoryId() string {
+	if x != nil {
+		return x.ContinueStoryId
+	}
+	return ""
+}
+
+func (x *GetCityResponse) GetRecommendedStoryIds() []string {
+	if x != nil {
+		return x.RecommendedStoryIds
+	}
+	return nil
+}
+
+type GetStoryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStoryRequest) Reset() {
+	*x = GetStoryRequest{}
+	mi := &file_learn_v1_learn_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStoryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStoryRequest) ProtoMessage() {}
+
+func (x *GetStoryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStoryRequest.ProtoReflect.Descriptor instead.
+func (*GetStoryRequest) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *GetStoryRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type Story struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	CityId        string                 `protobuf:"bytes,2,opt,name=city_id,json=cityId,proto3" json:"city_id,omitempty"`
+	CitySlug      string                 `protobuf:"bytes,3,opt,name=city_slug,json=citySlug,proto3" json:"city_slug,omitempty"`
+	Slug          string                 `protobuf:"bytes,4,opt,name=slug,proto3" json:"slug,omitempty"`
+	Title         string                 `protobuf:"bytes,5,opt,name=title,proto3" json:"title,omitempty"`
+	Summary       string                 `protobuf:"bytes,6,opt,name=summary,proto3" json:"summary,omitempty"`
+	CoverUrl      string                 `protobuf:"bytes,7,opt,name=cover_url,json=coverUrl,proto3" json:"cover_url,omitempty"`
+	Cefr          string                 `protobuf:"bytes,8,opt,name=cefr,proto3" json:"cefr,omitempty"`
+	Tags          []string               `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags,omitempty"`
+	AudioUrl      string                 `protobuf:"bytes,10,opt,name=audio_url,json=audioUrl,proto3" json:"audio_url,omitempty"`
+	VocabFocus    []string               `protobuf:"bytes,11,rep,name=vocab_focus,json=vocabFocus,proto3" json:"vocab_focus,omitempty"`
+	GrammarFocus  []string               `protobuf:"bytes,12,rep,name=grammar_focus,json=grammarFocus,proto3" json:"grammar_focus,omitempty"`
+	EstMinutes    int32                  `protobuf:"varint,13,opt,name=est_minutes,json=estMinutes,proto3" json:"est_minutes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Story) Reset() {
+	*x = Story{}
+	mi := &file_learn_v1_learn_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Story) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Story) ProtoMessage() {}
+
+func (x *Story) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Story.ProtoReflect.Descriptor instead.
+func (*Story) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *Story) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Story) GetCityId() string {
+	if x != nil {
+		return x.CityId
+	}
+	return ""
+}
+
+func (x *Story) GetCitySlug() string {
+	if x != nil {
+		return x.CitySlug
+	}
+	return ""
+}
+
+func (x *Story) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *Story) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Story) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *Story) GetCoverUrl() string {
+	if x != nil {
+		return x.CoverUrl
+	}
+	return ""
+}
+
+func (x *Story) GetCefr() string {
+	if x != nil {
+		return x.Cefr
+	}
+	return ""
+}
+
+func (x *Story) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *Story) GetAudioUrl() string {
+	if x != nil {
+		return x.AudioUrl
+	}
+	return ""
+}
+
+func (x *Story) GetVocabFocus() []string {
+	if x != nil {
+		return x.VocabFocus
+	}
+	return nil
+}
+
+func (x *Story) GetGrammarFocus() []string {
+	if x != nil {
+		return x.GrammarFocus
+	}
+	return nil
+}
+
+func (x *Story) GetEstMinutes() int32 {
+	if x != nil {
+		return x.EstMinutes
+	}
+	return 0
+}
+
+type Activity struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Position      int32                  `protobuf:"varint,2,opt,name=position,proto3" json:"position,omitempty"`
+	Type          string                 `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
+	PromptJson    string                 `protobuf:"bytes,4,opt,name=prompt_json,json=promptJson,proto3" json:"prompt_json,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Activity) Reset() {
+	*x = Activity{}
+	mi := &file_learn_v1_learn_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Activity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Activity) ProtoMessage() {}
+
+func (x *Activity) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Activity.ProtoReflect.Descriptor instead.
+func (*Activity) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *Activity) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Activity) GetPosition() int32 {
+	if x != nil {
+		return x.Position
+	}
+	return 0
+}
+
+func (x *Activity) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *Activity) GetPromptJson() string {
+	if x != nil {
+		return x.PromptJson
+	}
+	return ""
+}
+
+type Scene struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Position        int32                  `protobuf:"varint,2,opt,name=position,proto3" json:"position,omitempty"`
+	Title           string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Narration       string                 `protobuf:"bytes,4,opt,name=narration,proto3" json:"narration,omitempty"`
+	DialogueJson    string                 `protobuf:"bytes,5,opt,name=dialogue_json,json=dialogueJson,proto3" json:"dialogue_json,omitempty"`
+	IllustrationUrl string                 `protobuf:"bytes,6,opt,name=illustration_url,json=illustrationUrl,proto3" json:"illustration_url,omitempty"`
+	AudioUrl        string                 `protobuf:"bytes,7,opt,name=audio_url,json=audioUrl,proto3" json:"audio_url,omitempty"`
+	ProgressStatus  string                 `protobuf:"bytes,8,opt,name=progress_status,json=progressStatus,proto3" json:"progress_status,omitempty"`
+	Activities      []*Activity            `protobuf:"bytes,9,rep,name=activities,proto3" json:"activities,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *Scene) Reset() {
+	*x = Scene{}
+	mi := &file_learn_v1_learn_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Scene) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Scene) ProtoMessage() {}
+
+func (x *Scene) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Scene.ProtoReflect.Descriptor instead.
+func (*Scene) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *Scene) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Scene) GetPosition() int32 {
+	if x != nil {
+		return x.Position
+	}
+	return 0
+}
+
+func (x *Scene) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Scene) GetNarration() string {
+	if x != nil {
+		return x.Narration
+	}
+	return ""
+}
+
+func (x *Scene) GetDialogueJson() string {
+	if x != nil {
+		return x.DialogueJson
+	}
+	return ""
+}
+
+func (x *Scene) GetIllustrationUrl() string {
+	if x != nil {
+		return x.IllustrationUrl
+	}
+	return ""
+}
+
+func (x *Scene) GetAudioUrl() string {
+	if x != nil {
+		return x.AudioUrl
+	}
+	return ""
+}
+
+func (x *Scene) GetProgressStatus() string {
+	if x != nil {
+		return x.ProgressStatus
+	}
+	return ""
+}
+
+func (x *Scene) GetActivities() []*Activity {
+	if x != nil {
+		return x.Activities
+	}
+	return nil
+}
+
+type GetStoryResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Story          *Story                 `protobuf:"bytes,1,opt,name=story,proto3" json:"story,omitempty"`
+	Scenes         []*Scene               `protobuf:"bytes,2,rep,name=scenes,proto3" json:"scenes,omitempty"`
+	ProgressStatus string                 `protobuf:"bytes,3,opt,name=progress_status,json=progressStatus,proto3" json:"progress_status,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetStoryResponse) Reset() {
+	*x = GetStoryResponse{}
+	mi := &file_learn_v1_learn_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStoryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStoryResponse) ProtoMessage() {}
+
+func (x *GetStoryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStoryResponse.ProtoReflect.Descriptor instead.
+func (*GetStoryResponse) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *GetStoryResponse) GetStory() *Story {
+	if x != nil {
+		return x.Story
+	}
+	return nil
+}
+
+func (x *GetStoryResponse) GetScenes() []*Scene {
+	if x != nil {
+		return x.Scenes
+	}
+	return nil
+}
+
+func (x *GetStoryResponse) GetProgressStatus() string {
+	if x != nil {
+		return x.ProgressStatus
+	}
+	return ""
+}
+
+type StartActivityRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SceneId       string                 `protobuf:"bytes,1,opt,name=scene_id,json=sceneId,proto3" json:"scene_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartActivityRequest) Reset() {
+	*x = StartActivityRequest{}
+	mi := &file_learn_v1_learn_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartActivityRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartActivityRequest) ProtoMessage() {}
+
+func (x *StartActivityRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartActivityRequest.ProtoReflect.Descriptor instead.
+func (*StartActivityRequest) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *StartActivityRequest) GetSceneId() string {
+	if x != nil {
+		return x.SceneId
+	}
+	return ""
+}
+
+type StartActivityResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AttemptId     string                 `protobuf:"bytes,1,opt,name=attempt_id,json=attemptId,proto3" json:"attempt_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartActivityResponse) Reset() {
+	*x = StartActivityResponse{}
+	mi := &file_learn_v1_learn_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartActivityResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartActivityResponse) ProtoMessage() {}
+
+func (x *StartActivityResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartActivityResponse.ProtoReflect.Descriptor instead.
+func (*StartActivityResponse) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *StartActivityResponse) GetAttemptId() string {
+	if x != nil {
+		return x.AttemptId
+	}
+	return ""
+}
+
+type SubmitActivityAnswerRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AttemptId     string                 `protobuf:"bytes,1,opt,name=attempt_id,json=attemptId,proto3" json:"attempt_id,omitempty"`
+	ActivityId    string                 `protobuf:"bytes,2,opt,name=activity_id,json=activityId,proto3" json:"activity_id,omitempty"`
+	PayloadJson   string                 `protobuf:"bytes,3,opt,name=payload_json,json=payloadJson,proto3" json:"payload_json,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubmitActivityAnswerRequest) Reset() {
+	*x = SubmitActivityAnswerRequest{}
+	mi := &file_learn_v1_learn_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubmitActivityAnswerRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubmitActivityAnswerRequest) ProtoMessage() {}
+
+func (x *SubmitActivityAnswerRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubmitActivityAnswerRequest.ProtoReflect.Descriptor instead.
+func (*SubmitActivityAnswerRequest) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *SubmitActivityAnswerRequest) GetAttemptId() string {
+	if x != nil {
+		return x.AttemptId
+	}
+	return ""
+}
+
+func (x *SubmitActivityAnswerRequest) GetActivityId() string {
+	if x != nil {
+		return x.ActivityId
+	}
+	return ""
+}
+
+func (x *SubmitActivityAnswerRequest) GetPayloadJson() string {
+	if x != nil {
+		return x.PayloadJson
+	}
+	return ""
+}
+
+type SubmitActivityAnswerResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Correct       bool                   `protobuf:"varint,1,opt,name=correct,proto3" json:"correct,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubmitActivityAnswerResponse) Reset() {
+	*x = SubmitActivityAnswerResponse{}
+	mi := &file_learn_v1_learn_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubmitActivityAnswerResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubmitActivityAnswerResponse) ProtoMessage() {}
+
+func (x *SubmitActivityAnswerResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubmitActivityAnswerResponse.ProtoReflect.Descriptor instead.
+func (*SubmitActivityAnswerResponse) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *SubmitActivityAnswerResponse) GetCorrect() bool {
+	if x != nil {
+		return x.Correct
+	}
+	return false
+}
+
+type CompleteSceneRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteSceneRequest) Reset() {
+	*x = CompleteSceneRequest{}
+	mi := &file_learn_v1_learn_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteSceneRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteSceneRequest) ProtoMessage() {}
+
+func (x *CompleteSceneRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteSceneRequest.ProtoReflect.Descriptor instead.
+func (*CompleteSceneRequest) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *CompleteSceneRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type CompleteSceneResponse struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	SceneCompleted      bool                   `protobuf:"varint,1,opt,name=scene_completed,json=sceneCompleted,proto3" json:"scene_completed,omitempty"`
+	StoryCompleted      bool                   `protobuf:"varint,2,opt,name=story_completed,json=storyCompleted,proto3" json:"story_completed,omitempty"`
+	CompletedSceneCount int32                  `protobuf:"varint,3,opt,name=completed_scene_count,json=completedSceneCount,proto3" json:"completed_scene_count,omitempty"`
+	SoftGate            bool                   `protobuf:"varint,4,opt,name=soft_gate,json=softGate,proto3" json:"soft_gate,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *CompleteSceneResponse) Reset() {
+	*x = CompleteSceneResponse{}
+	mi := &file_learn_v1_learn_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteSceneResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteSceneResponse) ProtoMessage() {}
+
+func (x *CompleteSceneResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteSceneResponse.ProtoReflect.Descriptor instead.
+func (*CompleteSceneResponse) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *CompleteSceneResponse) GetSceneCompleted() bool {
+	if x != nil {
+		return x.SceneCompleted
+	}
+	return false
+}
+
+func (x *CompleteSceneResponse) GetStoryCompleted() bool {
+	if x != nil {
+		return x.StoryCompleted
+	}
+	return false
+}
+
+func (x *CompleteSceneResponse) GetCompletedSceneCount() int32 {
+	if x != nil {
+		return x.CompletedSceneCount
+	}
+	return 0
+}
+
+func (x *CompleteSceneResponse) GetSoftGate() bool {
+	if x != nil {
+		return x.SoftGate
+	}
+	return false
+}
+
+type CompleteStoryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteStoryRequest) Reset() {
+	*x = CompleteStoryRequest{}
+	mi := &file_learn_v1_learn_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteStoryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteStoryRequest) ProtoMessage() {}
+
+func (x *CompleteStoryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteStoryRequest.ProtoReflect.Descriptor instead.
+func (*CompleteStoryRequest) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *CompleteStoryRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type StoryCompletionSummary struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	VocabFocus       []string               `protobuf:"bytes,1,rep,name=vocab_focus,json=vocabFocus,proto3" json:"vocab_focus,omitempty"`
+	GrammarFocus     []string               `protobuf:"bytes,2,rep,name=grammar_focus,json=grammarFocus,proto3" json:"grammar_focus,omitempty"`
+	ListeningSeconds int32                  `protobuf:"varint,3,opt,name=listening_seconds,json=listeningSeconds,proto3" json:"listening_seconds,omitempty"`
+	CulturalFact     string                 `protobuf:"bytes,4,opt,name=cultural_fact,json=culturalFact,proto3" json:"cultural_fact,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *StoryCompletionSummary) Reset() {
+	*x = StoryCompletionSummary{}
+	mi := &file_learn_v1_learn_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StoryCompletionSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StoryCompletionSummary) ProtoMessage() {}
+
+func (x *StoryCompletionSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StoryCompletionSummary.ProtoReflect.Descriptor instead.
+func (*StoryCompletionSummary) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *StoryCompletionSummary) GetVocabFocus() []string {
+	if x != nil {
+		return x.VocabFocus
+	}
+	return nil
+}
+
+func (x *StoryCompletionSummary) GetGrammarFocus() []string {
+	if x != nil {
+		return x.GrammarFocus
+	}
+	return nil
+}
+
+func (x *StoryCompletionSummary) GetListeningSeconds() int32 {
+	if x != nil {
+		return x.ListeningSeconds
+	}
+	return 0
+}
+
+func (x *StoryCompletionSummary) GetCulturalFact() string {
+	if x != nil {
+		return x.CulturalFact
+	}
+	return ""
+}
+
+type CompleteStoryResponse struct {
+	state          protoimpl.MessageState  `protogen:"open.v1"`
+	Xp             int32                   `protobuf:"varint,1,opt,name=xp,proto3" json:"xp,omitempty"`
+	StoryCompleted bool                    `protobuf:"varint,2,opt,name=story_completed,json=storyCompleted,proto3" json:"story_completed,omitempty"`
+	Summary        *StoryCompletionSummary `protobuf:"bytes,3,opt,name=summary,proto3" json:"summary,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *CompleteStoryResponse) Reset() {
+	*x = CompleteStoryResponse{}
+	mi := &file_learn_v1_learn_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteStoryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteStoryResponse) ProtoMessage() {}
+
+func (x *CompleteStoryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_learn_v1_learn_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteStoryResponse.ProtoReflect.Descriptor instead.
+func (*CompleteStoryResponse) Descriptor() ([]byte, []int) {
+	return file_learn_v1_learn_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *CompleteStoryResponse) GetXp() int32 {
+	if x != nil {
+		return x.Xp
+	}
+	return 0
+}
+
+func (x *CompleteStoryResponse) GetStoryCompleted() bool {
+	if x != nil {
+		return x.StoryCompleted
+	}
+	return false
+}
+
+func (x *CompleteStoryResponse) GetSummary() *StoryCompletionSummary {
+	if x != nil {
+		return x.Summary
+	}
+	return nil
+}
+
 var File_learn_v1_learn_proto protoreflect.FileDescriptor
 
 const file_learn_v1_learn_proto_rawDesc = "" +
@@ -1022,7 +2342,116 @@ const file_learn_v1_learn_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"O\n" +
 	"\x16CompleteLessonResponse\x12\x0e\n" +
 	"\x02xp\x18\x01 \x01(\x05R\x02xp\x12%\n" +
-	"\x0eunit_completed\x18\x02 \x01(\bR\runitCompleted2\xbf\a\n" +
+	"\x0eunit_completed\x18\x02 \x01(\bR\runitCompleted\"\x13\n" +
+	"\x11ListCitiesRequest\"\x8c\x02\n" +
+	"\x04City\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04slug\x18\x02 \x01(\tR\x04slug\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1a\n" +
+	"\bposition\x18\x04 \x01(\x05R\bposition\x12\x13\n" +
+	"\x05map_x\x18\x05 \x01(\x02R\x04mapX\x12\x13\n" +
+	"\x05map_y\x18\x06 \x01(\x02R\x04mapY\x12\x1b\n" +
+	"\tcover_url\x18\a \x01(\tR\bcoverUrl\x12\x14\n" +
+	"\x05blurb\x18\b \x01(\tR\x05blurb\x12\x1f\n" +
+	"\vstory_count\x18\t \x01(\x05R\n" +
+	"storyCount\x122\n" +
+	"\x15completed_story_count\x18\n" +
+	" \x01(\x05R\x13completedStoryCount\"B\n" +
+	"\x12ListCitiesResponse\x12,\n" +
+	"\x06cities\x18\x01 \x03(\v2\x14.puchi.learn.v1.CityR\x06cities\")\n" +
+	"\x0eGetCityRequest\x12\x17\n" +
+	"\x04slug\x18\x01 \x01(\tB\x03\xe0A\x02R\x04slug\"\x89\x02\n" +
+	"\fStorySummary\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04slug\x18\x02 \x01(\tR\x04slug\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x18\n" +
+	"\asummary\x18\x04 \x01(\tR\asummary\x12\x1b\n" +
+	"\tcover_url\x18\x05 \x01(\tR\bcoverUrl\x12\x12\n" +
+	"\x04cefr\x18\x06 \x01(\tR\x04cefr\x12\x12\n" +
+	"\x04tags\x18\a \x03(\tR\x04tags\x12\x1f\n" +
+	"\vest_minutes\x18\b \x01(\x05R\n" +
+	"estMinutes\x12\x16\n" +
+	"\x06status\x18\t \x01(\tR\x06status\x12'\n" +
+	"\x0fprogress_status\x18\n" +
+	" \x01(\tR\x0eprogressStatus\"\xd3\x01\n" +
+	"\x0fGetCityResponse\x12(\n" +
+	"\x04city\x18\x01 \x01(\v2\x14.puchi.learn.v1.CityR\x04city\x126\n" +
+	"\astories\x18\x02 \x03(\v2\x1c.puchi.learn.v1.StorySummaryR\astories\x12*\n" +
+	"\x11continue_story_id\x18\x03 \x01(\tR\x0fcontinueStoryId\x122\n" +
+	"\x15recommended_story_ids\x18\x04 \x03(\tR\x13recommendedStoryIds\"&\n" +
+	"\x0fGetStoryRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xda\x02\n" +
+	"\x05Story\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
+	"\acity_id\x18\x02 \x01(\tR\x06cityId\x12\x1b\n" +
+	"\tcity_slug\x18\x03 \x01(\tR\bcitySlug\x12\x12\n" +
+	"\x04slug\x18\x04 \x01(\tR\x04slug\x12\x14\n" +
+	"\x05title\x18\x05 \x01(\tR\x05title\x12\x18\n" +
+	"\asummary\x18\x06 \x01(\tR\asummary\x12\x1b\n" +
+	"\tcover_url\x18\a \x01(\tR\bcoverUrl\x12\x12\n" +
+	"\x04cefr\x18\b \x01(\tR\x04cefr\x12\x12\n" +
+	"\x04tags\x18\t \x03(\tR\x04tags\x12\x1b\n" +
+	"\taudio_url\x18\n" +
+	" \x01(\tR\baudioUrl\x12\x1f\n" +
+	"\vvocab_focus\x18\v \x03(\tR\n" +
+	"vocabFocus\x12#\n" +
+	"\rgrammar_focus\x18\f \x03(\tR\fgrammarFocus\x12\x1f\n" +
+	"\vest_minutes\x18\r \x01(\x05R\n" +
+	"estMinutes\"k\n" +
+	"\bActivity\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\bposition\x18\x02 \x01(\x05R\bposition\x12\x12\n" +
+	"\x04type\x18\x03 \x01(\tR\x04type\x12\x1f\n" +
+	"\vprompt_json\x18\x04 \x01(\tR\n" +
+	"promptJson\"\xb7\x02\n" +
+	"\x05Scene\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\bposition\x18\x02 \x01(\x05R\bposition\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x1c\n" +
+	"\tnarration\x18\x04 \x01(\tR\tnarration\x12#\n" +
+	"\rdialogue_json\x18\x05 \x01(\tR\fdialogueJson\x12)\n" +
+	"\x10illustration_url\x18\x06 \x01(\tR\x0fillustrationUrl\x12\x1b\n" +
+	"\taudio_url\x18\a \x01(\tR\baudioUrl\x12'\n" +
+	"\x0fprogress_status\x18\b \x01(\tR\x0eprogressStatus\x128\n" +
+	"\n" +
+	"activities\x18\t \x03(\v2\x18.puchi.learn.v1.ActivityR\n" +
+	"activities\"\x97\x01\n" +
+	"\x10GetStoryResponse\x12+\n" +
+	"\x05story\x18\x01 \x01(\v2\x15.puchi.learn.v1.StoryR\x05story\x12-\n" +
+	"\x06scenes\x18\x02 \x03(\v2\x15.puchi.learn.v1.SceneR\x06scenes\x12'\n" +
+	"\x0fprogress_status\x18\x03 \x01(\tR\x0eprogressStatus\"6\n" +
+	"\x14StartActivityRequest\x12\x1e\n" +
+	"\bscene_id\x18\x01 \x01(\tB\x03\xe0A\x02R\asceneId\"6\n" +
+	"\x15StartActivityResponse\x12\x1d\n" +
+	"\n" +
+	"attempt_id\x18\x01 \x01(\tR\tattemptId\"\x8f\x01\n" +
+	"\x1bSubmitActivityAnswerRequest\x12\"\n" +
+	"\n" +
+	"attempt_id\x18\x01 \x01(\tB\x03\xe0A\x02R\tattemptId\x12$\n" +
+	"\vactivity_id\x18\x02 \x01(\tB\x03\xe0A\x02R\n" +
+	"activityId\x12&\n" +
+	"\fpayload_json\x18\x03 \x01(\tB\x03\xe0A\x02R\vpayloadJson\"8\n" +
+	"\x1cSubmitActivityAnswerResponse\x12\x18\n" +
+	"\acorrect\x18\x01 \x01(\bR\acorrect\"+\n" +
+	"\x14CompleteSceneRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xba\x01\n" +
+	"\x15CompleteSceneResponse\x12'\n" +
+	"\x0fscene_completed\x18\x01 \x01(\bR\x0esceneCompleted\x12'\n" +
+	"\x0fstory_completed\x18\x02 \x01(\bR\x0estoryCompleted\x122\n" +
+	"\x15completed_scene_count\x18\x03 \x01(\x05R\x13completedSceneCount\x12\x1b\n" +
+	"\tsoft_gate\x18\x04 \x01(\bR\bsoftGate\"+\n" +
+	"\x14CompleteStoryRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xb0\x01\n" +
+	"\x16StoryCompletionSummary\x12\x1f\n" +
+	"\vvocab_focus\x18\x01 \x03(\tR\n" +
+	"vocabFocus\x12#\n" +
+	"\rgrammar_focus\x18\x02 \x03(\tR\fgrammarFocus\x12+\n" +
+	"\x11listening_seconds\x18\x03 \x01(\x05R\x10listeningSeconds\x12#\n" +
+	"\rcultural_fact\x18\x04 \x01(\tR\fculturalFact\"\x92\x01\n" +
+	"\x15CompleteStoryResponse\x12\x0e\n" +
+	"\x02xp\x18\x01 \x01(\x05R\x02xp\x12'\n" +
+	"\x0fstory_completed\x18\x02 \x01(\bR\x0estoryCompleted\x12@\n" +
+	"\asummary\x18\x03 \x01(\v2&.puchi.learn.v1.StoryCompletionSummaryR\asummary2\xe7\x0e\n" +
 	"\fLearnService\x12N\n" +
 	"\x04Ping\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/learn/ping\x12n\n" +
 	"\x12CreateGuestSession\x12\x16.google.protobuf.Empty\x1a\x1c.puchi.learn.v1.GuestSession\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/v1/learn/guest/session\x12u\n" +
@@ -1032,7 +2461,15 @@ const file_learn_v1_learn_proto_rawDesc = "" +
 	"\tGetLesson\x12 .puchi.learn.v1.GetLessonRequest\x1a!.puchi.learn.v1.GetLessonResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/v1/learn/lessons/{id}\x12\x7f\n" +
 	"\vStartLesson\x12\".puchi.learn.v1.StartLessonRequest\x1a#.puchi.learn.v1.StartLessonResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/v1/learn/lessons/{id}/start\x12\x8c\x01\n" +
 	"\fSubmitAnswer\x12#.puchi.learn.v1.SubmitAnswerRequest\x1a$.puchi.learn.v1.SubmitAnswerResponse\"1\x82\xd3\xe4\x93\x02+:\x01*\"&/v1/learn/attempts/{attempt_id}/answer\x12\x8b\x01\n" +
-	"\x0eCompleteLesson\x12%.puchi.learn.v1.CompleteLessonRequest\x1a&.puchi.learn.v1.CompleteLessonResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/learn/lessons/{id}/completeBg\n" +
+	"\x0eCompleteLesson\x12%.puchi.learn.v1.CompleteLessonRequest\x1a&.puchi.learn.v1.CompleteLessonResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/learn/lessons/{id}/complete\x12m\n" +
+	"\n" +
+	"ListCities\x12!.puchi.learn.v1.ListCitiesRequest\x1a\".puchi.learn.v1.ListCitiesResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/v1/learn/cities\x12k\n" +
+	"\aGetCity\x12\x1e.puchi.learn.v1.GetCityRequest\x1a\x1f.puchi.learn.v1.GetCityResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/v1/learn/cities/{slug}\x12m\n" +
+	"\bGetStory\x12\x1f.puchi.learn.v1.GetStoryRequest\x1a .puchi.learn.v1.GetStoryResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/v1/learn/stories/{id}\x12\x95\x01\n" +
+	"\rStartActivity\x12$.puchi.learn.v1.StartActivityRequest\x1a%.puchi.learn.v1.StartActivityResponse\"7\x82\xd3\xe4\x93\x021:\x01*\",/v1/learn/scenes/{scene_id}/activities/start\x12\xad\x01\n" +
+	"\x14SubmitActivityAnswer\x12+.puchi.learn.v1.SubmitActivityAnswerRequest\x1a,.puchi.learn.v1.SubmitActivityAnswerResponse\":\x82\xd3\xe4\x93\x024:\x01*\"//v1/learn/activity-attempts/{attempt_id}/answer\x12\x87\x01\n" +
+	"\rCompleteScene\x12$.puchi.learn.v1.CompleteSceneRequest\x1a%.puchi.learn.v1.CompleteSceneResponse\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/v1/learn/scenes/{id}/complete\x12\x88\x01\n" +
+	"\rCompleteStory\x12$.puchi.learn.v1.CompleteStoryRequest\x1a%.puchi.learn.v1.CompleteStoryResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/learn/stories/{id}/completeBg\n" +
 	"\x19io.grpc.examples.learn.v1B\n" +
 	"LearnProtoP\x01Z<github.com/puchidemy/puchi-backend/app/learn/api/learn/v1;v1b\x06proto3"
 
@@ -1048,26 +2485,46 @@ func file_learn_v1_learn_proto_rawDescGZIP() []byte {
 	return file_learn_v1_learn_proto_rawDescData
 }
 
-var file_learn_v1_learn_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_learn_v1_learn_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_learn_v1_learn_proto_goTypes = []any{
-	(*GuestSession)(nil),           // 0: puchi.learn.v1.GuestSession
-	(*ClaimGuestRequest)(nil),      // 1: puchi.learn.v1.ClaimGuestRequest
-	(*ClaimGuestResponse)(nil),     // 2: puchi.learn.v1.ClaimGuestResponse
-	(*GetUnitRequest)(nil),         // 3: puchi.learn.v1.GetUnitRequest
-	(*GetLessonRequest)(nil),       // 4: puchi.learn.v1.GetLessonRequest
-	(*Unit)(nil),                   // 5: puchi.learn.v1.Unit
-	(*Skill)(nil),                  // 6: puchi.learn.v1.Skill
-	(*Lesson)(nil),                 // 7: puchi.learn.v1.Lesson
-	(*Exercise)(nil),               // 8: puchi.learn.v1.Exercise
-	(*GetUnitResponse)(nil),        // 9: puchi.learn.v1.GetUnitResponse
-	(*GetLessonResponse)(nil),      // 10: puchi.learn.v1.GetLessonResponse
-	(*StartLessonRequest)(nil),     // 11: puchi.learn.v1.StartLessonRequest
-	(*StartLessonResponse)(nil),    // 12: puchi.learn.v1.StartLessonResponse
-	(*SubmitAnswerRequest)(nil),    // 13: puchi.learn.v1.SubmitAnswerRequest
-	(*SubmitAnswerResponse)(nil),   // 14: puchi.learn.v1.SubmitAnswerResponse
-	(*CompleteLessonRequest)(nil),  // 15: puchi.learn.v1.CompleteLessonRequest
-	(*CompleteLessonResponse)(nil), // 16: puchi.learn.v1.CompleteLessonResponse
-	(*emptypb.Empty)(nil),          // 17: google.protobuf.Empty
+	(*GuestSession)(nil),                 // 0: puchi.learn.v1.GuestSession
+	(*ClaimGuestRequest)(nil),            // 1: puchi.learn.v1.ClaimGuestRequest
+	(*ClaimGuestResponse)(nil),           // 2: puchi.learn.v1.ClaimGuestResponse
+	(*GetUnitRequest)(nil),               // 3: puchi.learn.v1.GetUnitRequest
+	(*GetLessonRequest)(nil),             // 4: puchi.learn.v1.GetLessonRequest
+	(*Unit)(nil),                         // 5: puchi.learn.v1.Unit
+	(*Skill)(nil),                        // 6: puchi.learn.v1.Skill
+	(*Lesson)(nil),                       // 7: puchi.learn.v1.Lesson
+	(*Exercise)(nil),                     // 8: puchi.learn.v1.Exercise
+	(*GetUnitResponse)(nil),              // 9: puchi.learn.v1.GetUnitResponse
+	(*GetLessonResponse)(nil),            // 10: puchi.learn.v1.GetLessonResponse
+	(*StartLessonRequest)(nil),           // 11: puchi.learn.v1.StartLessonRequest
+	(*StartLessonResponse)(nil),          // 12: puchi.learn.v1.StartLessonResponse
+	(*SubmitAnswerRequest)(nil),          // 13: puchi.learn.v1.SubmitAnswerRequest
+	(*SubmitAnswerResponse)(nil),         // 14: puchi.learn.v1.SubmitAnswerResponse
+	(*CompleteLessonRequest)(nil),        // 15: puchi.learn.v1.CompleteLessonRequest
+	(*CompleteLessonResponse)(nil),       // 16: puchi.learn.v1.CompleteLessonResponse
+	(*ListCitiesRequest)(nil),            // 17: puchi.learn.v1.ListCitiesRequest
+	(*City)(nil),                         // 18: puchi.learn.v1.City
+	(*ListCitiesResponse)(nil),           // 19: puchi.learn.v1.ListCitiesResponse
+	(*GetCityRequest)(nil),               // 20: puchi.learn.v1.GetCityRequest
+	(*StorySummary)(nil),                 // 21: puchi.learn.v1.StorySummary
+	(*GetCityResponse)(nil),              // 22: puchi.learn.v1.GetCityResponse
+	(*GetStoryRequest)(nil),              // 23: puchi.learn.v1.GetStoryRequest
+	(*Story)(nil),                        // 24: puchi.learn.v1.Story
+	(*Activity)(nil),                     // 25: puchi.learn.v1.Activity
+	(*Scene)(nil),                        // 26: puchi.learn.v1.Scene
+	(*GetStoryResponse)(nil),             // 27: puchi.learn.v1.GetStoryResponse
+	(*StartActivityRequest)(nil),         // 28: puchi.learn.v1.StartActivityRequest
+	(*StartActivityResponse)(nil),        // 29: puchi.learn.v1.StartActivityResponse
+	(*SubmitActivityAnswerRequest)(nil),  // 30: puchi.learn.v1.SubmitActivityAnswerRequest
+	(*SubmitActivityAnswerResponse)(nil), // 31: puchi.learn.v1.SubmitActivityAnswerResponse
+	(*CompleteSceneRequest)(nil),         // 32: puchi.learn.v1.CompleteSceneRequest
+	(*CompleteSceneResponse)(nil),        // 33: puchi.learn.v1.CompleteSceneResponse
+	(*CompleteStoryRequest)(nil),         // 34: puchi.learn.v1.CompleteStoryRequest
+	(*StoryCompletionSummary)(nil),       // 35: puchi.learn.v1.StoryCompletionSummary
+	(*CompleteStoryResponse)(nil),        // 36: puchi.learn.v1.CompleteStoryResponse
+	(*emptypb.Empty)(nil),                // 37: google.protobuf.Empty
 }
 var file_learn_v1_learn_proto_depIdxs = []int32{
 	7,  // 0: puchi.learn.v1.Skill.lessons:type_name -> puchi.learn.v1.Lesson
@@ -1075,27 +2532,48 @@ var file_learn_v1_learn_proto_depIdxs = []int32{
 	6,  // 2: puchi.learn.v1.GetUnitResponse.skills:type_name -> puchi.learn.v1.Skill
 	7,  // 3: puchi.learn.v1.GetLessonResponse.lesson:type_name -> puchi.learn.v1.Lesson
 	8,  // 4: puchi.learn.v1.GetLessonResponse.exercises:type_name -> puchi.learn.v1.Exercise
-	17, // 5: puchi.learn.v1.LearnService.Ping:input_type -> google.protobuf.Empty
-	17, // 6: puchi.learn.v1.LearnService.CreateGuestSession:input_type -> google.protobuf.Empty
-	1,  // 7: puchi.learn.v1.LearnService.ClaimGuest:input_type -> puchi.learn.v1.ClaimGuestRequest
-	3,  // 8: puchi.learn.v1.LearnService.GetUnit:input_type -> puchi.learn.v1.GetUnitRequest
-	4,  // 9: puchi.learn.v1.LearnService.GetLesson:input_type -> puchi.learn.v1.GetLessonRequest
-	11, // 10: puchi.learn.v1.LearnService.StartLesson:input_type -> puchi.learn.v1.StartLessonRequest
-	13, // 11: puchi.learn.v1.LearnService.SubmitAnswer:input_type -> puchi.learn.v1.SubmitAnswerRequest
-	15, // 12: puchi.learn.v1.LearnService.CompleteLesson:input_type -> puchi.learn.v1.CompleteLessonRequest
-	17, // 13: puchi.learn.v1.LearnService.Ping:output_type -> google.protobuf.Empty
-	0,  // 14: puchi.learn.v1.LearnService.CreateGuestSession:output_type -> puchi.learn.v1.GuestSession
-	2,  // 15: puchi.learn.v1.LearnService.ClaimGuest:output_type -> puchi.learn.v1.ClaimGuestResponse
-	9,  // 16: puchi.learn.v1.LearnService.GetUnit:output_type -> puchi.learn.v1.GetUnitResponse
-	10, // 17: puchi.learn.v1.LearnService.GetLesson:output_type -> puchi.learn.v1.GetLessonResponse
-	12, // 18: puchi.learn.v1.LearnService.StartLesson:output_type -> puchi.learn.v1.StartLessonResponse
-	14, // 19: puchi.learn.v1.LearnService.SubmitAnswer:output_type -> puchi.learn.v1.SubmitAnswerResponse
-	16, // 20: puchi.learn.v1.LearnService.CompleteLesson:output_type -> puchi.learn.v1.CompleteLessonResponse
-	13, // [13:21] is the sub-list for method output_type
-	5,  // [5:13] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	18, // 5: puchi.learn.v1.ListCitiesResponse.cities:type_name -> puchi.learn.v1.City
+	18, // 6: puchi.learn.v1.GetCityResponse.city:type_name -> puchi.learn.v1.City
+	21, // 7: puchi.learn.v1.GetCityResponse.stories:type_name -> puchi.learn.v1.StorySummary
+	25, // 8: puchi.learn.v1.Scene.activities:type_name -> puchi.learn.v1.Activity
+	24, // 9: puchi.learn.v1.GetStoryResponse.story:type_name -> puchi.learn.v1.Story
+	26, // 10: puchi.learn.v1.GetStoryResponse.scenes:type_name -> puchi.learn.v1.Scene
+	35, // 11: puchi.learn.v1.CompleteStoryResponse.summary:type_name -> puchi.learn.v1.StoryCompletionSummary
+	37, // 12: puchi.learn.v1.LearnService.Ping:input_type -> google.protobuf.Empty
+	37, // 13: puchi.learn.v1.LearnService.CreateGuestSession:input_type -> google.protobuf.Empty
+	1,  // 14: puchi.learn.v1.LearnService.ClaimGuest:input_type -> puchi.learn.v1.ClaimGuestRequest
+	3,  // 15: puchi.learn.v1.LearnService.GetUnit:input_type -> puchi.learn.v1.GetUnitRequest
+	4,  // 16: puchi.learn.v1.LearnService.GetLesson:input_type -> puchi.learn.v1.GetLessonRequest
+	11, // 17: puchi.learn.v1.LearnService.StartLesson:input_type -> puchi.learn.v1.StartLessonRequest
+	13, // 18: puchi.learn.v1.LearnService.SubmitAnswer:input_type -> puchi.learn.v1.SubmitAnswerRequest
+	15, // 19: puchi.learn.v1.LearnService.CompleteLesson:input_type -> puchi.learn.v1.CompleteLessonRequest
+	17, // 20: puchi.learn.v1.LearnService.ListCities:input_type -> puchi.learn.v1.ListCitiesRequest
+	20, // 21: puchi.learn.v1.LearnService.GetCity:input_type -> puchi.learn.v1.GetCityRequest
+	23, // 22: puchi.learn.v1.LearnService.GetStory:input_type -> puchi.learn.v1.GetStoryRequest
+	28, // 23: puchi.learn.v1.LearnService.StartActivity:input_type -> puchi.learn.v1.StartActivityRequest
+	30, // 24: puchi.learn.v1.LearnService.SubmitActivityAnswer:input_type -> puchi.learn.v1.SubmitActivityAnswerRequest
+	32, // 25: puchi.learn.v1.LearnService.CompleteScene:input_type -> puchi.learn.v1.CompleteSceneRequest
+	34, // 26: puchi.learn.v1.LearnService.CompleteStory:input_type -> puchi.learn.v1.CompleteStoryRequest
+	37, // 27: puchi.learn.v1.LearnService.Ping:output_type -> google.protobuf.Empty
+	0,  // 28: puchi.learn.v1.LearnService.CreateGuestSession:output_type -> puchi.learn.v1.GuestSession
+	2,  // 29: puchi.learn.v1.LearnService.ClaimGuest:output_type -> puchi.learn.v1.ClaimGuestResponse
+	9,  // 30: puchi.learn.v1.LearnService.GetUnit:output_type -> puchi.learn.v1.GetUnitResponse
+	10, // 31: puchi.learn.v1.LearnService.GetLesson:output_type -> puchi.learn.v1.GetLessonResponse
+	12, // 32: puchi.learn.v1.LearnService.StartLesson:output_type -> puchi.learn.v1.StartLessonResponse
+	14, // 33: puchi.learn.v1.LearnService.SubmitAnswer:output_type -> puchi.learn.v1.SubmitAnswerResponse
+	16, // 34: puchi.learn.v1.LearnService.CompleteLesson:output_type -> puchi.learn.v1.CompleteLessonResponse
+	19, // 35: puchi.learn.v1.LearnService.ListCities:output_type -> puchi.learn.v1.ListCitiesResponse
+	22, // 36: puchi.learn.v1.LearnService.GetCity:output_type -> puchi.learn.v1.GetCityResponse
+	27, // 37: puchi.learn.v1.LearnService.GetStory:output_type -> puchi.learn.v1.GetStoryResponse
+	29, // 38: puchi.learn.v1.LearnService.StartActivity:output_type -> puchi.learn.v1.StartActivityResponse
+	31, // 39: puchi.learn.v1.LearnService.SubmitActivityAnswer:output_type -> puchi.learn.v1.SubmitActivityAnswerResponse
+	33, // 40: puchi.learn.v1.LearnService.CompleteScene:output_type -> puchi.learn.v1.CompleteSceneResponse
+	36, // 41: puchi.learn.v1.LearnService.CompleteStory:output_type -> puchi.learn.v1.CompleteStoryResponse
+	27, // [27:42] is the sub-list for method output_type
+	12, // [12:27] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_learn_v1_learn_proto_init() }
@@ -1109,7 +2587,7 @@ func file_learn_v1_learn_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_learn_v1_learn_proto_rawDesc), len(file_learn_v1_learn_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   17,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

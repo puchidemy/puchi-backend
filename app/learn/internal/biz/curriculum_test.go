@@ -68,7 +68,7 @@ func newCurriculumTestUsecase(curriculum CurriculumRepoInterface, progress ...Pr
 	if len(progress) > 0 && progress[0] != nil {
 		prog = progress[0]
 	}
-	return NewLearnUsecase(&mockGuestRepo{}, prog, curriculum, &mockAttemptRepo{}, NoOpLessonEventPublisher{}, &mockTxManager{
+	return NewLearnUsecase(&mockGuestRepo{}, prog, curriculum, &mockStoryRepo{}, &mockAttemptRepo{}, NoOpLessonEventPublisher{}, &mockTxManager{
 		guest:    &mockGuestRepo{},
 		progress: prog,
 	})

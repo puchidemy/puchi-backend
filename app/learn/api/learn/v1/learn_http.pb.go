@@ -20,21 +20,36 @@ const _ = http.SupportPackageIsVersion3
 
 const OperationLearnServiceClaimGuest = "/puchi.learn.v1.LearnService/ClaimGuest"
 const OperationLearnServiceCompleteLesson = "/puchi.learn.v1.LearnService/CompleteLesson"
+const OperationLearnServiceCompleteScene = "/puchi.learn.v1.LearnService/CompleteScene"
+const OperationLearnServiceCompleteStory = "/puchi.learn.v1.LearnService/CompleteStory"
 const OperationLearnServiceCreateGuestSession = "/puchi.learn.v1.LearnService/CreateGuestSession"
+const OperationLearnServiceGetCity = "/puchi.learn.v1.LearnService/GetCity"
 const OperationLearnServiceGetLesson = "/puchi.learn.v1.LearnService/GetLesson"
+const OperationLearnServiceGetStory = "/puchi.learn.v1.LearnService/GetStory"
 const OperationLearnServiceGetUnit = "/puchi.learn.v1.LearnService/GetUnit"
+const OperationLearnServiceListCities = "/puchi.learn.v1.LearnService/ListCities"
 const OperationLearnServicePing = "/puchi.learn.v1.LearnService/Ping"
+const OperationLearnServiceStartActivity = "/puchi.learn.v1.LearnService/StartActivity"
 const OperationLearnServiceStartLesson = "/puchi.learn.v1.LearnService/StartLesson"
+const OperationLearnServiceSubmitActivityAnswer = "/puchi.learn.v1.LearnService/SubmitActivityAnswer"
 const OperationLearnServiceSubmitAnswer = "/puchi.learn.v1.LearnService/SubmitAnswer"
 
 type LearnServiceHTTPServer interface {
 	ClaimGuest(context.Context, *ClaimGuestRequest) (*ClaimGuestResponse, error)
 	CompleteLesson(context.Context, *CompleteLessonRequest) (*CompleteLessonResponse, error)
+	CompleteScene(context.Context, *CompleteSceneRequest) (*CompleteSceneResponse, error)
+	CompleteStory(context.Context, *CompleteStoryRequest) (*CompleteStoryResponse, error)
 	CreateGuestSession(context.Context, *emptypb.Empty) (*GuestSession, error)
+	GetCity(context.Context, *GetCityRequest) (*GetCityResponse, error)
 	GetLesson(context.Context, *GetLessonRequest) (*GetLessonResponse, error)
+	GetStory(context.Context, *GetStoryRequest) (*GetStoryResponse, error)
 	GetUnit(context.Context, *GetUnitRequest) (*GetUnitResponse, error)
+	// ListCities Story-first path
+	ListCities(context.Context, *ListCitiesRequest) (*ListCitiesResponse, error)
 	Ping(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	StartActivity(context.Context, *StartActivityRequest) (*StartActivityResponse, error)
 	StartLesson(context.Context, *StartLessonRequest) (*StartLessonResponse, error)
+	SubmitActivityAnswer(context.Context, *SubmitActivityAnswerRequest) (*SubmitActivityAnswerResponse, error)
 	SubmitAnswer(context.Context, *SubmitAnswerRequest) (*SubmitAnswerResponse, error)
 }
 
@@ -48,6 +63,13 @@ func RegisterLearnServiceHTTPServer(s *http.Server, srv LearnServiceHTTPServer) 
 	r.Handle("POST", "/v1/learn/lessons/{id}/start", _LearnService_StartLesson0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/learn/attempts/{attempt_id}/answer", _LearnService_SubmitAnswer0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/learn/lessons/{id}/complete", _LearnService_CompleteLesson0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/learn/cities", _LearnService_ListCities0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/learn/cities/{slug}", _LearnService_GetCity0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/learn/stories/{id}", _LearnService_GetStory0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/learn/scenes/{scene_id}/activities/start", _LearnService_StartActivity0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/learn/activity-attempts/{attempt_id}/answer", _LearnService_SubmitActivityAnswer0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/learn/scenes/{id}/complete", _LearnService_CompleteScene0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/learn/stories/{id}/complete", _LearnService_CompleteStory0_HTTP_Handler(srv))
 }
 
 func _LearnService_Ping0_HTTP_Handler(srv LearnServiceHTTPServer) func(ctx http.Context) error {
@@ -217,14 +239,173 @@ func _LearnService_CompleteLesson0_HTTP_Handler(srv LearnServiceHTTPServer) func
 	}
 }
 
+func _LearnService_ListCities0_HTTP_Handler(srv LearnServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListCitiesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationLearnServiceListCities)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListCities(ctx, req.(*ListCitiesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListCitiesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _LearnService_GetCity0_HTTP_Handler(srv LearnServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetCityRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationLearnServiceGetCity)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetCity(ctx, req.(*GetCityRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetCityResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _LearnService_GetStory0_HTTP_Handler(srv LearnServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetStoryRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationLearnServiceGetStory)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetStory(ctx, req.(*GetStoryRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetStoryResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _LearnService_StartActivity0_HTTP_Handler(srv LearnServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in StartActivityRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationLearnServiceStartActivity)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.StartActivity(ctx, req.(*StartActivityRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*StartActivityResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _LearnService_SubmitActivityAnswer0_HTTP_Handler(srv LearnServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SubmitActivityAnswerRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationLearnServiceSubmitActivityAnswer)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SubmitActivityAnswer(ctx, req.(*SubmitActivityAnswerRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SubmitActivityAnswerResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _LearnService_CompleteScene0_HTTP_Handler(srv LearnServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CompleteSceneRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationLearnServiceCompleteScene)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CompleteScene(ctx, req.(*CompleteSceneRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CompleteSceneResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _LearnService_CompleteStory0_HTTP_Handler(srv LearnServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CompleteStoryRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationLearnServiceCompleteStory)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CompleteStory(ctx, req.(*CompleteStoryRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CompleteStoryResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type LearnServiceHTTPClient interface {
 	ClaimGuest(ctx context.Context, req *ClaimGuestRequest, opts ...http.CallOption) (rsp *ClaimGuestResponse, err error)
 	CompleteLesson(ctx context.Context, req *CompleteLessonRequest, opts ...http.CallOption) (rsp *CompleteLessonResponse, err error)
+	CompleteScene(ctx context.Context, req *CompleteSceneRequest, opts ...http.CallOption) (rsp *CompleteSceneResponse, err error)
+	CompleteStory(ctx context.Context, req *CompleteStoryRequest, opts ...http.CallOption) (rsp *CompleteStoryResponse, err error)
 	CreateGuestSession(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *GuestSession, err error)
+	GetCity(ctx context.Context, req *GetCityRequest, opts ...http.CallOption) (rsp *GetCityResponse, err error)
 	GetLesson(ctx context.Context, req *GetLessonRequest, opts ...http.CallOption) (rsp *GetLessonResponse, err error)
+	GetStory(ctx context.Context, req *GetStoryRequest, opts ...http.CallOption) (rsp *GetStoryResponse, err error)
 	GetUnit(ctx context.Context, req *GetUnitRequest, opts ...http.CallOption) (rsp *GetUnitResponse, err error)
+	// ListCities Story-first path
+	ListCities(ctx context.Context, req *ListCitiesRequest, opts ...http.CallOption) (rsp *ListCitiesResponse, err error)
 	Ping(ctx context.Context, req *emptypb.Empty, opts ...http.CallOption) (rsp *emptypb.Empty, err error)
+	StartActivity(ctx context.Context, req *StartActivityRequest, opts ...http.CallOption) (rsp *StartActivityResponse, err error)
 	StartLesson(ctx context.Context, req *StartLessonRequest, opts ...http.CallOption) (rsp *StartLessonResponse, err error)
+	SubmitActivityAnswer(ctx context.Context, req *SubmitActivityAnswerRequest, opts ...http.CallOption) (rsp *SubmitActivityAnswerResponse, err error)
 	SubmitAnswer(ctx context.Context, req *SubmitAnswerRequest, opts ...http.CallOption) (rsp *SubmitAnswerResponse, err error)
 }
 
@@ -270,6 +451,40 @@ func (c *LearnServiceHTTPClientImpl) CompleteLesson(ctx context.Context, in *Com
 	return &out, nil
 }
 
+func (c *LearnServiceHTTPClientImpl) CompleteScene(ctx context.Context, in *CompleteSceneRequest, opts ...http.CallOption) (*CompleteSceneResponse, error) {
+	var out CompleteSceneResponse
+	pattern := "/v1/learn/scenes/{id}/complete"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationLearnServiceCompleteScene),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *LearnServiceHTTPClientImpl) CompleteStory(ctx context.Context, in *CompleteStoryRequest, opts ...http.CallOption) (*CompleteStoryResponse, error) {
+	var out CompleteStoryResponse
+	pattern := "/v1/learn/stories/{id}/complete"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationLearnServiceCompleteStory),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *LearnServiceHTTPClientImpl) CreateGuestSession(ctx context.Context, in *emptypb.Empty, opts ...http.CallOption) (*GuestSession, error) {
 	var out GuestSession
 	pattern := "/v1/learn/guest/session"
@@ -287,6 +502,22 @@ func (c *LearnServiceHTTPClientImpl) CreateGuestSession(ctx context.Context, in 
 	return &out, nil
 }
 
+func (c *LearnServiceHTTPClientImpl) GetCity(ctx context.Context, in *GetCityRequest, opts ...http.CallOption) (*GetCityResponse, error) {
+	var out GetCityResponse
+	pattern := "/v1/learn/cities/{slug}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationLearnServiceGetCity),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *LearnServiceHTTPClientImpl) GetLesson(ctx context.Context, in *GetLessonRequest, opts ...http.CallOption) (*GetLessonResponse, error) {
 	var out GetLessonResponse
 	pattern := "/v1/learn/lessons/{id}"
@@ -294,6 +525,22 @@ func (c *LearnServiceHTTPClientImpl) GetLesson(ctx context.Context, in *GetLesso
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationLearnServiceGetLesson),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *LearnServiceHTTPClientImpl) GetStory(ctx context.Context, in *GetStoryRequest, opts ...http.CallOption) (*GetStoryResponse, error) {
+	var out GetStoryResponse
+	pattern := "/v1/learn/stories/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationLearnServiceGetStory),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -319,6 +566,23 @@ func (c *LearnServiceHTTPClientImpl) GetUnit(ctx context.Context, in *GetUnitReq
 	return &out, nil
 }
 
+// ListCities Story-first path
+func (c *LearnServiceHTTPClientImpl) ListCities(ctx context.Context, in *ListCitiesRequest, opts ...http.CallOption) (*ListCitiesResponse, error) {
+	var out ListCitiesResponse
+	pattern := "/v1/learn/cities"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationLearnServiceListCities),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *LearnServiceHTTPClientImpl) Ping(ctx context.Context, in *emptypb.Empty, opts ...http.CallOption) (*emptypb.Empty, error) {
 	var out emptypb.Empty
 	pattern := "/v1/learn/ping"
@@ -335,6 +599,23 @@ func (c *LearnServiceHTTPClientImpl) Ping(ctx context.Context, in *emptypb.Empty
 	return &out, nil
 }
 
+func (c *LearnServiceHTTPClientImpl) StartActivity(ctx context.Context, in *StartActivityRequest, opts ...http.CallOption) (*StartActivityResponse, error) {
+	var out StartActivityResponse
+	pattern := "/v1/learn/scenes/{scene_id}/activities/start"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationLearnServiceStartActivity),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *LearnServiceHTTPClientImpl) StartLesson(ctx context.Context, in *StartLessonRequest, opts ...http.CallOption) (*StartLessonResponse, error) {
 	var out StartLessonResponse
 	pattern := "/v1/learn/lessons/{id}/start"
@@ -343,6 +624,23 @@ func (c *LearnServiceHTTPClientImpl) StartLesson(ctx context.Context, in *StartL
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationLearnServiceStartLesson),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *LearnServiceHTTPClientImpl) SubmitActivityAnswer(ctx context.Context, in *SubmitActivityAnswerRequest, opts ...http.CallOption) (*SubmitActivityAnswerResponse, error) {
+	var out SubmitActivityAnswerResponse
+	pattern := "/v1/learn/activity-attempts/{attempt_id}/answer"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationLearnServiceSubmitActivityAnswer),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
